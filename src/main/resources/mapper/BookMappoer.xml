@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.from.mapper.BookMapper">
+
+    <!-- 제목+저자로 중복 체크 -->
+    <select id="findByTitleAndAuthor" resultType="Book">
+        SELECT book_id, title, author, cover_image, created_at
+        FROM books
+        WHERE title = #{title} AND author = #{author}
+            LIMIT 1
+    </select>
+
+    <!-- 책 등록 -->
+    <insert id="insertBook" parameterType="Book" useGeneratedKeys="true" keyProperty="bookId">
+        INSERT INTO books (title, author, cover_image, created_at)
+        VALUES (#{title}, #{author}, #{coverImage}, NOW())
+    </insert>
+
+    <!-- user_books 연결 -->
+    <insert id="insertUserBook">
+        INSERT INTO user_books (user_id, book_id, registered_at)
+        VALUES (#{userId}, #{bookId}, NOW())
+    </insert>
+
+    <!-- 유저가 등록한 책 목록 -->
+    <select id="findBooksByUserId" parameterType="Long" resultType="Book">
+        SELECT b.book_id, b.title, b.author, b.cover_image
+        FROM books b
+                 JOIN user_books ub ON b.book_id = ub.book_id
+        WHERE ub.user_id = #{userId}
+        ORDER BY ub.registered_at DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.from.mapper.UserMapper">
+
+    <!-- 아이디 중복 체크 -->
+    <select id="checkUsernameExists" parameterType="String" resultType="String">
+        SELECT CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END
+        FROM users
+        WHERE username = #{username} AND deleted_at IS NULL
+    </select>
+
+    <!-- 이메일 중복 체크 -->
+    <select id="checkEmailExists" parameterType="String" resultType="String">
+        SELECT CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END
+        FROM users
+        WHERE email = #{email} AND deleted_at IS NULL
+    </select>
+
+    <!-- 일반 회원가입 -->
+    <insert id="insertUser" parameterType="User">
+        INSERT INTO users (username, password, name, email, login_type, created_at, updated_at)
+        VALUES (#{username}, #{password}, #{name}, #{email}, 'LOCAL', NOW(), NOW())
+    </insert>
+
+    <!-- 카카오 회원가입 -->
+    <insert id="insertKakaoUser" parameterType="User" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO users (username, password, name, email, kakao_id, login_type, created_at, updated_at)
+        VALUES (#{username}, '', #{name}, '', #{kakaoId}, 'KAKAO', NOW(), NOW())
+    </insert>
+
+    <!-- 아이디로 회원 조회 -->
+    <select id="findByUsername" parameterType="String" resultType="User">
+        SELECT user_id, username, password, name, email, kakao_id, login_type, created_at
+        FROM users
+        WHERE username = #{username} AND deleted_at IS NULL
+    </select>
+
+    <!-- userId로 회원 조회 -->
+    <select id="findByUserId" parameterType="Long" resultType="User">
+        SELECT user_id, username, password, name, email, kakao_id, login_type, created_at
+        FROM users
+        WHERE user_id = #{userId} AND deleted_at IS NULL
+    </select>
+
+    <!-- 카카오 ID로 회원 조회 -->
+    <select id="findByKakaoId" parameterType="Long" resultType="User">
+        SELECT user_id, username, password, name, email, kakao_id, login_type, created_at
+        FROM users
+        WHERE kakao_id = #{kakaoId} AND deleted_at IS NULL
+    </select>
+
+    <!-- 아이디 찾기 - 이름 + 이메일 -->
+    <select id="findByNameAndEmail" parameterType="User" resultType="User">
+        SELECT user_id, username, name, email
+        FROM users
+        WHERE name = #{name} AND email = #{email} AND deleted_at IS NULL
+    </select>
+
+    <!-- 회원 탈퇴 (소프트 삭제) -->
+    <update id="deleteUser" parameterType="Long">
+        UPDATE users SET deleted_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 비밀번호 변경 -->
+    <update id="updatePassword" parameterType="User">
+        UPDATE users SET password = #{password}, updated_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+</mapper>

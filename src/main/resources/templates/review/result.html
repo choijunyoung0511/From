@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>독후감 결과 - FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        .letter-wrap {
+            max-width: 560px;
+            margin: 40px auto;
+            border-radius: 16px;
+            padding: 48px 40px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            font-family: 'Nanum Myeongjo', serif;
+            line-height: 2;
+            font-size: 15px;
+            color: #333;
+            white-space: pre-wrap;
+        }
+        .paper-1 { background: linear-gradient(135deg, #FFF8F0, #F5E6D3); }
+        .paper-2 { background: linear-gradient(135deg, #FFE4E8, #FFBFCC); }
+        .paper-3 { background: linear-gradient(135deg, #1E3A5F, #2E5A8F); color: white; }
+        .paper-4 { background: linear-gradient(135deg, #E0F5F0, #B8EAE0); }
+        .paper-5 { background: linear-gradient(135deg, #F5F0E8, #E8DCC8); }
+        .btn-row { display: flex; gap: 10px; max-width: 560px; margin: 20px auto; }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-logo">
+        <a th:href="@{/}"><span class="logo-text">from</span></a>
+    </div>
+    <ul class="nav-menu">
+        <li><a th:href="@{/book/register}">책 등록</a></li>
+        <li><a th:href="@{/ranking}">랭킹</a></li>
+        <li><a th:href="@{/review}" class="active">독후감</a></li>
+        <li><a th:href="@{/user/mypage}">마이페이지</a></li>
+    </ul>
+</nav>
+
+<div class="page-container">
+    <h2 style="text-align:center; color:#6071E3; margin-bottom:28px; font-family:'Nanum Myeongjo',serif;">
+        AI 독후감 생성 완료 ✉️
+    </h2>
+
+    <div class="letter-wrap" th:classappend="'paper-' + ${paperId}">
+        <p th:text="${reviewContent}">독후감 내용이 여기에 표시됩니다.</p>
+    </div>
+
+    <div class="btn-row">
+        <a th:href="@{/review}" class="btn btn-outline" style="flex:1; text-align:center;">새 독후감 만들기</a>
+        <a th:href="@{/}" class="btn btn-primary" style="flex:1; text-align:center;">홈으로</a>
+    </div>
+</div>
+</body>
+</html>
