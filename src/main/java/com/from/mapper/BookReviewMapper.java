@@ -8,6 +8,7 @@ import java.util.List;
 public interface BookReviewMapper {
     int insertReview(BookReview review);
     BookReview findById(Long reviewId);
-    List<BookReview> findPendingReviews(); // 발송 대상 조회
-    int markAsSent(Long reviewId);         // 발송 완료 처리
+    List<BookReview> findPendingReviews();
+    int markAsSent(Long reviewId);
+    List<BookReview> findByUserId(Long userId);  // 추가
 }

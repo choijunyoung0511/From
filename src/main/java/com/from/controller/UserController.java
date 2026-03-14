@@ -1,15 +1,22 @@
 package com.from.controller;
 
+import com.from.config.EncryptUtil;
+import com.from.domain.BookReview;
+import com.from.domain.User;
 import com.from.dto.user.SessionUser;
 import com.from.dto.user.SignupRequestDto;
+import com.from.mapper.BookReviewMapper;
+import com.from.mapper.UserMapper;
 import com.from.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -19,6 +26,8 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
+    private final BookReviewMapper bookReviewMapper;
 
     // 회원가입 화면
     @GetMapping("/signup")
@@ -91,13 +100,14 @@ public class UserController {
         }
         return result;
     }
+
     // 서비스 시작 화면
-    @GetMapping("/service")  // /user/service 가 싫으면 별도 컨트롤러로 분리
+    @GetMapping("/service")
     public String servicePage(HttpSession session) {
         if (session.getAttribute("loginUser") == null) {
             return "redirect:/user/login";
         }
-        return "service";  // templates/service.html
+        return "service";
     }
 
     // 로그인 화면
@@ -127,8 +137,6 @@ public class UserController {
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
-        HttpSession newSession = session;
-        // 새 세션에 로그아웃 메시지 저장은 redirect 후 처리
         return "redirect:/?logout=true";
     }
 
@@ -202,7 +210,7 @@ public class UserController {
         return result;
     }
 
-    // 비밀번호 변경 (Ajax)
+    // 비밀번호 변경 (Ajax) - 비밀번호 찾기용
     @PostMapping("/findPassword/change")
     @ResponseBody
     public Map<String, Object> changePassword(@RequestParam String newPassword,
@@ -221,11 +229,72 @@ public class UserController {
         }
         return result;
     }
-    // UserController.java 에 추가
+
+    // ===== 마이페이지 =====
     @GetMapping("/mypage")
     public String mypage(HttpSession session) {
         if (session.getAttribute("loginUser") == null)
             return "redirect:/user/login";
-        return "mypage/mypage";
+        return "user/mypage";
+    }
+
+    // 내 독후감 기록 조회
+    @GetMapping("/mypage/reviews")
+    public String mypageReviews(HttpSession session, Model model) {
+        SessionUser loginUser = (SessionUser) session.getAttribute("loginUser");
+        List<BookReview> reviews = bookReviewMapper.findByUserId(loginUser.getUserId());
+        model.addAttribute("reviews", reviews);
+        return "user/mypage-reviews";
+    }
+
+    // 비밀번호 변경 페이지
+    @GetMapping("/mypage/changePassword")
+    public String changePasswordPage() {
+        return "user/mypage-changePassword";
+    }
+
+    // 비밀번호 변경 처리 - 마이페이지용
+    @PostMapping("/mypage/changePassword")
+    @ResponseBody
+    public Map<String, Object> changePasswordMypage(
+            @RequestParam String currentPassword,
+            @RequestParam String newPassword,
+            HttpSession session) {
+
+        Map<String, Object> result = new HashMap<>();
+        SessionUser loginUser = (SessionUser) session.getAttribute("loginUser");
+        User user = userMapper.findByUserId(loginUser.getUserId());
+
+        if (!user.getPassword().equals(EncryptUtil.encryptSHA256(currentPassword))) {
+            result.put("success", false);
+            result.put("message", "현재 비밀번호가 일치하지 않습니다.");
+            return result;
+        }
+
+        userMapper.updatePasswordById(loginUser.getUserId(), EncryptUtil.encryptSHA256(newPassword));
+        result.put("success", true);
+        return result;
+    }
+
+    // 회원 탈퇴
+    @PostMapping("/mypage/delete")
+    @ResponseBody
+    public Map<String, Object> deleteAccount(
+            @RequestParam String password,
+            HttpSession session) {
+
+        Map<String, Object> result = new HashMap<>();
+        SessionUser loginUser = (SessionUser) session.getAttribute("loginUser");
+        User user = userMapper.findByUserId(loginUser.getUserId());
+
+        if (!user.getPassword().equals(EncryptUtil.encryptSHA256(password))) {
+            result.put("success", false);
+            return result;
+        }
+
+        userMapper.deleteUser(loginUser.getUserId());
+        session.invalidate();
+        result.put("success", true);
+        return result;
     }
 }

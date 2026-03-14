@@ -22,4 +22,6 @@ public class BookReview {
     private int isSent;              // 추가
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String bookTitle;
+    private String bookAuthor;
 }

@@ -17,34 +17,39 @@
             color: #333;
             white-space: pre-wrap;
         }
-        .paper-1 { background: linear-gradient(135deg, #FFF8F0, #F5E6D3); }
-        .paper-2 { background: linear-gradient(135deg, #FFE4E8, #FFBFCC); }
-        .paper-3 { background: linear-gradient(135deg, #1E3A5F, #2E5A8F); color: white; }
-        .paper-4 { background: linear-gradient(135deg, #E0F5F0, #B8EAE0); }
-        .paper-5 { background: linear-gradient(135deg, #F5F0E8, #E8DCC8); }
+
+        /* 기본 5종 */
+        .paper-1  { background: linear-gradient(135deg, #FFF8F0, #F5E6D3); }
+        .paper-2  { background: linear-gradient(135deg, #FFE4E8, #FFBFCC); }
+        .paper-3  { background: linear-gradient(135deg, #1E3A5F, #2E5A8F); color: white; }
+        .paper-4  { background: linear-gradient(135deg, #E0F5F0, #B8EAE0); }
+        .paper-5  { background: linear-gradient(135deg, #F5F0E8, #E8DCC8); }
+
+        /* 계절 4종 */
+        .paper-6  { background: linear-gradient(135deg, #FFD6E7, #FFAFD2, #FFC8A2); }
+        .paper-7  { background: linear-gradient(135deg, #E8F4FD, #AED6F1, #85C1E9); }
+        .paper-8  { background: linear-gradient(135deg, #FDEBD0, #F0B27A, #E59866); color: #5D2E0C; }
+        .paper-9  { background: linear-gradient(135deg, #EAF2FF, #D6E8FF, #C3DEFF); }
+
+        /* 감정 3종 */
+        .paper-10 { background: linear-gradient(135deg, #FFF0F5, #FFD6E8, #FFC2E0); }
+        .paper-11 { background: linear-gradient(135deg, #2C3E50, #3D5166, #4A6278); color: white; }
+        .paper-12 { background: linear-gradient(135deg, #F8F9FA, #E8F5E9, #C8E6C9); }
+
         .btn-row { display: flex; gap: 10px; max-width: 560px; margin: 20px auto; }
     </style>
 </head>
 <body>
-<nav class="navbar">
-    <div class="nav-logo">
-        <a th:href="@{/}"><span class="logo-text">from</span></a>
-    </div>
-    <ul class="nav-menu">
-        <li><a th:href="@{/book/register}">책 등록</a></li>
-        <li><a th:href="@{/ranking}">랭킹</a></li>
-        <li><a th:href="@{/review}" class="active">독후감</a></li>
-        <li><a th:href="@{/user/mypage}">마이페이지</a></li>
-    </ul>
-</nav>
+<div th:replace="~{layout/navbar :: navbar}"></div>
+
 
 <div class="page-container">
     <h2 style="text-align:center; color:#6071E3; margin-bottom:28px; font-family:'Nanum Myeongjo',serif;">
         AI 독후감 생성 완료 ✉️
     </h2>
 
-    <div class="letter-wrap" th:classappend="'paper-' + ${paperId}">
-        <p th:text="${reviewContent}">독후감 내용이 여기에 표시됩니다.</p>
+    <div class="letter-wrap" th:classappend="'paper-' + ${review.paperId}">
+        <p th:text="${review.aiContent}">독후감 내용이 여기에 표시됩니다.</p>
     </div>
 
     <div class="btn-row">

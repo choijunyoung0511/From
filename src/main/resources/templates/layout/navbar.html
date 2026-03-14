@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+<header th:fragment="navbar" style="
+    display:flex; justify-content:space-between; align-items:center;
+    padding:0 40px; height:72px; background:white;
+    border-bottom:1px solid #eee; position:sticky; top:0; z-index:100;">
+
+    <a th:href="@{/}">
+        <img th:src="@{/images/logo.png}" alt="from" style="height:55px;">
+    </a>
+
+    <div style="display:flex; align-items:center; gap:48px;">
+        <nav style="display:flex; align-items:center; gap:48px;">
+            <a th:href="@{/book/register}" style="color:#333; text-decoration:none; font-size:15px; font-weight:500;">책 등록</a>
+            <a th:href="@{/ranking}"       style="color:#333; text-decoration:none; font-size:15px; font-weight:500;">랭킹</a>
+            <a th:href="@{/review}"        style="color:#333; text-decoration:none; font-size:15px; font-weight:500;">독후감</a>
+            <a th:href="@{/user/mypage}"   style="color:#333; text-decoration:none; font-size:15px; font-weight:500;">마이페이지</a>
+        </nav>
+        <a th:href="@{/user/logout}"
+           style="background:#6071E3; color:white; padding:8px 24px;
+                  border-radius:20px; font-size:14px; font-weight:700;
+                  text-decoration:none;">로그아웃</a>
+    </div>
+</header>
+</body>
+</html>

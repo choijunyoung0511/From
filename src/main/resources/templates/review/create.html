@@ -29,7 +29,6 @@
         .tone-btn { padding: 12px; border: 1.5px solid #E0D5CC; border-radius: 8px; background: white; cursor: pointer; font-size: 13px; transition: all 0.2s; font-family: 'Nanum Gothic', sans-serif; }
         .tone-btn:hover, .tone-btn.selected { border-color: #6071E3; background: #f0f0ff; color: #6071E3; font-weight: 600; }
 
-        /* 달력 */
         .calendar-wrap { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .cal-nav { background: none; border: none; font-size: 20px; cursor: pointer; color: #6071E3; padding: 4px 8px; }
@@ -44,30 +43,50 @@
         .cal-cell.empty, .cal-cell.past { color: #ccc; cursor: default; }
         .cal-cell.today { border: 2px solid #6071E3; border-radius: 50%; color: #6071E3; font-weight: 700; }
 
-        /* 시간 선택 */
         .time-btn { padding: 10px 6px; border: 1.5px solid #E0D5CC; border-radius: 8px; background: white; cursor: pointer; font-size: 12px; transition: all 0.2s; font-family: 'Nanum Gothic', sans-serif; }
         .time-btn:hover, .time-btn.selected { border-color: #6071E3; background: #f0f0ff; color: #6071E3; font-weight: 600; }
 
-        /* 편지지 */
-        .paper-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-        .paper-item { border: 2px solid transparent; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
-        .paper-item:hover, .paper-item.selected { border-color: #6071E3; }
-        .paper-preview { height: 100px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #555; }
-        .paper-cream  { background: linear-gradient(135deg, #FFF8F0, #F5E6D3); }
-        .paper-cherry { background: linear-gradient(135deg, #FFE4E8, #FFBFCC); }
-        .paper-navy   { background: linear-gradient(135deg, #1E3A5F, #2E5A8F); color: white; }
-        .paper-mint   { background: linear-gradient(135deg, #E0F5F0, #B8EAE0); }
-        .paper-beige  { background: linear-gradient(135deg, #F5F0E8, #E8DCC8); }
-        .paper-name { text-align: center; font-size: 12px; color: #666; margin-top: 6px; }
+        /* 편지지 12종 그리드 */
+        .paper-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .paper-item {
+            border: 2px solid transparent;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .paper-item:hover, .paper-item.selected {
+            border-color: #6071E3;
+            box-shadow: 0 0 0 3px rgba(96,113,227,0.2);
+            transform: translateY(-2px);
+        }
+        .paper-preview {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        .paper-name {
+            text-align: center;
+            font-size: 11px;
+            color: #555;
+            font-weight: 600;
+            padding: 6px 4px;
+            background: white;
+        }
 
-        /* 로딩 */
         .loading-wrap { text-align: center; padding: 60px 20px; }
         .loading-spinner { width: 48px; height: 48px; border: 4px solid #E0D5CC; border-top-color: #6071E3; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-msg { color: #555; font-size: 15px; }
         .loading-sub { color: #999; font-size: 13px; margin-top: 8px; }
 
-        /* 버튼 */
         .btn-row { display: flex; gap: 10px; margin-top: 20px; }
         .btn-back { background: white; color: #6071E3; border: 1.5px solid #6071E3; padding: 12px 28px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 500; transition: all 0.2s; flex: 1; font-family: 'Nanum Gothic', sans-serif; }
         .btn-back:hover { background: #f0f0ff; }
@@ -75,22 +94,12 @@
     </style>
 </head>
 <body>
-<nav class="navbar">
-    <div class="nav-logo">
-        <a th:href="@{/}"><span class="logo-text">from</span></a>
-    </div>
-    <ul class="nav-menu">
-        <li><a th:href="@{/book/register}">책 등록</a></li>
-        <li><a th:href="@{/ranking}">랭킹</a></li>
-        <li><a th:href="@{/review}" class="active">독후감</a></li>
-        <li><a th:href="@{/user/mypage}">마이페이지</a></li>
-    </ul>
-</nav>
+<div th:replace="~{layout/navbar :: navbar}"></div>
+
 
 <div class="page-container" style="max-width: 560px;">
     <h2 style="text-align:center; color:#6071E3; margin-bottom:28px; font-family:'Nanum Myeongjo',serif;">AI 독후감 생성</h2>
 
-    <!-- 스텝 인디케이터 -->
     <div class="step-indicator">
         <div class="step"><div class="step-num active" id="num1">1</div><span class="step-label active" id="lbl1">책 선택</span></div>
         <div class="step-divider"></div>
@@ -101,22 +110,16 @@
         <div class="step"><div class="step-num" id="num4">4</div><span class="step-label" id="lbl4">편지지</span></div>
     </div>
 
-    <!-- ======================== STEP 1: 책 선택 ======================== -->
+    <!-- STEP 1 -->
     <div class="step-panel active" id="panel1">
-
-        <!-- 내가 등록한 책 목록 -->
         <div th:if="${myBooks != null and !#lists.isEmpty(myBooks)}">
             <p style="font-size:13px; color:#888; margin-bottom:8px;">📚 내가 등록한 책</p>
-            <div th:each="book : ${myBooks}"
-                 class="book-result-item"
-                 th:data-book-id="${book.bookId}"
-                 th:data-title="${book.title}"
-                 th:data-author="${book.author}"
+            <div th:each="book : ${myBooks}" class="book-result-item"
+                 th:data-book-id="${book.bookId}" th:data-title="${book.title}" th:data-author="${book.author}"
                  onclick="selectBookFromData(this)">
                 <div style="display:flex; align-items:center; gap:12px;">
                     <img th:if="${book.coverImage != null and !#strings.isEmpty(book.coverImage)}"
-                         th:src="${book.coverImage}"
-                         style="width:36px; height:50px; object-fit:cover; border-radius:4px;">
+                         th:src="${book.coverImage}" style="width:36px; height:50px; object-fit:cover; border-radius:4px;">
                     <div th:unless="${book.coverImage != null and !#strings.isEmpty(book.coverImage)}"
                          style="width:36px; height:50px; background:#E0D5CC; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:18px;">📖</div>
                     <div>
@@ -126,22 +129,19 @@
                 </div>
             </div>
         </div>
-
-        <!-- 등록한 책 없을 때 -->
         <div th:if="${myBooks == null or #lists.isEmpty(myBooks)}"
              style="text-align:center; padding:40px; color:#999; background:white; border-radius:12px; margin-bottom:16px;">
             <p style="font-size:32px; margin-bottom:12px;">📚</p>
             <p style="margin-bottom:12px;">등록된 책이 없습니다.</p>
             <a th:href="@{/book/register}" style="color:#6071E3; font-weight:600;">책 등록하러 가기 →</a>
         </div>
-
         <div class="btn-row">
             <button class="btn-back" onclick="history.back()">← 뒤로</button>
             <button class="btn btn-primary btn-next" onclick="nextStep(2)">다음</button>
         </div>
     </div>
 
-    <!-- ======================== STEP 2: 내용 입력 ======================== -->
+    <!-- STEP 2 -->
     <div class="step-panel" id="panel2">
         <div class="book-header">
             <div class="book-name" id="selected-book-name"></div>
@@ -150,8 +150,7 @@
         <div class="form-group">
             <label>강조할 내용을 입력하세요.</label>
             <textarea id="emphasis" class="form-control" rows="4"
-                      placeholder="강조하고 싶은 내용, 인상 깊은 구절 등을 자유롭게 입력하세요."
-                      style="resize:vertical;"></textarea>
+                      placeholder="강조하고 싶은 내용, 인상 깊은 구절 등을 자유롭게 입력하세요." style="resize:vertical;"></textarea>
             <span class="error-msg" id="emphasis-error"></span>
         </div>
         <div class="form-group">
@@ -170,19 +169,14 @@
         </div>
     </div>
 
-    <!-- ======================== STEP 3: 날짜 + 시간 선택 ======================== -->
+    <!-- STEP 3 -->
     <div class="step-panel" id="panel3">
         <div class="book-header">
             <div class="book-name" id="book-name3"></div>
             <div class="book-author" id="book-author3"></div>
         </div>
-
         <div class="form-group">
-            <label style="display:block; text-align:center; margin-bottom:16px;">
-                편지를 받을 날짜와 시간을 선택해주세요 📬
-            </label>
-
-            <!-- 달력 -->
+            <label style="display:block; text-align:center; margin-bottom:16px;">편지를 받을 날짜와 시간을 선택해주세요 📬</label>
             <div class="calendar-wrap">
                 <div class="calendar-header">
                     <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
@@ -191,8 +185,6 @@
                 </div>
                 <div class="calendar-grid" id="cal-grid"></div>
             </div>
-
-            <!-- 시간 선택 (날짜 선택 후 표시) -->
             <div id="time-select-wrap" style="display:none; margin-top:20px;">
                 <p style="font-size:13px; color:#888; margin-bottom:12px; text-align:center;">⏰ 시간을 선택해주세요</p>
                 <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">
@@ -205,30 +197,24 @@
                     <button class="time-btn" onclick="selectTime(this,'22:00')">🌃 22:00</button>
                     <button class="time-btn" onclick="selectTime(this,'custom')">✏️ 직접입력</button>
                 </div>
-                <!-- 직접 입력 -->
                 <div id="custom-time-wrap" style="display:none; margin-top:12px; text-align:center;">
                     <input type="time" id="custom-time-input"
                            style="padding:10px 16px; border:2px solid #6071E3; border-radius:8px; font-size:15px; outline:none;"
                            onchange="applyCustomTime(this.value)">
                 </div>
             </div>
-
-            <!-- 선택 결과 표시 -->
             <div id="selected-datetime-display"
                  style="display:none; text-align:center; margin-top:16px; padding:14px;
-                        background:#f0f0ff; border-radius:10px; font-size:14px; color:#6071E3; font-weight:600;">
-            </div>
-
+                        background:#f0f0ff; border-radius:10px; font-size:14px; color:#6071E3; font-weight:600;"></div>
             <span class="error-msg" id="date-error" style="display:block; margin-top:8px; text-align:center;"></span>
         </div>
-
         <div class="btn-row">
             <button class="btn-back" onclick="prevStep(2)">← 뒤로</button>
             <button class="btn btn-primary btn-next" onclick="nextStep(4)">다음</button>
         </div>
     </div>
 
-    <!-- ======================== STEP 4: 편지지 선택 ======================== -->
+    <!-- STEP 4: 편지지 12종 -->
     <div class="step-panel" id="panel4">
         <div class="book-header">
             <div class="book-name" id="book-name4"></div>
@@ -238,24 +224,52 @@
             <label>편지지를 선택해주세요.</label>
             <div class="paper-group">
                 <div class="paper-item" onclick="selectPaper(this,1)">
-                    <div class="paper-preview paper-cream">클래식 크림</div>
-                    <div class="paper-name">클래식 크림</div>
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#FFF8F0,#F5E6D3);">🕯️</div>
+                    <div class="paper-name">크림</div>
                 </div>
                 <div class="paper-item" onclick="selectPaper(this,2)">
-                    <div class="paper-preview paper-cherry">벚꽃 연분홍</div>
-                    <div class="paper-name">벚꽃 연분홍</div>
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#FFE4E8,#FFBFCC);">🌸</div>
+                    <div class="paper-name">체리</div>
                 </div>
                 <div class="paper-item" onclick="selectPaper(this,3)">
-                    <div class="paper-preview paper-navy">밤하늘 네이비</div>
-                    <div class="paper-name">밤하늘 네이비</div>
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#1E3A5F,#2E5A8F);">🌙</div>
+                    <div class="paper-name">네이비</div>
                 </div>
                 <div class="paper-item" onclick="selectPaper(this,4)">
-                    <div class="paper-preview paper-mint">숲속 민트</div>
-                    <div class="paper-name">숲속 민트</div>
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#E0F5F0,#B8EAE0);">🌿</div>
+                    <div class="paper-name">민트</div>
                 </div>
                 <div class="paper-item" onclick="selectPaper(this,5)">
-                    <div class="paper-preview paper-beige">따뜻한 베이지</div>
-                    <div class="paper-name">따뜻한 베이지</div>
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#F5F0E8,#E8DCC8);">📜</div>
+                    <div class="paper-name">베이지</div>
+                </div>
+                <div class="paper-item" onclick="selectPaper(this,6)">
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#FFD6E7,#FFAFD2,#FFC8A2);">🌷</div>
+                    <div class="paper-name">봄</div>
+                </div>
+                <div class="paper-item" onclick="selectPaper(this,7)">
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#E8F4FD,#AED6F1,#85C1E9);">🌊</div>
+                    <div class="paper-name">여름</div>
+                </div>
+                <div class="paper-item" onclick="selectPaper(this,8)">
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#FDEBD0,#F0B27A,#E59866);">🍂</div>
+                    <div class="paper-name">가을</div>
+                </div>
+                <div class="paper-item" onclick="selectPaper(this,9)">
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#EAF2FF,#D6E8FF,#C3DEFF);">❄️</div>
+                    <div class="paper-name">겨울</div>
+                </div>
+                <div class="paper-item" onclick="selectPaper(this,10)">
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#FFF0F5,#FFD6E8,#FFC2E0);">💕</div>
+                    <div class="paper-name">설렘</div>
+                </div>
+                <div class="paper-item" onclick="selectPaper(this,11)">
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#2C3E50,#3D5166,#4A6278);">🌌</div>
+                    <div class="paper-name">그리움</div>
+                </div>
+                <div class="paper-item" onclick="selectPaper(this,12)">
+                    <div class="paper-preview" style="background:linear-gradient(135deg,#F8F9FA,#E8F5E9,#C8E6C9);">🌱</div>
+                    <div class="paper-name">위로</div>
                 </div>
             </div>
             <span class="error-msg" id="paper-error"></span>
@@ -276,7 +290,6 @@
     </div>
 </div>
 
-<!-- 모달 -->
 <div class="modal-overlay" id="modal">
     <div class="modal-box">
         <p id="modal-msg"></p>
@@ -285,241 +298,147 @@
 </div>
 
 <script>
-    // ===== 상태 변수 =====
     let currentStep = 1;
-    let selectedBookId   = null;
-    let selectedBookTitle  = '';
-    let selectedBookAuthor = '';
-    let selectedTone  = '';
-    let selectedDate  = '';   // YYYY-MM-DD
-    let selectedTime  = '';   // HH:mm
-    let selectedPaperId = null;
-
-    // ===== 달력 =====
+    let selectedBookId = null, selectedBookTitle = '', selectedBookAuthor = '';
+    let selectedTone = '', selectedDate = '', selectedTime = '', selectedPaperId = null;
     let calYear, calMonth;
 
     function initCalendar() {
         const today = new Date();
-        calYear  = today.getFullYear();
-        calMonth = today.getMonth();
+        calYear = today.getFullYear(); calMonth = today.getMonth();
         renderCalendar();
     }
-
     function changeMonth(dir) {
         calMonth += dir;
         if (calMonth > 11) { calMonth = 0; calYear++; }
         if (calMonth < 0)  { calMonth = 11; calYear--; }
         renderCalendar();
     }
-
     function renderCalendar() {
-        const today = new Date();
-        today.setHours(0,0,0,0);
-
-        document.getElementById('cal-title').textContent = `${calYear}년 ${calMonth + 1}월`;
-
+        const today = new Date(); today.setHours(0,0,0,0);
+        document.getElementById('cal-title').textContent = `${calYear}년 ${calMonth+1}월`;
         const days = ['일','월','화','수','목','금','토'];
         let html = days.map(d => `<div class="cal-day-label">${d}</div>`).join('');
-
         const firstDay = new Date(calYear, calMonth, 1).getDay();
-        const lastDate = new Date(calYear, calMonth + 1, 0).getDate();
-
+        const lastDate = new Date(calYear, calMonth+1, 0).getDate();
         for (let i = 0; i < firstDay; i++) html += `<div class="cal-cell empty"></div>`;
-
         for (let d = 1; d <= lastDate; d++) {
-            const date    = new Date(calYear, calMonth, d);
+            const date = new Date(calYear, calMonth, d);
             const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            const isPast  = date < today;
-            const isToday = date.getTime() === today.getTime();
-            const isSel   = dateStr === selectedDate;
-
+            const isPast = date < today, isToday = date.getTime() === today.getTime(), isSel = dateStr === selectedDate;
             let cls = 'cal-cell';
-            if (isPast)      cls += ' past';
-            else if (isSel)  cls += ' selected';
-            else if (isToday) cls += ' today';
-
-            const click = isPast ? '' : `onclick="selectDate('${dateStr}')"`;
-            html += `<div class="${cls}" ${click}>${d}</div>`;
+            if (isPast) cls += ' past'; else if (isSel) cls += ' selected'; else if (isToday) cls += ' today';
+            html += `<div class="${cls}" ${isPast ? '' : `onclick="selectDate('${dateStr}')"`}>${d}</div>`;
         }
-
         document.getElementById('cal-grid').innerHTML = html;
     }
-
     function selectDate(dateStr) {
-        selectedDate = dateStr;
-        selectedTime = '';  // 날짜 바꾸면 시간 초기화
-
-        // 시간 선택 영역 표시
+        selectedDate = dateStr; selectedTime = '';
         document.getElementById('time-select-wrap').style.display = 'block';
         document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
         document.getElementById('custom-time-wrap').style.display = 'none';
-
         document.getElementById('date-error').textContent = '';
-        updateDatetimeDisplay();
-        renderCalendar();
+        updateDatetimeDisplay(); renderCalendar();
     }
-
-    // ===== 시간 선택 =====
     function selectTime(btn, time) {
         document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-
-        if (time === 'custom') {
-            document.getElementById('custom-time-wrap').style.display = 'block';
-            selectedTime = '';
-        } else {
-            document.getElementById('custom-time-wrap').style.display = 'none';
-            selectedTime = time;
-            updateDatetimeDisplay();
-        }
+        if (time === 'custom') { document.getElementById('custom-time-wrap').style.display = 'block'; selectedTime = ''; }
+        else { document.getElementById('custom-time-wrap').style.display = 'none'; selectedTime = time; updateDatetimeDisplay(); }
     }
-
-    function applyCustomTime(val) {
-        if (val) {
-            selectedTime = val;
-            updateDatetimeDisplay();
-        }
-    }
-
+    function applyCustomTime(val) { if (val) { selectedTime = val; updateDatetimeDisplay(); } }
     function updateDatetimeDisplay() {
         const display = document.getElementById('selected-datetime-display');
         if (!selectedDate) { display.style.display = 'none'; return; }
-
         const [y, m, d] = selectedDate.split('-');
-        const dateStr = `${y}년 ${parseInt(m)}월 ${parseInt(d)}일`;
-        const timeStr = selectedTime ? ` ${selectedTime}` : '';
-
         display.style.display = 'block';
         display.textContent = selectedTime
-            ? `📬 ${dateStr} ${selectedTime}에 편지가 도착합니다!`
-            : `📅 ${dateStr} 선택됨 — 시간을 선택해주세요`;
+            ? `📬 ${y}년 ${parseInt(m)}월 ${parseInt(d)}일 ${selectedTime}에 편지가 도착합니다!`
+            : `📅 ${y}년 ${parseInt(m)}월 ${parseInt(d)}일 선택됨 — 시간을 선택해주세요`;
     }
-
-    // ===== 책 선택 =====
     function selectBookFromData(el) {
         document.querySelectorAll('.book-result-item').forEach(e => e.classList.remove('selected'));
         el.classList.add('selected');
-        selectedBookId     = el.dataset.bookId;
-        selectedBookTitle  = el.dataset.title;
-        selectedBookAuthor = el.dataset.author;
+        selectedBookId = el.dataset.bookId; selectedBookTitle = el.dataset.title; selectedBookAuthor = el.dataset.author;
     }
-
-    // ===== 톤 선택 =====
     function selectTone(btn, tone) {
         document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        selectedTone = tone;
+        btn.classList.add('selected'); selectedTone = tone;
         document.getElementById('tone-error').textContent = '';
     }
-
-    // ===== 편지지 선택 =====
     function selectPaper(el, paperId) {
         document.querySelectorAll('.paper-item').forEach(e => e.classList.remove('selected'));
-        el.classList.add('selected');
-        selectedPaperId = paperId;
+        el.classList.add('selected'); selectedPaperId = paperId;
         document.getElementById('paper-error').textContent = '';
     }
-
-    // ===== 스텝 이동 =====
     function nextStep(step) {
-        // 각 스텝 검증
-        if (currentStep === 1 && !selectedBookId) {
-            showModal('책을 선택해주세요.');
-            return;
-        }
+        if (currentStep === 1 && !selectedBookId) { showModal('책을 선택해주세요.'); return; }
         if (currentStep === 2) {
-            const emphasis = document.getElementById('emphasis').value.trim();
-            if (!emphasis) { document.getElementById('emphasis-error').textContent = '내용을 입력해주세요.'; return; }
+            if (!document.getElementById('emphasis').value.trim()) { document.getElementById('emphasis-error').textContent = '내용을 입력해주세요.'; return; }
             if (!selectedTone) { document.getElementById('tone-error').textContent = '톤을 선택해주세요.'; return; }
         }
         if (currentStep === 3) {
             if (!selectedDate) { document.getElementById('date-error').textContent = '날짜를 선택해주세요.'; return; }
             if (!selectedTime) { document.getElementById('date-error').textContent = '시간을 선택해주세요.'; return; }
         }
-
-        // 책 정보 동기화
-        document.getElementById('selected-book-name').textContent  = selectedBookTitle;
+        document.getElementById('selected-book-name').textContent = selectedBookTitle;
         document.getElementById('selected-book-author').textContent = selectedBookAuthor;
-        document.getElementById('book-name3').textContent  = selectedBookTitle;
+        document.getElementById('book-name3').textContent = selectedBookTitle;
         document.getElementById('book-author3').textContent = selectedBookAuthor;
-        document.getElementById('book-name4').textContent  = selectedBookTitle;
+        document.getElementById('book-name4').textContent = selectedBookTitle;
         document.getElementById('book-author4').textContent = selectedBookAuthor;
-
-        // 스텝 전환
         document.getElementById(`panel${currentStep}`).classList.remove('active');
         document.getElementById(`num${currentStep}`).classList.remove('active');
         document.getElementById(`num${currentStep}`).classList.add('done');
         document.getElementById(`lbl${currentStep}`).classList.remove('active');
-
         currentStep = step;
         document.getElementById(`panel${currentStep}`).classList.add('active');
         document.getElementById(`num${currentStep}`).classList.add('active');
         document.getElementById(`lbl${currentStep}`).classList.add('active');
     }
-
     function prevStep(step) {
         document.getElementById(`panel${currentStep}`).classList.remove('active');
         document.getElementById(`num${currentStep}`).classList.remove('active');
         document.getElementById(`lbl${currentStep}`).classList.remove('active');
-
         currentStep = step;
         document.getElementById(`panel${currentStep}`).classList.add('active');
         document.getElementById(`num${currentStep}`).classList.remove('done');
         document.getElementById(`num${currentStep}`).classList.add('active');
         document.getElementById(`lbl${currentStep}`).classList.add('active');
     }
-
-    // ===== 독후감 생성 =====
     function generateReview() {
-        if (!selectedPaperId) {
-            document.getElementById('paper-error').textContent = '편지지를 선택해주세요.';
-            return;
-        }
-
+        if (!selectedPaperId) { document.getElementById('paper-error').textContent = '편지지를 선택해주세요.'; return; }
         document.getElementById('panel4').classList.remove('active');
         document.getElementById('panel-loading').classList.add('active');
-
-        const emphasis = document.getElementById('emphasis').value.trim();
-
         fetch('/review/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: [
                 `bookId=${encodeURIComponent(selectedBookId)}`,
-                `emphasis=${encodeURIComponent(emphasis)}`,
+                `emphasis=${encodeURIComponent(document.getElementById('emphasis').value.trim())}`,
                 `tone=${selectedTone}`,
                 `deliveryDate=${selectedDate}`,
                 `deliveryTime=${encodeURIComponent(selectedTime)}`,
                 `paperId=${selectedPaperId}`
             ].join('&')
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = `/review/${data.reviewId}`;
-            } else {
-                showModal(data.message || '독후감 생성에 실패했습니다. 다시 시도해주세요.');
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) { window.location.href = `/review/${data.reviewId}`; }
+                else {
+                    showModal(data.message || '독후감 생성에 실패했습니다.');
+                    document.getElementById('panel-loading').classList.remove('active');
+                    document.getElementById('panel4').classList.add('active');
+                }
+            })
+            .catch(() => {
+                showModal('서버 오류가 발생했습니다.');
                 document.getElementById('panel-loading').classList.remove('active');
                 document.getElementById('panel4').classList.add('active');
-            }
-        })
-        .catch(() => {
-            showModal('서버 오류가 발생했습니다. 다시 시도해주세요.');
-            document.getElementById('panel-loading').classList.remove('active');
-            document.getElementById('panel4').classList.add('active');
-        });
+            });
     }
-
-    // ===== 모달 =====
-    function showModal(msg) {
-        document.getElementById('modal-msg').textContent = msg;
-        document.getElementById('modal').classList.add('show');
-    }
-    function closeModal() {
-        document.getElementById('modal').classList.remove('show');
-    }
-
-    // 초기화
+    function showModal(msg) { document.getElementById('modal-msg').textContent = msg; document.getElementById('modal').classList.add('show'); }
+    function closeModal() { document.getElementById('modal').classList.remove('show'); }
     initCalendar();
 </script>
 </body>

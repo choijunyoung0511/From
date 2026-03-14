@@ -32,4 +32,17 @@
         WHERE review_id = #{reviewId}
     </update>
 
+    <select id="findByUserId" parameterType="long" resultType="BookReview">
+        SELECT br.review_id, br.user_id, br.book_id, br.paper_id,
+               br.emphasis_content, br.tone, br.delivery_day,
+               br.delivery_date, br.delivery_time,
+               br.is_sent, br.ai_content, br.generation_status,
+               br.created_at, br.updated_at,
+               b.title AS bookTitle, b.author AS bookAuthor
+        FROM book_reviews br
+                 JOIN books b ON br.book_id = b.book_id
+        WHERE br.user_id = #{userId}
+        ORDER BY br.created_at DESC
+    </select>
+
 </mapper>

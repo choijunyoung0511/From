@@ -70,4 +70,13 @@
         WHERE user_id = #{userId}
     </update>
 
+    <!-- 마이페이지 비밀번호 변경 -->
+    <update id="updatePasswordById">
+        UPDATE users SET password = #{password}, updated_at = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+
+
+
 </mapper>
