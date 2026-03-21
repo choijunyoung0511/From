@@ -1,12 +1,12 @@
 package com.from.controller;
 
 import com.from.config.EncryptUtil;
-import com.from.domain.BookReview;
+import com.from.domain.BookReviewDocument;
 import com.from.domain.User;
 import com.from.dto.user.SessionUser;
 import com.from.dto.user.SignupRequestDto;
-import com.from.mapper.BookReviewMapper;
 import com.from.mapper.UserMapper;
+import com.from.repository.BookReviewMongoRepository;
 import com.from.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper;
-    private final BookReviewMapper bookReviewMapper;
+    private final BookReviewMongoRepository bookReviewMongoRepository;
 
     // 회원가입 화면
     @GetMapping("/signup")
@@ -242,7 +242,7 @@ public class UserController {
     @GetMapping("/mypage/reviews")
     public String mypageReviews(HttpSession session, Model model) {
         SessionUser loginUser = (SessionUser) session.getAttribute("loginUser");
-        List<BookReview> reviews = bookReviewMapper.findByUserId(loginUser.getUserId());
+        List<BookReviewDocument> reviews = bookReviewMongoRepository.findByUserId(loginUser.getUserId());
         model.addAttribute("reviews", reviews);
         return "user/mypage-reviews";
     }

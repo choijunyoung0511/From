@@ -1,10 +1,10 @@
 package com.from.scheduler;
 
 import com.from.config.EncryptUtil;
-import com.from.domain.BookReview;
+import com.from.domain.BookReviewDocument;
 import com.from.domain.User;
-import com.from.mapper.BookReviewMapper;
 import com.from.mapper.UserMapper;
+import com.from.repository.BookReviewMongoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -13,6 +13,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import jakarta.mail.internet.MimeMessage;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Slf4j
@@ -20,18 +22,29 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReviewScheduler {
 
-    private final BookReviewMapper bookReviewMapper;
+    private final BookReviewMongoRepository bookReviewMongoRepository;
     private final UserMapper userMapper;
     private final JavaMailSender mailSender;
 
     @Scheduled(fixedRate = 60000)
     public void sendScheduledReviews() {
-        List<BookReview> pending = bookReviewMapper.findPendingReviews();
-        if (pending.isEmpty()) return;
+        // 발송 안 된 것 중 오늘 날짜 + 현재 시간 지난 것 조회
+        List<BookReviewDocument> pending = bookReviewMongoRepository.findByIsSent(0);
 
-        log.info("발송 대상 독후감: {}건", pending.size());
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
 
-        for (BookReview review : pending) {
+        List<BookReviewDocument> toSend = pending.stream()
+                .filter(r -> r.getDeliveryDate() != null && r.getDeliveryTime() != null)
+                .filter(r -> r.getDeliveryDate().isBefore(today) ||
+                        (r.getDeliveryDate().isEqual(today) && !r.getDeliveryTime().isAfter(now)))
+                .toList();
+
+        if (toSend.isEmpty()) return;
+
+        log.info("발송 대상 독후감: {}건", toSend.size());
+
+        for (BookReviewDocument review : toSend) {
             try {
                 User user = userMapper.findByUserId(review.getUserId());
                 if (user == null) continue;
@@ -39,23 +52,25 @@ public class ReviewScheduler {
                 String email = EncryptUtil.decryptAES(user.getEmail());
 
                 if (email == null || email.isBlank()) {
-                    log.warn("이메일 없음 (카카오 로그인) - reviewId: {}, userId: {}", review.getReviewId(), review.getUserId());
-                    bookReviewMapper.markAsSent(review.getReviewId());
+                    log.warn("이메일 없음 (카카오 로그인) - id: {}, userId: {}", review.getId(), review.getUserId());
+                    review.setIsSent(1);
+                    bookReviewMongoRepository.save(review);
                     continue;
                 }
 
                 log.info("복호화된 이메일: {}", email);
                 sendReviewMail(email, user.getName(), review);
-                bookReviewMapper.markAsSent(review.getReviewId());
-                log.info("메일 발송 완료 - reviewId: {}, to: {}", review.getReviewId(), email);
+                review.setIsSent(1);
+                bookReviewMongoRepository.save(review);
+                log.info("메일 발송 완료 - id: {}, to: {}", review.getId(), email);
 
             } catch (Exception e) {
-                log.error("메일 발송 실패 - reviewId: {}", review.getReviewId(), e);
+                log.error("메일 발송 실패 - id: {}", review.getId(), e);
             }
         }
     }
 
-    private void sendReviewMail(String toEmail, String name, BookReview review) throws Exception {
+    private void sendReviewMail(String toEmail, String name, BookReviewDocument review) throws Exception {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
         helper.setFrom("edwerd0511@naver.com");
@@ -65,22 +80,22 @@ public class ReviewScheduler {
         mailSender.send(message);
     }
 
-    private String buildHtmlContent(String name, BookReview review) {
+    private String buildHtmlContent(String name, BookReviewDocument review) {
         int paperId = review.getPaperId() != null ? review.getPaperId() : 1;
 
         String bg = switch (paperId) {
-            case 1  -> "linear-gradient(135deg, #FFF8F0 0%, #F5E6D3 100%)";               // 크림
-            case 2  -> "linear-gradient(135deg, #FFE4E8 0%, #FFBFCC 100%)";               // 체리
-            case 3  -> "linear-gradient(135deg, #1E3A5F 0%, #2E5A8F 100%)";               // 네이비
-            case 4  -> "linear-gradient(135deg, #E0F5F0 0%, #B8EAE0 100%)";               // 민트
-            case 5  -> "linear-gradient(135deg, #F5F0E8 0%, #E8DCC8 100%)";               // 베이지
-            case 6  -> "linear-gradient(135deg, #FFD6E7 0%, #FFAFD2 50%, #FFC8A2 100%)"; // 봄
-            case 7  -> "linear-gradient(135deg, #E8F4FD 0%, #AED6F1 50%, #85C1E9 100%)"; // 여름
-            case 8  -> "linear-gradient(135deg, #FDEBD0 0%, #F0B27A 50%, #E59866 100%)"; // 가을
-            case 9  -> "linear-gradient(135deg, #EAF2FF 0%, #D6E8FF 50%, #C3DEFF 100%)"; // 겨울
-            case 10 -> "linear-gradient(135deg, #FFF0F5 0%, #FFD6E8 50%, #FFC2E0 100%)"; // 설렘
-            case 11 -> "linear-gradient(135deg, #2C3E50 0%, #3D5166 50%, #4A6278 100%)"; // 그리움
-            case 12 -> "linear-gradient(135deg, #F8F9FA 0%, #E8F5E9 50%, #C8E6C9 100%)"; // 위로
+            case 1  -> "linear-gradient(135deg, #FFF8F0 0%, #F5E6D3 100%)";
+            case 2  -> "linear-gradient(135deg, #FFE4E8 0%, #FFBFCC 100%)";
+            case 3  -> "linear-gradient(135deg, #1E3A5F 0%, #2E5A8F 100%)";
+            case 4  -> "linear-gradient(135deg, #E0F5F0 0%, #B8EAE0 100%)";
+            case 5  -> "linear-gradient(135deg, #F5F0E8 0%, #E8DCC8 100%)";
+            case 6  -> "linear-gradient(135deg, #FFD6E7 0%, #FFAFD2 50%, #FFC8A2 100%)";
+            case 7  -> "linear-gradient(135deg, #E8F4FD 0%, #AED6F1 50%, #85C1E9 100%)";
+            case 8  -> "linear-gradient(135deg, #FDEBD0 0%, #F0B27A 50%, #E59866 100%)";
+            case 9  -> "linear-gradient(135deg, #EAF2FF 0%, #D6E8FF 50%, #C3DEFF 100%)";
+            case 10 -> "linear-gradient(135deg, #FFF0F5 0%, #FFD6E8 50%, #FFC2E0 100%)";
+            case 11 -> "linear-gradient(135deg, #2C3E50 0%, #3D5166 50%, #4A6278 100%)";
+            case 12 -> "linear-gradient(135deg, #F8F9FA 0%, #E8F5E9 50%, #C8E6C9 100%)";
             default -> "linear-gradient(135deg, #FFF8F0 0%, #F5E6D3 100%)";
         };
 
