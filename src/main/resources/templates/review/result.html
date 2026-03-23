@@ -2,59 +2,281 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>독후감 결과 - FROM</title>
+
     <link rel="stylesheet" th:href="@{/css/common.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        .letter-wrap {
-            max-width: 560px;
-            margin: 40px auto;
-            border-radius: 16px;
-            padding: 48px 40px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
-            font-family: 'Nanum Myeongjo', serif;
-            line-height: 2;
-            font-size: 15px;
-            color: #333;
-            white-space: pre-wrap;
+        :root {
+            --primary: #6071E3;
+            --primary-dark: #4D5ED1;
+            --text-main: #3E3440;
+            --text-soft: #6F6470;
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.06);
+            --radius-xl: 24px;
+            --radius-lg: 18px;
+            --page-max-width: 720px;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #F6F2EE;
+            color: var(--text-main);
+            font-family: 'Noto Serif KR', serif;
+        }
+
+        .page-container {
+            max-width: var(--page-max-width);
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .result-title {
+            margin: 0;
+            color: var(--primary);
+            font-size: 30px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.4;
+        }
+
+        .result-subtitle {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-soft);
+            line-height: 1.7;
+        }
+
+        .letter-wrap {
+            position: relative;
+            max-width: 560px;
+            margin: 0 auto;
+            border-radius: var(--radius-xl);
+            padding: 56px 42px;
+            box-shadow: var(--shadow-md);
+            font-family: 'Noto Serif KR', serif;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .letter-wrap:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.10);
+        }
+
+        .letter-wrap::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(255, 255, 255, 0.08);
+            pointer-events: none;
+        }
+
+        .letter-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .letter-date {
+            margin: 0 0 28px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .letter-body {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: keep-all;
+            line-height: 2.05;
+            font-size: 16px;
+            letter-spacing: -0.01em;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            max-width: 560px;
+            margin: 24px auto 0;
+        }
+
+        .btn-row a {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-custom {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 52px;
+            padding: 0 20px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline-custom {
+            border: 1.5px solid var(--primary);
+            color: var(--primary);
+            background: #FFFFFF;
+        }
+
+        .btn-outline-custom:hover {
+            background: #F5F7FF;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary-custom {
+            border: 1.5px solid var(--primary);
+            color: #FFFFFF;
+            background: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary-custom:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* ===== 편지지 12종 ===== */
+
         /* 기본 5종 */
-        .paper-1  { background: linear-gradient(135deg, #FFF8F0, #F5E6D3); }
-        .paper-2  { background: linear-gradient(135deg, #FFE4E8, #FFBFCC); }
-        .paper-3  { background: linear-gradient(135deg, #1E3A5F, #2E5A8F); color: white; }
-        .paper-4  { background: linear-gradient(135deg, #E0F5F0, #B8EAE0); }
-        .paper-5  { background: linear-gradient(135deg, #F5F0E8, #E8DCC8); }
+        .paper-1  {
+            background: linear-gradient(135deg, #FFF8F0, #F5E6D3);
+            color: #4A3B31;
+        }
+
+        .paper-2  {
+            background: linear-gradient(135deg, #FFE4E8, #FFBFCC);
+            color: #5A3D45;
+        }
+
+        .paper-3  {
+            background: linear-gradient(135deg, #1E3A5F, #2E5A8F);
+            color: #F8FBFF;
+        }
+
+        .paper-4  {
+            background: linear-gradient(135deg, #E0F5F0, #B8EAE0);
+            color: #355850;
+        }
+
+        .paper-5  {
+            background: linear-gradient(135deg, #F5F0E8, #E8DCC8);
+            color: #5B4A39;
+        }
 
         /* 계절 4종 */
-        .paper-6  { background: linear-gradient(135deg, #FFD6E7, #FFAFD2, #FFC8A2); }
-        .paper-7  { background: linear-gradient(135deg, #E8F4FD, #AED6F1, #85C1E9); }
-        .paper-8  { background: linear-gradient(135deg, #FDEBD0, #F0B27A, #E59866); color: #5D2E0C; }
-        .paper-9  { background: linear-gradient(135deg, #EAF2FF, #D6E8FF, #C3DEFF); }
+        .paper-6  {
+            background: linear-gradient(135deg, #FFD6E7, #FFAFD2, #FFC8A2);
+            color: #5B3E4A;
+        }
+
+        .paper-7  {
+            background: linear-gradient(135deg, #E8F4FD, #AED6F1, #85C1E9);
+            color: #214865;
+        }
+
+        .paper-8  {
+            background: linear-gradient(135deg, #FDEBD0, #F0B27A, #E59866);
+            color: #5D2E0C;
+        }
+
+        .paper-9  {
+            background: linear-gradient(135deg, #EAF2FF, #D6E8FF, #C3DEFF);
+            color: #35506D;
+        }
 
         /* 감정 3종 */
-        .paper-10 { background: linear-gradient(135deg, #FFF0F5, #FFD6E8, #FFC2E0); }
-        .paper-11 { background: linear-gradient(135deg, #2C3E50, #3D5166, #4A6278); color: white; }
-        .paper-12 { background: linear-gradient(135deg, #F8F9FA, #E8F5E9, #C8E6C9); }
+        .paper-10 {
+            background: linear-gradient(135deg, #FFF0F5, #FFD6E8, #FFC2E0);
+            color: #5A3F4A;
+        }
 
-        .btn-row { display: flex; gap: 10px; max-width: 560px; margin: 20px auto; }
+        .paper-11 {
+            background: linear-gradient(135deg, #2C3E50, #3D5166, #4A6278);
+            color: #F7FAFD;
+        }
+
+        .paper-12 {
+            background: linear-gradient(135deg, #F8F9FA, #E8F5E9, #C8E6C9);
+            color: #35513A;
+        }
+
+        @media (max-width: 640px) {
+            .page-container {
+                padding: 28px 16px 48px;
+            }
+
+            .result-title {
+                font-size: 24px;
+            }
+
+            .letter-wrap {
+                padding: 36px 24px;
+                border-radius: 20px;
+            }
+
+            .letter-date {
+                margin-bottom: 22px;
+                font-size: 13px;
+            }
+
+            .letter-body {
+                font-size: 15px;
+                line-height: 1.95;
+            }
+
+            .btn-row {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
 <div th:replace="~{layout/navbar :: navbar}"></div>
 
-
 <div class="page-container">
-    <h2 style="text-align:center; color:#6071E3; margin-bottom:28px; font-family:'Nanum Myeongjo',serif;">
-        AI 독후감 생성 완료 ✉️
-    </h2>
+    <header class="result-header">
+        <h2 class="result-title">AI 독후감 생성 완료 ✉️</h2>
+        <div class="result-subtitle">
+            선택한 편지지 스타일에 맞춰 독후감 편지가 완성되었어요.
+        </div>
+    </header>
 
-    <div class="letter-wrap" th:classappend="'paper-' + ${review.paperId}">
-        <p th:text="${review.aiContent}">독후감 내용이 여기에 표시됩니다.</p>
-    </div>
+    <section class="letter-wrap" th:classappend="'paper-' + ${review.paperId}">
+        <div class="letter-content">
+            <p class="letter-date" th:text="${#temporals.format(#temporals.createNow(), 'yyyy년 MM월 dd일')}">
+                2026년 03월 23일
+            </p>
+
+            <p class="letter-body" th:text="${review.aiContent}">
+                독후감 내용이 여기에 표시됩니다.
+            </p>
+        </div>
+    </section>
 
     <div class="btn-row">
-        <a th:href="@{/review}" class="btn btn-outline" style="flex:1; text-align:center;">새 독후감 만들기</a>
-        <a th:href="@{/}" class="btn btn-primary" style="flex:1; text-align:center;">홈으로</a>
+        <a th:href="@{/review}" class="btn-custom btn-outline-custom">새 독후감 만들기</a>
+        <a th:href="@{/service.html}" class="btn-custom btn-primary-custom">홈으로</a>
     </div>
 </div>
 </body>

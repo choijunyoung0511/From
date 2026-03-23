@@ -14,62 +14,189 @@
             font-family: 'Nanum Myeongjo', serif;
         }
 
+        /* 큰 헤더 */
         .main-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 40px;
-            height: 72px;
+            padding: 0 80px;
+            height: 100px;
             background: white;
             border-bottom: 1px solid #eee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-        .main-nav { display: flex; align-items: center; gap: 48px; }
-        .main-nav a { color: #333; text-decoration: none; font-size: 15px; font-weight: 500; }
+        .main-nav { display: flex; align-items: center; gap: 70px; }
+        .main-nav a { color: #333; text-decoration: none; font-size: 20px; font-weight: 500; transition: color 0.2s; }
         .main-nav a:hover, .main-nav a.active { color: #6071E3; font-weight: 700; }
         .header-logout-btn {
             background: #6071E3; border: none; color: white;
-            padding: 8px 24px; border-radius: 20px; cursor: pointer;
-            font-size: 14px; font-weight: 700; text-decoration: none;
+            padding: 14px 40px; border-radius: 30px; cursor: pointer;
+            font-size: 18px; font-weight: 700; text-decoration: none;
+            transition: all 0.2s;
+        }
+        .header-logout-btn:hover {
+            background: #4f5fd4;
+            transform: translateY(-2px);
         }
 
-        .mypage-container { max-width: 500px; margin: 40px auto; padding: 0 20px; }
+        .mypage-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
 
+        /* 탭 메뉴 */
+        .tab-menu {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: white;
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #6071E3;
+            color: white;
+        }
+        .tab-btn:hover:not(.active) {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        /* 탭 콘텐츠 */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 프로필 섹션 */
         .user-card {
             background: white; border-radius: 16px; padding: 32px;
             margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
-        .user-info h3 { font-size: 20px; font-weight: 700; color: #1E3A5F; margin-bottom: 8px; }
-        .info-row { display: flex; gap: 12px; margin-bottom: 10px; align-items: center; }
-        .info-label { font-size: 12px; color: #999; min-width: 40px; }
-        .info-value { font-size: 14px; color: #333; font-weight: 500; }
+        .user-info h3 { font-size: 24px; font-weight: 700; color: #1E3A5F; margin-bottom: 12px; }
+        .info-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
+        .info-label { font-size: 14px; color: #999; min-width: 60px; }
+        .info-value { font-size: 16px; color: #333; font-weight: 500; }
 
         .menu-list { list-style: none; }
         .menu-list li { border-bottom: 1px solid #f0ebe6; }
         .menu-list li:last-child { border-bottom: none; }
-        .menu-list a, .menu-list button {
-            display: block; width: 100%; padding: 16px 0;
-            text-decoration: none; color: #333; font-size: 15px;
+        .menu-list button {
+            display: block; width: 100%; padding: 18px 0;
+            text-decoration: none; color: #333; font-size: 16px;
             background: none; border: none; cursor: pointer; text-align: left;
             transition: color 0.2s;
         }
-        .menu-list a:hover, .menu-list button:hover { color: #6071E3; font-weight: 600; }
+        .menu-list button:hover { color: #6071E3; font-weight: 600; }
         .menu-list .danger { color: #e74c3c; }
         .menu-list .danger:hover { color: #c0392b; }
 
         .home-link {
             display: block; text-align: center; margin-top: 16px;
-            color: #888; font-size: 13px; text-decoration: none;
+            color: #888; font-size: 14px; text-decoration: none;
         }
         .home-link:hover { color: #6071E3; }
+
+        /* 독후감 기록 섹션 */
+        .page-title {
+            font-size: 24px; font-weight: 700; color: #1E3A5F;
+            margin-bottom: 24px; padding-bottom: 12px;
+            border-bottom: 2px solid #6071E3;
+        }
+
+        .review-card {
+            background: white; border-radius: 12px; padding: 24px;
+            margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            transition: transform 0.15s;
+        }
+        .review-card:hover { transform: translateY(-2px); }
+
+        .review-book { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 6px; }
+        .review-author { font-size: 14px; color: #888; margin-bottom: 12px; }
+        .review-meta { display: flex; gap: 16px; font-size: 14px; color: #aaa; flex-wrap: wrap; }
+        .review-status {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 13px; font-weight: 600;
+        }
+        .status-sent { background: #e8f5e9; color: #388e3c; }
+        .status-pending { background: #fff3e0; color: #f57c00; }
+
+        .empty-state {
+            text-align: center; padding: 80px 20px;
+            background: white; border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        }
+        .empty-state .icon { font-size: 56px; margin-bottom: 16px; }
+        .empty-state p { color: #aaa; font-size: 16px; line-height: 1.6; }
+
+        /* 비밀번호 변경 섹션 */
+        .card {
+            background: white; border-radius: 16px; padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .card h2 {
+            font-size: 24px; font-weight: 700; color: #1E3A5F;
+            margin-bottom: 24px; padding-bottom: 12px;
+            border-bottom: 2px solid #6071E3;
+        }
+
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; font-size: 14px; color: #666; margin-bottom: 8px; font-weight: 600; }
+        .form-control {
+            width: 100%; padding: 14px 18px; border: 1.5px solid #ddd;
+            border-radius: 8px; font-size: 15px; box-sizing: border-box;
+            outline: none; transition: border-color 0.2s;
+        }
+        .form-control:focus { border-color: #6071E3; }
+        .hint { font-size: 13px; color: #aaa; margin-top: 6px; display: block; }
+        .error-msg { display: block; color: #e53935; font-size: 13px; margin-top: 6px; min-height: 18px; }
+
+        .btn-submit {
+            width: 100%; padding: 16px; background: #6071E3; color: white;
+            border: none; border-radius: 8px; font-size: 17px; font-weight: 700;
+            cursor: pointer; margin-top: 8px; transition: background 0.2s;
+        }
+        .btn-submit:hover { background: #4f5fd4; }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .main-header {
+                padding: 0 30px;
+                height: 85px;
+            }
+            .main-nav {
+                gap: 35px;
+            }
+            .main-nav a {
+                font-size: 17px;
+            }
+            .tab-menu {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
     </style>
 </head>
 <body>
 
+<!-- 큰 헤더 -->
 <header class="main-header">
     <a href="/">
-        <img th:src="@{/images/logo.png}" alt="from" style="height: 60px;">
+        <img th:src="@{/images/logo.png}" alt="from" style="height: 80px;">
     </a>
-    <div style="display:flex; align-items:center; gap:48px;">
+    <div style="display:flex; align-items:center; gap:70px;">
         <nav class="main-nav">
             <a th:href="@{/book/register}">책 등록</a>
             <a th:href="@{/ranking}">랭킹</a>
@@ -81,31 +208,96 @@
 </header>
 
 <div class="mypage-container">
-    <!-- 유저 정보 카드 -->
-    <div class="user-card">
-        <div class="user-info">
-            <h3 th:text="${session.loginUser.name}">이름</h3>
+    <!-- 탭 메뉴 -->
+    <div class="tab-menu">
+        <button class="tab-btn active" onclick="showTab('profile')">프로필</button>
+        <button class="tab-btn" onclick="showTab('reviews')">독후감 기록</button>
+        <button class="tab-btn" onclick="showTab('password')">비밀번호 변경</button>
+    </div>
+
+    <!-- 탭 1: 프로필 -->
+    <div id="profile-tab" class="tab-content active">
+        <!-- 유저 정보 카드 -->
+        <div class="user-card">
+            <div class="user-info">
+                <h3 th:text="${session.loginUser.name}">이름</h3>
+            </div>
+            <div style="margin-top: 20px;">
+                <div class="info-row">
+                    <span class="info-label">이메일</span>
+                    <span class="info-value" th:text="${session.loginUser.email}">이메일</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">아이디</span>
+                    <span class="info-value" th:text="${session.loginUser.username}">아이디</span>
+                </div>
+            </div>
         </div>
-        <div style="margin-top: 16px;">
-            <div class="info-row">
-                <span class="info-label">이메일</span>
-                <span class="info-value" th:text="${session.loginUser.email}">이메일</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">아이디</span>
-                <span class="info-value" th:text="${session.loginUser.username}">아이디</span>
-            </div>
+
+        <!-- 메뉴 -->
+        <div class="user-card">
+            <ul class="menu-list">
+                <li><button onclick="showTab('reviews')">📖 내 독후감 기록 조회</button></li>
+                <li><button onclick="showTab('password')">🔒 비밀번호 변경</button></li>
+                <li><button class="danger" onclick="showDeleteModal()">⚠️ 회원 탈퇴</button></li>
+            </ul>
+            <a th:href="@{/}" class="home-link">홈으로 돌아가기</a>
         </div>
     </div>
 
-    <!-- 메뉴 -->
-    <div class="user-card">
-        <ul class="menu-list">
-            <li><a th:href="@{/user/mypage/reviews}">내 독후감 기록 조회</a></li>
-            <li><a th:href="@{/user/mypage/changePassword}">비밀번호 변경</a></li>
-            <li><button class="danger" onclick="showDeleteModal()">회원 탈퇴</button></li>
-        </ul>
-        <a th:href="@{/}" class="home-link">홈으로 돌아가기</a>
+    <!-- 탭 2: 독후감 기록 -->
+    <div id="reviews-tab" class="tab-content">
+        <h2 class="page-title">📖 내 독후감 기록</h2>
+
+        <div th:if="${reviews != null and !reviews.isEmpty()}">
+            <div class="review-card" th:each="r : ${reviews}">
+                <div class="review-book" th:text="${r.bookTitle}">책 제목</div>
+                <div class="review-author" th:text="'저자: ' + ${r.bookAuthor}">저자</div>
+                <div class="review-meta">
+                    <span th:text="'발송일: ' + ${r.deliveryDate}"></span>
+                    <span th:text="'발송시간: ' + ${r.deliveryTime}"></span>
+                    <span class="review-status"
+                          th:classappend="${r.isSent == 1} ? 'status-sent' : 'status-pending'"
+                          th:text="${r.isSent == 1} ? '발송 완료' : '발송 대기'">
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${reviews == null or reviews.isEmpty()}" class="empty-state">
+            <div class="icon">✉️</div>
+            <p>아직 생성한 독후감이 없어요.<br>책을 읽고 미래의 나에게 편지를 보내보세요!</p>
+        </div>
+    </div>
+
+    <!-- 탭 3: 비밀번호 변경 -->
+    <div id="password-tab" class="tab-content">
+        <div class="card">
+            <h2>🔒 비밀번호 변경</h2>
+
+            <div class="form-group">
+                <label>현재 비밀번호</label>
+                <input type="password" id="currentPassword" class="form-control" placeholder="현재 비밀번호를 입력해주세요.">
+                <span class="error-msg" id="current-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label>새 비밀번호</label>
+                <input type="password" id="newPassword" class="form-control" placeholder="새 비밀번호를 입력해주세요."
+                       oninput="checkNewPassword()">
+                <span class="hint">문자, 숫자, 특수문자 포함 8~20자 이내</span>
+                <span class="error-msg" id="new-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label>새 비밀번호 확인</label>
+                <input type="password" id="confirmPassword" class="form-control" placeholder="새 비밀번호를 다시 입력해주세요."
+                       oninput="checkConfirm()">
+                <span class="error-msg" id="confirm-error"></span>
+            </div>
+
+            <button class="btn-submit" onclick="changePassword()">비밀번호 변경</button>
+        </div>
     </div>
 </div>
 
@@ -130,7 +322,27 @@
     </div>
 </div>
 
+<!-- 비밀번호 변경 완료 모달 -->
+<div class="modal-overlay" id="successModal">
+    <div class="modal-box">
+        <p>비밀번호가 성공적으로 변경되었습니다.</p>
+        <button class="btn btn-primary" onclick="closeSuccessModal()">확인</button>
+    </div>
+</div>
+
 <script>
+    // 탭 전환
+    function showTab(tabName) {
+        // 모든 탭 버튼과 콘텐츠에서 active 제거
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        // 선택된 탭 활성화
+        document.getElementById(tabName + '-tab').classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    // 회원 탈퇴
     function showDeleteModal() { document.getElementById('deleteModal').classList.add('show'); }
     function closeDeleteModal() {
         document.getElementById('deleteModal').classList.remove('show');
@@ -160,6 +372,70 @@
                 error.textContent = '비밀번호가 일치하지 않습니다.';
             }
         });
+    }
+
+    // 비밀번호 변경
+    const PW_REGEX = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,20}$/;
+
+    function checkNewPassword() {
+        const val = document.getElementById('newPassword').value;
+        const err = document.getElementById('new-error');
+        if (val && !PW_REGEX.test(val)) {
+            err.textContent = '비밀번호가 조건에 맞지 않습니다.';
+        } else {
+            err.textContent = '';
+        }
+        checkConfirm();
+    }
+
+    function checkConfirm() {
+        const newPw = document.getElementById('newPassword').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        const err = document.getElementById('confirm-error');
+        if (confirm && newPw !== confirm) {
+            err.textContent = '비밀번호가 일치하지 않습니다.';
+        } else {
+            err.textContent = '';
+        }
+    }
+
+    function changePassword() {
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        document.getElementById('current-error').textContent = '';
+        document.getElementById('new-error').textContent = '';
+        document.getElementById('confirm-error').textContent = '';
+
+        if (!currentPassword) { document.getElementById('current-error').textContent = '현재 비밀번호를 입력해주세요.'; return; }
+        if (!newPassword) { document.getElementById('new-error').textContent = '새 비밀번호를 입력해주세요.'; return; }
+        if (!PW_REGEX.test(newPassword)) { document.getElementById('new-error').textContent = '비밀번호가 조건에 맞지 않습니다.'; return; }
+        if (newPassword !== confirmPassword) { document.getElementById('confirm-error').textContent = '비밀번호가 일치하지 않습니다.'; return; }
+
+        fetch('/user/mypage/changePassword', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `currentPassword=${encodeURIComponent(currentPassword)}&newPassword=${encodeURIComponent(newPassword)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('successModal').classList.add('show');
+            } else {
+                document.getElementById('current-error').textContent = data.message || '현재 비밀번호가 일치하지 않습니다.';
+            }
+        });
+    }
+
+    function closeSuccessModal() {
+        document.getElementById('successModal').classList.remove('show');
+        // 폼 초기화
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        // 프로필 탭으로 이동
+        showTab('profile');
     }
 </script>
 </body>

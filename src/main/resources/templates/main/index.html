@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FROM - 지금의 나에게서 미래의 나에게 보내는 독서 편지</title>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+<body>
+<!-- 네비게이션 -->
+<nav class="landing-nav" id="navbar">
+    <a th:href="@{/user/login}" class="nav-logo-link">
+        <img th:src="@{/images/logo.png}" alt="FROM 로고" class="nav-logo-img">
+    </a>
+    <a th:href="@{/user/login}" class="nav-login-btn">로그인</a>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-background"></div>
+    <div class="hero-glass-card">
+        <h1 class="hero-headline">언제 어디서든<br>지금의 내가 미래의 나에게<br>보내는 독서 편지</h1>
+        <p class="hero-subtext">책을 읽고 기록하면<br>AI가 미래의 나에게 전하는 편지를 만들어줍니다.</p>
+        <a th:href="@{/user/signup}" class="hero-cta">프롬 시작하기</a>
+    </div>
+    <div class="scroll-indicator">
+        <span>Scroll Down</span>
+    </div>
+</section>
+
+<!-- Service Introduction Section -->
+<section class="service-section">
+    <div class="section-container">
+        <div class="service-text fade-in-section">
+            <h2>당신의 독서가<br>미래를 향한 편지가 됩니다</h2>
+            <p>FROM은 단순한 독서 기록이 아닙니다.</p>
+            <p>책을 읽고 느낀 감정과 생각을 AI가 분석하여, 미래의 당신에게 전하는 특별한 편지로 만들어드립니다.</p>
+            <p>지금 이 순간의 당신이 미래의 당신에게 전하고 싶은 이야기를 담아보세요.</p>
+        </div>
+        <div class="service-illustration fade-in-section">
+            <!-- 일러스트 영역 -->
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works-section">
+    <h2 class="section-title">어떻게 작동하나요?</h2>
+    <div class="steps-container">
+        <div class="step-card fade-in-section">
+            <div class="step-number">1</div>
+            <div class="step-icon">🔍</div>
+            <h3 class="step-title">책 검색</h3>
+            <p class="step-description">알라딘 API를 통해 읽은 책을 검색하고 등록하세요</p>
+        </div>
+        <div class="step-card fade-in-section">
+            <div class="step-number">2</div>
+            <div class="step-icon">✍️</div>
+            <h3 class="step-title">독후감 작성</h3>
+            <p class="step-description">책을 읽고 느낀 감정과 생각을 자유롭게 기록하세요</p>
+        </div>
+        <div class="step-card fade-in-section">
+            <div class="step-number">3</div>
+            <div class="step-icon">🤖</div>
+            <h3 class="step-title">AI 분석</h3>
+            <p class="step-description">OpenAI가 당신의 감정과 내용을 깊이 있게 분석합니다</p>
+        </div>
+        <div class="step-card fade-in-section">
+            <div class="step-number">4</div>
+            <div class="step-icon">✉️</div>
+            <h3 class="step-title">미래 편지 생성</h3>
+            <p class="step-description">AI가 미래의 당신에게 전하는 특별한 편지를 만듭니다</p>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="stats-section">
+    <h2 class="section-title">FROM과 함께한 이야기들</h2>
+    <div class="stats-container">
+        <div class="stat-card fade-in-section">
+            <div class="stat-number" data-target="12340">0</div>
+            <div class="stat-label">기록된 독서</div>
+        </div>
+        <div class="stat-card fade-in-section">
+            <div class="stat-number" data-target="8120">0</div>
+            <div class="stat-label">AI 생성 편지</div>
+        </div>
+        <div class="stat-card fade-in-section">
+            <div class="stat-number" data-target="2450">0</div>
+            <div class="stat-label">사용자</div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <h2 class="section-title">FROM의 특별한 기능들</h2>
+    <div class="features-container">
+        <div class="feature-card fade-in-section">
+            <div class="feature-icon">📚</div>
+            <h3 class="feature-title">독서 기록 관리</h3>
+            <p class="feature-description">읽은 책들을 체계적으로 정리하고, 나만의 독서 아카이브를 만들어보세요</p>
+        </div>
+        <div class="feature-card fade-in-section">
+            <div class="feature-icon">🎯</div>
+            <h3 class="feature-title">AI 독후감 분석</h3>
+            <p class="feature-description">OpenAI가 당신의 글을 분석하여 깊은 인사이트를 제공합니다</p>
+        </div>
+        <div class="feature-card fade-in-section">
+            <div class="feature-icon">💌</div>
+            <h3 class="feature-title">미래 편지 전달</h3>
+            <p class="feature-description">원하는 날짜에 미래의 나에게 편지가 도착합니다</p>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA Section -->
+<section class="final-cta-section">
+    <h2 class="final-cta-title">지금 미래의 나에게<br>첫 편지를 보내보세요</h2>
+    <a th:href="@{/user/signup}" class="final-cta-btn">프롬 시작하기</a>
+</section>
+
+<!-- Footer -->
+<footer class="landing-footer">
+    <div class="footer-logo">FROM</div>
+    <p class="footer-text">© 2024 FROM. All rights reserved.</p>
+</footer>
+
+<script>
+    // 네비게이션 스크롤 효과
+    window.addEventListener('scroll', function() {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 100) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    // 스크롤 애니메이션
+    const observerOptions = {
+        threshold: 0.2,
+        rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.fade-in-section').forEach(element => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(30px)';
+        element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        observer.observe(element);
+    });
+
+    // 통계 카운터 애니메이션
+    const statsObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const statNumbers = entry.target.querySelectorAll('.stat-number');
+                statNumbers.forEach(stat => {
+                    const target = parseInt(stat.getAttribute('data-target'));
+                    const duration = 2000;
+                    const step = target / (duration / 16);
+                    let current = 0;
+
+                    const counter = setInterval(() => {
+                        current += step;
+                        if (current >= target) {
+                            stat.textContent = target.toLocaleString();
+                            clearInterval(counter);
+                        } else {
+                            stat.textContent = Math.floor(current).toLocaleString();
+                        }
+                    }, 16);
+                });
+                statsObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    const statsSection = document.querySelector('.stats-section');
+    if (statsSection) {
+        statsObserver.observe(statsSection);
+    }
+
+    // 부드러운 스크롤
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

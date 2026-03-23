@@ -1,0 +1,186 @@
+/* ===================================
+   FROM - Service 페이지 CSS
+=================================== */
+
+/* 서비스 페이지 전용 스타일 */
+.service-container {
+    min-height: 100vh;
+    padding-top: 90px; /* navbar 높이만큼 */
+    background: url('/images/library.png') center/cover no-repeat;
+    position: relative;
+}
+
+.service-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 0;
+}
+
+.service-content {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 60px;
+}
+
+/* 제목 영역 */
+.service-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.service-title {
+    font-size: 48px;
+    font-weight: 900;
+    margin-bottom: 16px;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    line-height: 1.4;
+}
+
+.service-subtitle {
+    font-size: 22px;
+    font-weight: 500;
+    opacity: 0.95;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 카드 컨테이너 */
+.service-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* 서비스 카드 */
+.service-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 60px 40px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: 2px solid transparent;
+}
+
+.service-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 60px rgba(96, 113, 227, 0.3);
+    border-color: #6071E3;
+    background: white;
+}
+
+/* 카드 라벨 */
+.card-label {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* 카드 아이콘 */
+.card-icon {
+    font-size: 96px;
+    margin-bottom: 28px;
+    display: block;
+}
+
+/* 카드 제목 */
+.card-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+/* 카드 설명 */
+.card-description {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* 하단 버튼 영역 */
+.service-footer {
+    margin-top: 40px;
+}
+
+.btn-back {
+    padding: 18px 60px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #6071E3;
+    border: 2px solid #6071E3;
+    border-radius: 50px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.btn-back:hover {
+    background: #6071E3;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(96, 113, 227, 0.4);
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+    .service-cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .service-content {
+        padding: 60px 20px;
+        gap: 40px;
+    }
+
+    .service-title {
+        font-size: 36px;
+    }
+
+    .service-subtitle {
+        font-size: 18px;
+    }
+
+    .service-cards {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .service-card {
+        padding: 40px 30px;
+    }
+
+    .card-icon {
+        font-size: 72px;
+    }
+
+    .card-title {
+        font-size: 24px;
+    }
+
+    .btn-back {
+        padding: 16px 48px;
+        font-size: 18px;
+    }
+}
