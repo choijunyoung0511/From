@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>책 등록 - FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        .search-wrap { max-width: 600px; margin: 40px auto 0; }
+        .search-box { display: flex; gap: 0; border: 2px solid #6071E3; border-radius: 30px; overflow: hidden; background: white; }
+        .search-input { flex: 1; padding: 14px 20px; border: none; outline: none; font-size: 15px; font-family: 'Nanum Gothic', sans-serif; }
+        .search-btn { padding: 0 20px; background: none; border: none; cursor: pointer; font-size: 20px; color: #6071E3; }
+        .book-list { max-width: 600px; margin: 20px auto; }
+        .book-item { display: flex; align-items: center; background: white; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); gap: 16px; }
+        .book-cover { width: 50px; height: 70px; border-radius: 4px; flex-shrink: 0; object-fit: cover; }
+        .book-cover-placeholder { width: 50px; height: 70px; background: #E0D5CC; border-radius: 4px; flex-shrink: 0; }
+        .book-info { flex: 1; }
+        .book-title { font-size: 15px; font-weight: 700; color: #6071E3; margin-bottom: 4px; }
+        .book-author { font-size: 13px; color: #888; }
+        .register-btn { padding: 8px 20px; border: 1.5px solid #6071E3; border-radius: 20px; background: white; color: #6071E3; cursor: pointer; font-size: 13px; white-space: nowrap; transition: all 0.2s; font-family: 'Nanum Gothic', sans-serif; }
+        .register-btn:hover { background: #6071E3; color: white; }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout/navbar :: navbar}"></div>
+
+<div class="page-container">
+    <div class="search-wrap">
+        <div class="search-box">
+            <input type="text" id="search-input" class="search-input" placeholder="책을 검색해보세요."
+                   onkeydown="if(event.key==='Enter') searchBooks()">
+            <button class="search-btn" onclick="searchBooks()">🔍</button>
+        </div>
+    </div>
+    <div class="book-list" id="book-list"></div>
+</div>
+
+<div class="modal-overlay" id="modal">
+    <div class="modal-box">
+        <p id="modal-msg">등록되었습니다.</p>
+        <button class="btn btn-primary" onclick="closeModal()">확인</button>
+    </div>
+</div>
+
+<script>
+    function searchBooks() {
+        const query = document.getElementById('search-input').value.trim();
+        if (!query) return;
+
+        fetch(`/book/search?query=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(books => {
+                const list = document.getElementById('book-list');
+                if (!books || books.length === 0) {
+                    list.innerHTML = '<p style="text-align:center; color:#999; padding:40px;">검색 결과가 없습니다.</p>';
+                    return;
+                }
+                list.innerHTML = books.map(book => `
+            <div class="book-item">
+                ${book.cover
+                    ? `<img src="${book.cover}" class="book-cover" alt="표지">`
+                    : `<div class="book-cover-placeholder"></div>`}
+                <div class="book-info">
+                    <div class="book-title">${book.title}</div>
+                    <div class="book-author">${book.author || ''}</div>
+                </div>
+                <button class="register-btn" onclick="registerBook(
+                    '${book.title.replace(/'/g, "\\'")}',
+                    '${(book.author||'').replace(/'/g, "\\'")}',
+                    '${(book.cover||'').replace(/'/g, "\\'")}',
+                    '${(book.isbn||'').replace(/'/g, "\\'")}'
+                )">등록하기</button>
+            </div>
+        `).join('');
+            });
+    }
+
+    function registerBook(title, author, cover, isbn) {
+        fetch('/book/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&cover=${encodeURIComponent(cover)}&isbn=${encodeURIComponent(isbn)}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('modal-msg').textContent = data.message || '등록되었습니다.';
+                document.getElementById('modal').classList.add('show');
+            });
+    }
+
+    function closeModal() { document.getElementById('modal').classList.remove('show'); }
+</script>
+</body>
+</html>

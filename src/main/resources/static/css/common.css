@@ -1,0 +1,149 @@
+/* ===================================
+   FROM - 공통 CSS
+=================================== */
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic:wght@400;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Nanum Gothic', sans-serif;
+    background: #F4EFEA;
+    min-height: 100vh;
+    color: #333;
+}
+
+/* 회원가입/로그인 페이지 전용 중앙정렬 */
+body.auth-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* ===================================
+   네비게이션
+=================================== */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 80px;
+    height: 100px;
+    background: #F4EFEA;
+    border-bottom: 1px solid #E0D5CC;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.nav-logo a { display: flex; align-items: center; text-decoration: none; }
+.nav-logo img { height: 80px; }
+.logo-text { font-family: 'Nanum Myeongjo', serif; font-size: 28px; color: #6071E3; font-style: italic; font-weight: 700; }
+.nav-menu { display: flex; list-style: none; gap: 70px; }
+.nav-menu a { text-decoration: none; color: #555; font-size: 20px; font-weight: 500; transition: color 0.2s; }
+.nav-menu a:hover, .nav-menu a.active { color: #6071E3; font-weight: 700; }
+
+/* ===================================
+   버튼
+=================================== */
+.btn {
+    padding: 14px 32px;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    font-family: 'Nanum Gothic', sans-serif;
+}
+.btn-primary { background: #6071E3; color: white; }
+.btn-primary:hover { background: #4f5fd4; }
+.btn-block { width: 100%; }
+.btn-outline { background: white; color: #6071E3; border: 1.5px solid #6071E3; }
+.btn-outline:hover { background: #f0f0ff; }
+.btn-sm { padding: 10px 20px; font-size: 15px; border-radius: 20px; }
+.btn-danger { background: #e74c3c; color: white; }
+
+/* ===================================
+   폼 공통
+=================================== */
+.form-container {
+    max-width: 640px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    padding: 60px 80px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.form-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #6071E3;
+    text-align: center;
+    margin-bottom: 40px;
+    font-family: 'Nanum Myeongjo', serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.form-logo {
+    height: 50px;
+    width: auto;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.form-logo:hover {
+    transform: scale(1.05);
+}
+.form-group { margin-bottom: 24px; }
+.form-group label { display: block; font-size: 16px; color: #666; margin-bottom: 8px; }
+.form-control {
+    width: 100%;
+    padding: 16px 18px;
+    border: 1.5px solid #E0D5CC;
+    border-radius: 8px;
+    font-size: 18px;
+    background: #FAFAFA;
+    transition: border-color 0.2s;
+    outline: none;
+    font-family: 'Nanum Gothic', sans-serif;
+}
+.form-control:focus { border-color: #6071E3; background: white; }
+.form-row { display: flex; gap: 8px; align-items: flex-start; }
+.form-row .form-control { flex: 1; }
+.error-msg { color: #e74c3c; font-size: 14px; margin-top: 4px; display: block; min-height: 16px; }
+.success-msg { color: #27ae60; font-size: 14px; margin-top: 4px; display: block; }
+
+.form-footer { text-align: center; margin-top: 20px; font-size: 15px; color: #888; }
+.form-footer a { color: #6071E3; text-decoration: none; font-weight: 600; }
+.form-footer a:hover { text-decoration: underline; }
+
+/* ===================================
+   모달
+=================================== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.4);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+    background: white;
+    border-radius: 12px;
+    padding: 32px 40px;
+    text-align: center;
+    min-width: 280px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+.modal-box p { font-size: 16px; color: #333; margin-bottom: 20px; line-height: 1.6; }
+.modal-box .btn { min-width: 100px; }
+
+/* ===================================
+   페이지 공통
+=================================== */
+.page-container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+.page-header { font-size: 24px; font-weight: 700; color: #6071E3; margin-bottom: 24px; font-family: 'Nanum Myeongjo', serif; }

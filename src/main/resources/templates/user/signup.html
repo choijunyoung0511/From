@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+</head>
+<body class="auth-page">
+<div class="form-container">
+    <!-- 로고 영역 (클릭시 홈으로 이동) -->
+    <div class="form-title">
+        <a th:href="@{/}">
+            <img th:src="@{/images/logo.png}" alt="FROM 로고" class="form-logo">
+        </a>
+    </div>
+
+    <!-- 이름 -->
+    <div class="form-group">
+        <input type="text" id="name" class="form-control" placeholder="이름을 입력해주세요.">
+        <span class="error-msg" id="name-error"></span>
+    </div>
+
+    <!-- 아이디 + 중복확인 -->
+    <div class="form-group">
+        <div class="form-row">
+            <input type="text" id="username" class="form-control" placeholder="아이디는 6~20자 이내로 입력해주세요.">
+            <button class="btn btn-outline btn-sm" onclick="checkUsername()">중복 확인</button>
+        </div>
+        <span class="error-msg" id="username-error"></span>
+        <span class="success-msg" id="username-success"></span>
+    </div>
+
+    <!-- 비밀번호 -->
+    <div class="form-group">
+        <input type="password" id="password" class="form-control"
+               placeholder="비밀번호는 문자, 숫자, 특수문자 포함 8~20자 이내로 입력해주세요."
+               oninput="checkPasswordStrength()">
+        <span class="error-msg" id="password-error"></span>
+        <span class="success-msg" id="password-success"></span>
+    </div>
+
+    <!-- 비밀번호 확인 -->
+    <div class="form-group">
+        <input type="password" id="password-confirm" class="form-control" placeholder="비밀번호를 다시 입력해주세요.">
+        <span class="error-msg" id="password-confirm-error"></span>
+    </div>
+
+    <!-- 이메일 + 인증메일 받기 -->
+    <div class="form-group">
+        <div class="form-row">
+            <input type="email" id="email" class="form-control" placeholder="이메일 주소를 입력해주세요.">
+            <button class="btn btn-outline btn-sm" onclick="sendEmailCode()">인증메일 받기</button>
+        </div>
+        <span class="error-msg" id="email-error"></span>
+    </div>
+
+    <!-- 인증번호 입력 (이메일 발송 후 표시) -->
+    <div class="form-group" id="email-code-group" style="display:none;">
+        <div class="form-row">
+            <input type="text" id="email-code" class="form-control" placeholder="이메일주소로 온 인증번호를 입력해주세요.">
+            <button class="btn btn-outline btn-sm" onclick="verifyEmailCode()">인증 확인</button>
+        </div>
+        <span class="error-msg" id="email-code-error"></span>
+        <span class="success-msg" id="email-code-success"></span>
+    </div>
+
+    <button class="btn btn-primary btn-block" style="margin-top:8px;" onclick="doSignup()">회원가입</button>
+
+    <div class="form-footer">
+        <a th:href="@{/}">홈으로 돌아가기</a>
+    </div>
+</div>
+
+<!-- 모달 -->
+<div class="modal-overlay" id="modal">
+    <div class="modal-box">
+        <p id="modal-msg"></p>
+        <button class="btn btn-primary" onclick="closeModal()" id="modal-btn">확인</button>
+    </div>
+</div>
+
+<script>
+    let usernameChecked = false;  // 아이디 중복확인 여부
+    let emailVerified = false;    // 이메일 인증 여부
+
+    // 아이디 중복 확인
+    function checkUsername() {
+        const username = document.getElementById('username').value.trim();
+        const error = document.getElementById('username-error');
+        const success = document.getElementById('username-success');
+        error.textContent = ''; success.textContent = '';
+
+        if (!username) { error.textContent = '아이디를 입력해주세요.'; return; }
+        if (username.length < 6 || username.length > 20) { error.textContent = '아이디는 6~20자 이내로 입력해주세요.'; return; }
+
+        fetch('/user/checkUsername', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `username=${encodeURIComponent(username)}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.existsYn === 'Y') {
+                    error.textContent = '중복된 아이디입니다.';
+                    usernameChecked = false;
+                } else {
+                    success.textContent = '사용가능한 아이디입니다.';
+                    usernameChecked = true;
+                }
+            });
+    }
+
+    // 비밀번호 강도 체크
+    function checkPasswordStrength() {
+        const pw = document.getElementById('password').value;
+        const error = document.getElementById('password-error');
+        const success = document.getElementById('password-success');
+        error.textContent = ''; success.textContent = '';
+
+        if (!pw) return;
+        const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
+        if (!regex.test(pw)) {
+            error.textContent = '비밀번호가 조건에 맞지 않습니다.';
+        } else {
+            success.textContent = '사용가능한 비밀번호입니다.';
+        }
+    }
+
+    // 이메일 인증메일 발송
+    function sendEmailCode() {
+        const email = document.getElementById('email').value.trim();
+        const error = document.getElementById('email-error');
+        error.textContent = '';
+
+        if (!email) { error.textContent = '이메일을 입력해주세요.'; return; }
+
+        fetch('/user/checkEmail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `email=${encodeURIComponent(email)}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.existsYn === 'Y') {
+                    error.textContent = '중복된 이메일입니다.';
+                } else {
+                    document.getElementById('email-code-group').style.display = 'block';
+                    showModal('메일로 전송된 인증번호를 입력해주세요.');
+                }
+            });
+    }
+
+    // 이메일 인증번호 확인
+    function verifyEmailCode() {
+        const code = document.getElementById('email-code').value.trim();
+        const error = document.getElementById('email-code-error');
+        const success = document.getElementById('email-code-success');
+        error.textContent = ''; success.textContent = '';
+
+        if (!code) { error.textContent = '인증번호를 입력해주세요.'; return; }
+
+        fetch('/user/verifyEmailCode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `code=${encodeURIComponent(code)}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    success.textContent = '인증되었습니다.';
+                    emailVerified = true;
+                } else {
+                    error.textContent = '인증번호가 틀립니다.';
+                }
+            });
+    }
+
+    // 회원가입
+    function doSignup() {
+        const name = document.getElementById('name').value.trim();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('password-confirm').value;
+        const email = document.getElementById('email').value.trim();
+        const emailCode = document.getElementById('email-code').value.trim();
+
+        // 유효성 검사
+        if (!name) { document.getElementById('name-error').textContent = '이름을 입력해주세요.'; return; }
+        if (!username) { document.getElementById('username-error').textContent = '아이디를 입력해주세요.'; return; }
+        if (!usernameChecked) { showModal('아이디 중복 확인을 해주세요.'); return; }
+        if (!password) { document.getElementById('password-error').textContent = '비밀번호를 입력해주세요.'; return; }
+        if (!passwordConfirm) { document.getElementById('password-confirm-error').textContent = '비밀번호 확인을 입력해주세요.'; return; }
+        if (password !== passwordConfirm) { document.getElementById('password-confirm-error').textContent = '비밀번호가 일치하지 않습니다.'; return; }
+        if (!email) { document.getElementById('email-error').textContent = '이메일을 입력해주세요.'; return; }
+        if (!emailVerified) { showModal('이메일 인증을 완료해주세요.'); return; }
+
+        fetch('/user/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&email=${encodeURIComponent(email)}&emailCode=${encodeURIComponent(emailCode)}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('modal-msg').textContent = '회원가입 되셨습니다.';
+                    document.getElementById('modal-btn').onclick = () => window.location.href = '/user/login';
+                    document.getElementById('modal').classList.add('show');
+                } else {
+                    showModal(data.message || '회원가입에 실패했습니다.');
+                }
+            });
+    }
+
+    function showModal(msg) {
+        document.getElementById('modal-msg').textContent = msg;
+        document.getElementById('modal-btn').onclick = closeModal;
+        document.getElementById('modal').classList.add('show');
+    }
+    function closeModal() {
+        document.getElementById('modal').classList.remove('show');
+    }
+</script>
+</body>
+</html>
