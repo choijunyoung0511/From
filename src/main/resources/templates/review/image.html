@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>책 속 주인공 이미지 생성 - from</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+    :root {
+      --accent: #5b6ef5;
+      --accent2: #8b9cf8;
+      --accent-light: #eef0fe;
+      --bg: #eef0f7;
+      --white: #ffffff;
+      --border: #dde0ef;
+      --text: #1a1d2e;
+      --text2: #6b7280;
+      --text3: #adb5c9;
+      --radius: 16px;
+      --shadow: 0 4px 24px rgba(91,110,245,0.10);
+      --shadow-lg: 0 8px 40px rgba(91,110,245,0.18);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; }
+
+    /* 네비바 */
+    .navbar {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 0 40px; height: 60px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .nav-logo img { height: 44px; object-fit: contain; display: block; }
+    .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--text); font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-links a.active { color: var(--accent); font-weight: 600; }
+    .dropdown { position: relative; }
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+      background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.10); min-width: 150px; padding: 6px; display: none; z-index: 200;
+    }
+    .dropdown:hover .dropdown-menu { display: block; }
+    .dropdown-menu a { display: block; padding: 9px 14px; font-size: 13px; color: var(--text); border-radius: 7px; transition: background 0.15s, color 0.15s; text-decoration: none; }
+    .dropdown-menu a:hover { background: var(--accent-light); color: var(--accent); }
+    .dropdown-menu a.active { color: var(--accent); font-weight: 600; background: var(--accent-light); }
+    .nav-arrow { font-size: 10px; margin-left: 3px; color: var(--text3); }
+    .nav-btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: background 0.2s; }
+    .nav-btn:hover { background: #4a5de0; }
+
+    .content { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
+
+    /* 스텝 인디케이터 */
+    .steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 36px; }
+    .step { display: flex; align-items: center; gap: 8px; }
+    .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; font-family: 'DM Mono', monospace; flex-shrink: 0; transition: all 0.3s; }
+    .step.done .step-circle, .step.active .step-circle { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 0 0 4px rgba(91,110,245,0.15); }
+    .step.inactive .step-circle { background: var(--white); color: var(--text3); border: 2px solid var(--border); }
+    .step-label { font-size: 13px; font-weight: 500; }
+    .step.done .step-label, .step.active .step-label { color: var(--accent); }
+    .step.inactive .step-label { color: var(--text3); }
+    .step-line { flex: 0 0 40px; height: 2px; background: var(--border); transition: background 0.3s; margin: 0 8px; }
+    .step-line.done { background: var(--accent); }
+
+    /* 카드 */
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); }
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .badge { background: var(--accent-light); color: var(--accent); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px; font-family: 'DM Mono', monospace; }
+
+    /* 패널 */
+    .panel { display: none; animation: fadeIn 0.3s ease; }
+    .panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 업로드 */
+    .upload-area { border: 2px dashed var(--border); border-radius: var(--radius); padding: 48px 24px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; }
+    .upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
+    .upload-area.has-image { border-color: var(--accent); padding: 0; overflow: hidden; }
+    .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 48px; margin-bottom: 12px; }
+    .upload-text { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .upload-hint { font-size: 13px; color: var(--text3); }
+    .preview-img { width: 100%; max-height: 340px; object-fit: cover; display: none; border-radius: 12px; }
+    .preview-img.show { display: block; }
+    .upload-change { margin-top: 12px; font-size: 13px; color: var(--accent); cursor: pointer; text-align: center; display: none; }
+    .upload-change.show { display: block; }
+
+    /* 책/스타일 선택 */
+    .book-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .book-option { border: 2px solid var(--border); border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+    .book-option:hover, .book-option.selected { border-color: var(--accent); background: var(--accent-light); }
+    .book-option .book-emoji { font-size: 28px; }
+    .book-option .book-name { font-size: 13px; font-weight: 600; }
+    .book-option .book-author { font-size: 11px; color: var(--text3); }
+    .style-label { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+    .style-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .style-option { border: 2px solid var(--border); border-radius: 10px; padding: 12px 8px; cursor: pointer; transition: all 0.2s; text-align: center; }
+    .style-option:hover, .style-option.selected { border-color: var(--accent); background: var(--accent-light); }
+    .style-option .style-icon { font-size: 24px; margin-bottom: 6px; }
+    .style-option .style-name { font-size: 12px; font-weight: 600; }
+    .style-option .style-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+    /* 하단 버튼 */
+    .action-row { display: flex; justify-content: space-between; margin-top: 24px; gap: 12px; }
+    .btn { padding: 12px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.2s; border: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+    .btn-primary:hover { box-shadow: 0 4px 12px rgba(91,110,245,0.3); transform: translateY(-1px); }
+    .btn-primary:disabled { background: var(--border); color: var(--text3); cursor: not-allowed; box-shadow: none; transform: none; }
+    .btn-secondary { background: var(--white); color: var(--text2); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+
+    /* ========== STEP 3 결과 ========== */
+    .result-header { text-align: center; margin-bottom: 28px; }
+
+    .step-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white; font-size: 13px; font-weight: 700;
+      padding: 8px 22px; border-radius: 99px; margin-bottom: 14px;
+      letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(91,110,245,0.3);
+    }
+
+    .result-page-title { font-size: 26px; font-weight: 700; color: var(--text); }
+
+    .result-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 32px;
+    }
+
+    /* 왼쪽 이미지 */
+    .result-img-wrap {
+      border-radius: 20px; overflow: hidden;
+      box-shadow: var(--shadow-lg); aspect-ratio: 3/4; position: relative;
+      background: linear-gradient(135deg, #e4e8fc, #cdd3f8);
+    }
+
+    .result-loading {
+      position: absolute; inset: 0; display: flex;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; background: linear-gradient(135deg, #eef0fe, #e0e4fc);
+    }
+
+    .loading-spinner {
+      width: 52px; height: 52px; border: 3px solid rgba(91,110,245,0.2);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text { font-size: 14px; color: var(--text2); text-align: center; line-height: 1.8; }
+
+    .result-img-area {
+      width: 100%; height: 100%; display: none;
+      align-items: center; justify-content: center;
+      font-size: 120px;
+    }
+
+    /* 오른쪽 카드 */
+    .result-info-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    .result-info-row {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 20px; border-bottom: 1px solid var(--border);
+    }
+    .result-info-row:last-child { border-bottom: none; }
+
+    .result-info-icon {
+      font-size: 17px; width: 38px; height: 38px;
+      background: var(--accent-light); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    .result-info-label {
+      font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace;
+      letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 5px;
+    }
+
+    .result-info-value { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.5; }
+    .result-info-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .result-info-desc { font-size: 13px; color: var(--text2); line-height: 1.8; font-weight: 400; }
+
+    .result-btn-area {
+      padding: 20px; display: flex; flex-direction: column; gap: 10px;
+      background: var(--bg);
+    }
+
+    .btn-dl {
+      padding: 13px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: all 0.2s;
+      border: none; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+    }
+    .btn-dl-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white; box-shadow: 0 4px 14px rgba(91,110,245,0.3);
+    }
+    .btn-dl-primary:hover { box-shadow: 0 6px 18px rgba(91,110,245,0.4); transform: translateY(-1px); }
+    .btn-dl-primary:disabled { background: var(--border); color: var(--text3); cursor: not-allowed; box-shadow: none; transform: none; }
+    .btn-dl-secondary { background: var(--white); color: var(--accent); border: 1.5px solid var(--accent); }
+    .btn-dl-secondary:hover { background: var(--accent-light); }
+
+    /* 히스토리 */
+    .history-wrap {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow);
+    }
+
+    .history-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 18px; font-size: 15px; font-weight: 700;
+    }
+
+    .history-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+
+    .history-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+    .history-item {
+      border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+      cursor: pointer; transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .history-item:hover { box-shadow: 0 4px 16px rgba(91,110,245,0.15); transform: translateY(-2px); }
+
+    .history-img {
+      width: 100%; aspect-ratio: 1; display: flex; align-items: center;
+      justify-content: center; font-size: 44px;
+      background: linear-gradient(135deg, #e4e8fc, #cdd3f8);
+    }
+
+    .history-meta { padding: 10px 12px; background: var(--white); }
+    .history-book { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .history-style { font-size: 11px; color: var(--accent); font-weight: 500; margin-bottom: 2px; }
+    .history-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="#" class="nav-logo"><img th:src="@{/images/logo.png}" alt="from 로고"></a>
+  <ul class="nav-links">
+    <li><a th:href="@{/book/register}">책 등록</a></li>
+    <li><a th:href="@{/ranking}">랭킹</a></li>
+    <li class="dropdown">
+      <a href="#" class="active">AI 독서 <span class="nav-arrow">▾</span></a>
+      <div class="dropdown-menu">
+        <a th:href="@{/review/create}">AI 독후감 생성</a>
+        <a th:href="@{/review/image}" class="active">이미지 생성</a>
+        <a th:href="@{/review/recommend}">책 추천</a>
+      </div>
+    </li>
+    <li class="dropdown">
+      <a href="#">마이페이지 <span class="nav-arrow">▾</span></a>
+      <div class="dropdown-menu">
+        <a th:href="@{/user/dashboard}">독서 대시보드</a>
+        <a th:href="@{/review/list}">내 독후감 기록</a>
+        <a th:href="@{/user/mypage}">비밀번호 변경</a>
+        <a th:href="@{/user/mypage}">회원 탈퇴</a>
+      </div>
+    </li>
+  </ul>
+  <button class="nav-btn">로그아웃</button>
+</nav>
+
+<div class="content">
+
+  <!-- 스텝 인디케이터 -->
+  <div class="steps" id="steps">
+    <div class="step active" id="step1-ind">
+      <div class="step-circle">1</div>
+      <span class="step-label">사진 업로드</span>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step inactive" id="step2-ind">
+      <div class="step-circle">2</div>
+      <span class="step-label">책 & 스타일 선택</span>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step inactive" id="step3-ind">
+      <div class="step-circle">3</div>
+      <span class="step-label">이미지 생성 결과</span>
+    </div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="panel active" id="panel1">
+    <div class="card">
+      <div class="card-title">내 사진 업로드 <span class="badge">STEP 1</span></div>
+      <div class="upload-area" id="uploadArea">
+        <input type="file" accept="image/*" id="fileInput" onchange="handleFile(event)">
+        <div id="uploadPlaceholder">
+          <div class="upload-icon">🤳</div>
+          <div class="upload-text">사진을 업로드하세요</div>
+          <div class="upload-hint">얼굴이 잘 보이는 사진을 사용하면 더 좋아요 · JPG, PNG 지원</div>
+        </div>
+        <img id="previewImg" class="preview-img" alt="미리보기">
+      </div>
+      <div class="upload-change" id="uploadChange" onclick="resetUpload()">📷 다른 사진으로 변경</div>
+      <div class="action-row">
+        <div></div>
+        <button class="btn btn-primary" id="nextBtn1" onclick="goStep(2)" disabled>다음 단계 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="panel" id="panel2">
+    <div class="card">
+      <div class="card-title">책 & 스타일 선택 <span class="badge">STEP 2</span></div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:12px;">등록된 책 선택</div>
+      <div class="book-selector">
+        <div class="book-option" onclick="selectBook(this,'사랑의 기술')"><div class="book-emoji">📖</div><div class="book-name">사랑의 기술</div><div class="book-author">에리히 프롬</div></div>
+        <div class="book-option" onclick="selectBook(this,'채식주의자')"><div class="book-emoji">🌿</div><div class="book-name">채식주의자</div><div class="book-author">한강</div></div>
+        <div class="book-option" onclick="selectBook(this,'코스모스')"><div class="book-emoji">🌌</div><div class="book-name">코스모스</div><div class="book-author">칼 세이건</div></div>
+        <div class="book-option" onclick="selectBook(this,'데미안')"><div class="book-emoji">🦋</div><div class="book-name">데미안</div><div class="book-author">헤르만 헤세</div></div>
+        <div class="book-option" onclick="selectBook(this,'1984')"><div class="book-emoji">👁</div><div class="book-name">1984</div><div class="book-author">조지 오웰</div></div>
+        <div class="book-option" onclick="selectBook(this,'사피엔스')"><div class="book-emoji">🦴</div><div class="book-name">사피엔스</div><div class="book-author">유발 하라리</div></div>
+      </div>
+      <div class="style-label">이미지 스타일 선택</div>
+      <div class="style-grid">
+        <div class="style-option" onclick="selectStyle(this,'수채화')"><div class="style-icon">🎨</div><div class="style-name">수채화</div><div class="style-desc">부드럽고 몽환적</div></div>
+        <div class="style-option" onclick="selectStyle(this,'유화')"><div class="style-icon">🖼️</div><div class="style-name">유화</div><div class="style-desc">고전적이고 깊은</div></div>
+        <div class="style-option" onclick="selectStyle(this,'애니메이션')"><div class="style-icon">✨</div><div class="style-name">애니메이션</div><div class="style-desc">생동감 있고 밝은</div></div>
+        <div class="style-option" onclick="selectStyle(this,'사실적')"><div class="style-icon">📸</div><div class="style-name">사실적</div><div class="style-desc">실사에 가까운</div></div>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-secondary" onclick="goStep(1)">← 이전</button>
+        <button class="btn btn-primary" id="nextBtn2" onclick="goStep(3)" disabled>이미지 생성하기 ✨</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 결과 -->
+  <div class="panel" id="panel3">
+
+    <div class="result-header">
+      <div class="step-badge">✨ STEP 3. 이미지 생성 완료</div>
+      <div class="result-page-title">책 속 주인공 이미지 생성</div>
+    </div>
+
+    <div class="result-layout">
+      <!-- 왼쪽: 이미지 -->
+      <div class="result-img-wrap">
+        <div class="result-loading" id="resultLoading">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">AI가 이미지를 생성하고 있어요<br>2~3분 정도 소요됩니다</div>
+        </div>
+        <div class="result-img-area" id="resultImgArea">🖼️</div>
+      </div>
+
+      <!-- 오른쪽: 정보 카드 -->
+      <div class="result-info-card">
+        <div class="result-info-row">
+          <div class="result-info-icon">📖</div>
+          <div>
+            <div class="result-info-label">사용된 책</div>
+            <div class="result-info-value" id="resultBookName">-</div>
+            <div class="result-info-sub" id="resultBookAuthor">-</div>
+          </div>
+        </div>
+        <div class="result-info-row">
+          <div class="result-info-icon">🎨</div>
+          <div>
+            <div class="result-info-label">선택 스타일</div>
+            <div class="result-info-value" id="resultStyleName">-</div>
+          </div>
+        </div>
+        <div class="result-info-row">
+          <div class="result-info-icon">🤖</div>
+          <div>
+            <div class="result-info-label">AI 설명</div>
+            <div class="result-info-desc" id="resultDesc">AI가 이미지를 생성하고 있습니다...</div>
+          </div>
+        </div>
+        <div class="result-btn-area">
+          <button class="btn-dl btn-dl-primary" id="downloadBtn" disabled>⬇ 이미지 다운로드</button>
+          <button class="btn-dl btn-dl-secondary" onclick="goStep(1)">🔁 다시 생성</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 이전 기록 -->
+    <div class="history-wrap">
+      <div class="history-header">
+        <div class="history-dot"></div> 이전 생성 기록
+      </div>
+      <div class="history-grid">
+        <div class="history-item"><div class="history-img">🌌</div><div class="history-meta"><div class="history-book">코스모스</div><div class="history-style">수채화 스타일</div><div class="history-date">2025.03.18</div></div></div>
+        <div class="history-item"><div class="history-img">🦋</div><div class="history-meta"><div class="history-book">데미안</div><div class="history-style">사실적 스타일</div><div class="history-date">2025.03.10</div></div></div>
+        <div class="history-item"><div class="history-img">📖</div><div class="history-meta"><div class="history-book">사랑의 기술</div><div class="history-style">유화 스타일</div><div class="history-date">2025.02.25</div></div></div>
+        <div class="history-item"><div class="history-img">👁</div><div class="history-meta"><div class="history-book">1984</div><div class="history-style">애니메이션 스타일</div><div class="history-date">2025.02.14</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BOOKS = {
+    '사랑의 기술': { emoji:'📖', author:'에리히 프롬', desc:'사랑의 철학적 의미를 탐구하는 따뜻하고 서정적인 분위기로, 부드러운 빛과 꽃들이 가득한 배경 속에 당신을 표현했습니다.' },
+    '채식주의자': { emoji:'🌿', author:'한강', desc:'한강의 몽환적이고 신비로운 세계관을 담아, 숲 속 나무와 빛이 어우러진 고요한 장면 속 주인공으로 재해석했습니다.' },
+    '코스모스': { emoji:'🌌', author:'칼 세이건', desc:'광대한 우주를 배경으로, 별빛이 쏟아지는 밤하늘 아래 서 있는 당신의 모습을 담았습니다.' },
+    '데미안': { emoji:'🦋', author:'헤르만 헤세', desc:'내면의 각성을 상징하는 나비와 빛의 이미지를 더해, 성장과 탐구의 여정 속 주인공으로 표현했습니다.' },
+    '1984': { emoji:'👁', author:'조지 오웰', desc:'디스토피아적 분위기 속에서도 빛을 향해 나아가는 강인한 존재로, 회색 도시를 배경으로 표현했습니다.' },
+    '사피엔스': { emoji:'🦴', author:'유발 하라리', desc:'인류 역사의 장대한 흐름 속에서, 문명의 시작점에 서 있는 탐험가의 모습으로 재해석했습니다.' },
+  };
+
+  let selectedBook = null, selectedStyle = null;
+
+  function handleFile(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = document.getElementById('previewImg');
+      img.src = ev.target.result; img.classList.add('show');
+      document.getElementById('uploadPlaceholder').style.display = 'none';
+      document.getElementById('uploadArea').classList.add('has-image');
+      document.getElementById('uploadChange').classList.add('show');
+      document.getElementById('nextBtn1').disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetUpload() {
+    const img = document.getElementById('previewImg');
+    img.src = ''; img.classList.remove('show');
+    document.getElementById('uploadPlaceholder').style.display = 'block';
+    document.getElementById('uploadArea').classList.remove('has-image');
+    document.getElementById('uploadChange').classList.remove('show');
+    document.getElementById('nextBtn1').disabled = true;
+    document.getElementById('fileInput').value = '';
+  }
+
+  function selectBook(el, name) {
+    document.querySelectorAll('.book-option').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected'); selectedBook = name; checkStep2();
+  }
+
+  function selectStyle(el, name) {
+    document.querySelectorAll('.style-option').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected'); selectedStyle = name; checkStep2();
+  }
+
+  function checkStep2() {
+    document.getElementById('nextBtn2').disabled = !(selectedBook && selectedStyle);
+  }
+
+  function goStep(n) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`panel${n}`).classList.add('active');
+    for (let i = 1; i <= 3; i++) {
+      const ind = document.getElementById(`step${i}-ind`);
+      ind.className = i < n ? 'step done' : i === n ? 'step active' : 'step inactive';
+    }
+    for (let i = 1; i <= 2; i++) {
+      document.getElementById(`line${i}`).className = i < n ? 'step-line done' : 'step-line';
+    }
+    if (n === 3) startGeneration();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function startGeneration() {
+    const data = BOOKS[selectedBook];
+    document.getElementById('resultBookName').textContent = selectedBook;
+    document.getElementById('resultBookAuthor').textContent = data.author;
+    document.getElementById('resultStyleName').textContent = selectedStyle + ' 스타일';
+    document.getElementById('resultDesc').textContent = 'AI가 이미지를 분석하고 생성하고 있습니다...';
+
+    const loading = document.getElementById('resultLoading');
+    const imgArea = document.getElementById('resultImgArea');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    loading.style.display = 'flex'; imgArea.style.display = 'none'; downloadBtn.disabled = true;
+
+    setTimeout(() => {
+      loading.style.display = 'none';
+      imgArea.style.display = 'flex'; imgArea.textContent = data.emoji;
+      downloadBtn.disabled = false;
+      document.getElementById('resultDesc').textContent = data.desc;
+
+      downloadBtn.onclick = () => {
+        const previewSrc = document.getElementById('previewImg').src;
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 680;
+        const ctx = canvas.getContext('2d');
+        const grad = ctx.createLinearGradient(0,0,512,680);
+        grad.addColorStop(0,'#eef0fe'); grad.addColorStop(1,'#cdd3f8');
+        ctx.fillStyle = grad; ctx.fillRect(0,0,512,680);
+        if (previewSrc && previewSrc.startsWith('data:')) {
+          const img = new Image();
+          img.onload = () => {
+            ctx.drawImage(img,0,0,512,680);
+            ctx.fillStyle='rgba(91,110,245,0.2)'; ctx.fillRect(0,0,512,680);
+            ctx.font='60px serif'; ctx.textAlign='center'; ctx.fillText(data.emoji,256,80);
+            ctx.font='bold 22px sans-serif'; ctx.fillStyle='white';
+            ctx.fillText(selectedBook+' · '+selectedStyle,256,660);
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = `from_${selectedBook}_${selectedStyle}.png`; a.click();
+          };
+          img.src = previewSrc;
+        } else {
+          ctx.font='140px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText(data.emoji,256,300);
+          ctx.font='bold 26px sans-serif'; ctx.fillStyle='#5b6ef5'; ctx.fillText(selectedBook,256,560);
+          ctx.font='18px sans-serif'; ctx.fillStyle='#6b7280'; ctx.fillText(selectedStyle+' 스타일',256,610);
+          const a = document.createElement('a');
+          a.href = canvas.toDataURL('image/png');
+          a.download = `from_${selectedBook}_${selectedStyle}.png`; a.click();
+        }
+      };
+    }, 3000);
+  }
+</script>
+</body>
+</html>

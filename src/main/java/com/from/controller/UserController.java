@@ -297,4 +297,9 @@ public class UserController {
         result.put("success", true);
         return result;
     }
+    @GetMapping("/dashboard")
+    public String dashboard() {
+        return "user/dashboard";
+    }
+
 }

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>책 추천 - from</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --accent: #5b7cf8;
+    --accent2: #7c9cff;
+    --accent-light: #eef1fe;
+    --bg: #f5f6fa;
+    --white: #ffffff;
+    --border: #e4e7f0;
+    --text: #1a1d2e;
+    --text2: #6b7280;
+    --text3: #adb5c9;
+    --radius: 14px;
+    --shadow: 0 2px 12px rgba(91,124,248,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+  }
+
+  .navbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .nav-logo img { height: 44px; object-fit: contain; display: block; }
+  .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
+  .nav-links a {
+    text-decoration: none; color: var(--text);
+    font-size: 14px; font-weight: 500; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-links a.active { color: var(--accent); font-weight: 600; }
+  
+    .dropdown { position: relative; }
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      min-width: 140px;
+      padding: 6px;
+      display: none;
+      z-index: 200;
+    }
+    .dropdown:hover .dropdown-menu { display: block; }
+    .dropdown-menu a {
+      display: block;
+      padding: 9px 14px;
+      font-size: 13px;
+      color: var(--text);
+      border-radius: 7px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .dropdown-menu a:hover { background: var(--accent-light); color: var(--accent); }
+    .dropdown-menu a.active { color: var(--accent); font-weight: 600; background: var(--accent-light); }
+    .nav-arrow { font-size: 10px; margin-left: 3px; color: var(--text3); }
+
+  .nav-btn {
+    background: var(--accent); color: white; border: none;
+    border-radius: 8px; padding: 9px 22px; font-size: 14px;
+    font-weight: 500; cursor: pointer; font-family: 'Noto Sans KR', sans-serif;
+    transition: background 0.2s;
+  }
+  .nav-btn:hover { background: #4a6be0; }
+
+  .content { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
+
+  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .page-title span { color: var(--accent); }
+  .page-desc { font-size: 14px; color: var(--text2); margin-bottom: 32px; }
+
+  /* 읽은 책 기반 분석 배너 */
+  .analysis-banner {
+    background: linear-gradient(135deg, var(--accent-light), #e8eeff);
+    border: 1px solid rgba(91,124,248,0.2);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .banner-icon { font-size: 36px; }
+
+  .banner-text { flex: 1; }
+  .banner-text strong { font-size: 15px; font-weight: 700; display: block; margin-bottom: 4px; }
+  .banner-text span { font-size: 13px; color: var(--text2); }
+
+  .banner-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .tag {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .refresh-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: background 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .refresh-btn:hover { background: #4a6be0; }
+  .refresh-btn.loading { opacity: 0.7; cursor: not-allowed; }
+
+  /* 추천 섹션 */
+  .section-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+  }
+
+  .section-title .count {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text3);
+    font-weight: 400;
+  }
+
+  /* 메인 추천 카드 */
+  .main-rec {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    animation: fadeUp 0.4s ease 0.1s both;
+    transition: box-shadow 0.2s;
+  }
+  .main-rec:hover { box-shadow: 0 4px 20px rgba(91,124,248,0.14); }
+
+  .main-rec-cover {
+    width: 110px;
+    height: 155px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .top-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 99px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .main-rec-info { flex: 1; }
+
+  .rec-reason {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-light);
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .rec-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .rec-author { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+
+  .rec-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.8;
+    margin-bottom: 16px;
+  }
+
+  .rec-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .rec-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .rec-actions { display: flex; gap: 10px; }
+
+  .btn-sm {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .btn-primary-sm {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-primary-sm:hover { background: #4a6be0; }
+
+  .btn-outline-sm {
+    background: var(--white);
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+  }
+  .btn-outline-sm:hover { background: var(--accent-light); }
+
+  /* 추천 목록 그리드 */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .rec-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .rec-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 16px rgba(91,124,248,0.14);
+    transform: translateY(-2px);
+  }
+
+  .rec-card-cover {
+    width: 100%;
+    aspect-ratio: 3/4;
+    max-height: 160px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin-bottom: 14px;
+  }
+
+  .rec-card-reason {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .rec-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .rec-card-author {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+
+  .rec-card-desc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .rec-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .wishlist-btn {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .wishlist-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .wishlist-btn.saved { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+  .genre-badge {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  /* 로딩 스켈레톤 */
+  .skeleton {
+    background: linear-gradient(90deg, #f0f2f8 25%, #e4e7f0 50%, #f0f2f8 75%);
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.5s ease infinite;
+    border-radius: 8px;
+  }
+
+  @keyframes skeleton-shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .skeleton-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 모달 */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-bg.show { display: flex; }
+
+  .modal {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 28px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    animation: fadeUp 0.3s ease;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .modal-title { font-size: 18px; font-weight: 700; }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text3);
+    padding: 0 4px;
+  }
+
+  .modal-cover {
+    width: 100%;
+    height: 180px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    margin-bottom: 16px;
+  }
+
+  .modal-desc { font-size: 14px; color: var(--text2); line-height: 1.8; margin-bottom: 20px; }
+
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions button { flex: 1; }
+
+  .btn-full {
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.2s;
+    border: none;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text3);
+  }
+  .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="#" class="nav-logo"><img th:src="@{/images/logo.png}" alt="from 로고"></a>
+    <ul class="nav-links">
+    <li><a href="@{/book/register}">책 등록</a></li>
+    <li><a href="@{/ranking}">랭킹</a></li>
+    <li class="dropdown">
+      <a href="#">AI 서비스 <span class="nav-arrow">▾</span></a>
+      <div class="dropdown-menu">
+        <a href="@{/review/create}">AI 독후감 생성</a>
+        <a href="@{/review/image}">이미지 생성</a>
+        <a href="#" class="active">책 추천</a>
+      </div>
+    </li>
+    <li class="dropdown">
+      <a href="#">마이페이지 <span class="nav-arrow">▾</span></a>
+      <div class="dropdown-menu">
+        <a href="@{/user/dashboard}">독서 대시보드</a>
+        <a href="@{/review/list}">내 독후감 기록</a>
+        <a href="@{/user/mypage}">비밀번호 변경</a>
+        <a href="@{/user/mypage}">회원 탈퇴</a>
+      </div>
+    </li>
+  </ul>
+  <button class="nav-btn">로그아웃</button>
+</nav>
+
+<div class="content">
+  <div class="page-title">나를 위한 <span>책 추천</span></div>
+  <div class="page-desc">읽은 책을 분석해서 딱 맞는 다음 책을 추천해드려요!</div>
+
+  <!-- 분석 배너 -->
+  <div class="analysis-banner">
+    <div class="banner-icon">🤖</div>
+    <div class="banner-text">
+      <strong>최준영님의 독서 패턴 분석 완료</strong>
+      <span>총 9권의 독서 기록을 분석했어요. 주로 읽는 장르와 관심사를 파악했습니다.</span>
+      <div class="banner-tags">
+        <span class="tag"># 철학</span>
+        <span class="tag"># 소설</span>
+        <span class="tag"># 역사</span>
+        <span class="tag"># 고전문학</span>
+        <span class="tag"># 인문학</span>
+      </div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="refreshRecs()">
+      <span id="refreshIcon">✨</span> 새로 추천받기
+    </button>
+  </div>
+
+  <!-- 오늘의 픽 -->
+  <div class="section-title">🏆 오늘의 최고 추천 <span class="count">AI가 가장 자신있게 추천하는 책</span></div>
+
+  <div class="main-rec" id="mainRec">
+    <div class="main-rec-cover" style="background: linear-gradient(135deg, #eef1fe, #dde3fd);">
+      <div class="top-badge">TOP 1</div>
+      <span>🌊</span>
+    </div>
+    <div class="main-rec-info">
+      <div class="rec-reason">✨ 사랑의 기술 + 데미안을 읽으셨군요</div>
+      <div class="rec-title">파우스트</div>
+      <div class="rec-author">요한 볼프강 폰 괴테 · 철학/고전</div>
+      <div class="rec-desc">
+        인간의 욕망과 구원을 다루는 괴테의 불후의 명작. 에리히 프롬의 사랑과 헤르만 헤세의 자아 탐구를 모두 좋아하신다면, 파우스트의 웅장한 철학적 여정이 깊은 울림을 줄 거예요.
+      </div>
+      <div class="rec-meta">
+        <span class="rec-meta-item">📚 742쪽</span>
+        <span class="rec-meta-item">⭐ 4.7</span>
+        <span class="rec-meta-item">🏷 고전 · 철학</span>
+      </div>
+      <div class="rec-actions">
+        <button class="btn-sm btn-primary-sm" onclick="openModal(0)">자세히 보기</button>
+        <button class="btn-sm btn-outline-sm" id="wishMain" onclick="toggleWish(this, '파우스트')">+ 등록하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 추천 목록 -->
+  <div class="section-title">📚 추천 도서 목록 <span class="count" id="recCount">6권</span></div>
+
+  <div class="rec-grid" id="recGrid"></div>
+</div>
+
+<!-- 상세 모달 -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-cover" id="modalCover"></div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:8px;" id="modalAuthor"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <div class="modal-actions">
+      <button class="btn-full" style="background:var(--accent);color:white;" onclick="closeModal()">닫기</button>
+      <button class="btn-full btn-outline-sm" id="modalWish" onclick="toggleWishModal()">+ 등록하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const RECS = [
+  {
+    emoji: '🦋', title: '싯다르타', author: '헤르만 헤세', genre: '철학',
+    reason: '데미안을 읽으셨군요',
+    desc: '헤세의 또 다른 걸작. 깨달음을 향한 한 인간의 여정을 통해 삶의 의미와 자아를 탐구합니다. 데미안과 이어지는 헤세 세계관의 정수입니다.',
+    pages: 248, rating: 4.6,
+    color: 'linear-gradient(135deg, #fef9e7, #fdf0c0)'
+  },
+  {
+    emoji: '🌊', title: '노르웨이의 숲', author: '무라카미 하루키', genre: '소설',
+    reason: '소설을 즐겨 읽으시는군요',
+    desc: '상실과 사랑, 그리고 성장을 담은 하루키의 대표작. 고독하고 서정적인 문체가 채식주의자를 좋아하는 분들께 깊이 공명합니다.',
+    pages: 352, rating: 4.5,
+    color: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)'
+  },
+  {
+    emoji: '⚡', title: '카라마조프가의 형제들', author: '도스토예프스키', genre: '고전',
+    reason: '철학적 사유를 좋아하시네요',
+    desc: '인간의 신앙, 도덕, 자유의지를 거대한 스케일로 담아낸 불멸의 고전. 사랑의 기술처럼 인간 본성을 깊이 파고듭니다.',
+    pages: 1104, rating: 4.8,
+    color: 'linear-gradient(135deg, #fce4ec, #f8bbd0)'
+  },
+  {
+    emoji: '🔥', title: '아Q정전', author: '루쉰', genre: '소설',
+    reason: '사피엔스를 읽으셨군요',
+    desc: '중국 근대 문학의 걸작. 역사와 사회 구조 속 개인의 삶을 날카롭게 포착합니다. 사피엔스에서 느낀 인류사적 통찰을 소설로 경험할 수 있어요.',
+    pages: 198, rating: 4.3,
+    color: 'linear-gradient(135deg, #fff3e0, #ffe0b2)'
+  },
+  {
+    emoji: '🌙', title: '페스트', author: '알베르 카뮈', genre: '철학',
+    reason: '고전 문학을 즐기시는군요',
+    desc: '전염병이 덮친 도시에서 인간의 실존을 탐구한 카뮈의 명작. 1984와 사랑의 기술을 좋아하신다면 이 책의 철학적 깊이에 매료될 거예요.',
+    pages: 326, rating: 4.6,
+    color: 'linear-gradient(135deg, #ede7f6, #d1c4e9)'
+  },
+  {
+    emoji: '🗺️', title: '총균쇠 2', author: '재레드 다이아몬드', genre: '역사',
+    reason: '총균쇠를 읽으셨군요',
+    desc: '총균쇠의 저자 다이아몬드의 또 다른 역작. 문명 붕괴의 원인을 추적하며 현대 사회에 경고를 보내는 방대한 지적 탐구입니다.',
+    pages: 672, rating: 4.4,
+    color: 'linear-gradient(135deg, #e3f2fd, #bbdefb)'
+  },
+];
+
+let wishlist = new Set();
+let currentModal = null;
+
+function renderGrid(items) {
+  const grid = document.getElementById('recGrid');
+  grid.innerHTML = '';
+  items.forEach((rec, i) => {
+    const card = document.createElement('div');
+    card.className = 'rec-card';
+    card.style.animationDelay = `${0.1 + i * 0.05}s`;
+    card.innerHTML = `
+      <div class="rec-card-cover" style="background:${rec.color}">${rec.emoji}</div>
+      <div class="rec-card-reason">✨ ${rec.reason}</div>
+      <div class="rec-card-title">${rec.title}</div>
+      <div class="rec-card-author">${rec.author}</div>
+      <div class="rec-card-desc">${rec.desc}</div>
+      <div class="rec-card-footer">
+        <span class="genre-badge"># ${rec.genre}</span>
+        <button class="wishlist-btn ${wishlist.has(rec.title) ? 'saved' : ''}"
+          onclick="toggleWish(this, '${rec.title}')">
+          ${wishlist.has(rec.title) ? '♥ 등록됨' : '♡ 등록하기'}
+        </button>
+      </div>
+    `;
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.wishlist-btn')) return;
+      openModal(i);
+    });
+    grid.appendChild(card);
+  });
+}
+
+function toggleWish(btn, title) {
+  if (wishlist.has(title)) {
+    wishlist.delete(title);
+    btn.classList.remove('saved');
+    btn.textContent = '♡ 등록하기';
+  } else {
+    wishlist.add(title);
+    btn.classList.add('saved');
+    btn.textContent = '♥ 등록됨';
+  }
+}
+
+function openModal(idx) {
+  const rec = RECS[idx];
+  currentModal = idx;
+  document.getElementById('modalTitle').textContent = rec.title;
+  document.getElementById('modalCover').style.background = rec.color;
+  document.getElementById('modalCover').textContent = rec.emoji;
+  document.getElementById('modalAuthor').textContent = `${rec.author} · ${rec.genre} · ${rec.pages}쪽 · ⭐ ${rec.rating}`;
+  document.getElementById('modalDesc').textContent = rec.desc;
+  const wishBtn = document.getElementById('modalWish');
+  wishBtn.textContent = wishlist.has(rec.title) ? '♥ 등록됨' : '+ 등록하기';
+  wishBtn.className = wishlist.has(rec.title) ? 'btn-full btn-outline-sm saved' : 'btn-full btn-outline-sm';
+  document.getElementById('modalBg').classList.add('show');
+}
+
+function toggleWishModal() {
+  const rec = RECS[currentModal];
+  const btn = document.getElementById('modalWish');
+  if (wishlist.has(rec.title)) {
+    wishlist.delete(rec.title);
+    btn.textContent = '+ 등록하기';
+  } else {
+    wishlist.add(rec.title);
+    btn.textContent = '♥ 등록됨';
+  }
+  renderGrid(RECS);
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalBg')) return;
+  document.getElementById('modalBg').classList.remove('show');
+}
+
+function refreshRecs() {
+  const btn = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  icon.textContent = '⏳';
+
+  const grid = document.getElementById('recGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const sk = document.createElement('div');
+    sk.className = 'skeleton-card';
+    sk.innerHTML = `
+      <div class="skeleton" style="height:140px;margin-bottom:12px;border-radius:8px;"></div>
+      <div class="skeleton" style="height:12px;width:60%;margin-bottom:8px;"></div>
+      <div class="skeleton" style="height:16px;width:80%;margin-bottom:8px;"></div>
+      <div class="skeleton" style="height:12px;width:40%;margin-bottom:12px;"></div>
+      <div class="skeleton" style="height:48px;"></div>
+    `;
+    grid.appendChild(sk);
+  }
+
+  setTimeout(() => {
+    // 순서 셔플
+    const shuffled = [...RECS].sort(() => Math.random() - 0.5);
+    renderGrid(shuffled);
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    icon.textContent = '✨';
+  }, 2000);
+}
+
+renderGrid(RECS);
+</script>
+</body>
+</html>

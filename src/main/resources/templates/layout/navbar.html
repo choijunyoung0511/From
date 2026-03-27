@@ -1,43 +1,23 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head></head>
-<body>
-<header th:fragment="navbar" style="
-    display:flex; justify-content:space-between; align-items:center;
-    padding:0 80px; height:100px; background:white;
-    border-bottom:1px solid #eee; position:sticky; top:0; z-index:100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+<nav class="landing-nav" id="navbar" th:fragment="navbar">
+    <div class="nav-inner">
+        <div class="nav-left">
+            <a th:href="@{/}" class="nav-logo">
+                <div class="nav-logo-mark">F</div>
+                <span>FROM</span>
+            </a>
 
-    <a th:href="@{/}">
-        <img th:src="@{/images/logo.png}" alt="from" style="height:80px;">
-    </a>
+            <div class="nav-menu">
+                <a href="#intro">서비스소개</a>
+                <a href="#how">이용방법</a>
+                <a href="#stats">서비스지표</a>
+                <a href="#features">핵심기능</a>
+                <a href="#story">사용자경험</a>
+            </div>
+        </div>
 
-    <div style="display:flex; align-items:center; gap:70px;">
-        <nav style="display:flex; align-items:center; gap:70px;">
-            <a th:href="@{/book/register}" style="color:#333; text-decoration:none; font-size:20px; font-weight:500; transition: color 0.2s;">책 등록</a>
-            <a th:href="@{/ranking}"       style="color:#333; text-decoration:none; font-size:20px; font-weight:500; transition: color 0.2s;">랭킹</a>
-            <a th:href="@{/review}"        style="color:#333; text-decoration:none; font-size:20px; font-weight:500; transition: color 0.2s;">독후감</a>
-            <a th:href="@{/user/mypage}"   style="color:#333; text-decoration:none; font-size:20px; font-weight:500; transition: color 0.2s;">마이페이지</a>
-        </nav>
-        <a th:href="@{/user/logout}"
-           style="background:#6071E3; color:white; padding:14px 40px;
-                  border-radius:30px; font-size:18px; font-weight:700;
-                  text-decoration:none; transition: all 0.2s; display: inline-block;">로그아웃</a>
+        <div class="nav-actions">
+            <a th:href="@{/user/login}" class="btn btn-outline-light">로그인</a>
+            <a th:href="@{/user/signup}" class="btn btn-primary-light">무료체험하기</a>
+        </div>
     </div>
-</header>
-
-<style>
-    /* navbar 링크 호버 효과 */
-    header nav a:hover {
-        color: #6071E3 !important;
-        font-weight: 700 !important;
-    }
-
-    header a[href*="logout"]:hover {
-        background: #4f5fd4 !important;
-        transform: translateY(-2px);
-    }
-</style>
-
-</body>
-</html>
+</nav>
