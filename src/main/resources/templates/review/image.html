@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>책 속 주인공 이미지 생성 - from</title>
+  <title>책 속 주인공 이미지 생성 - FROM</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
@@ -25,31 +26,57 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; }
 
-    /* 네비바 */
-    .navbar {
-      background: var(--white); border-bottom: 1px solid var(--border);
-      padding: 0 40px; height: 60px; display: flex; align-items: center;
-      justify-content: space-between; position: sticky; top: 0; z-index: 100;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    /* 헤더 */
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 80px !important;
+      height: 100px !important;
+      background: white;
+      border-bottom: 1px solid #eee;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
-    .nav-logo img { height: 44px; object-fit: contain; display: block; }
-    .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
-    .nav-links a { text-decoration: none; color: var(--text); font-size: 14px; font-weight: 500; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--accent); }
-    .nav-links a.active { color: var(--accent); font-weight: 600; }
-    .dropdown { position: relative; }
-    .dropdown-menu {
-      position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-      background: var(--white); border: 1px solid var(--border); border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.10); min-width: 150px; padding: 6px; display: none; z-index: 200;
+    .main-logo {
+      text-decoration: none;
+      display: flex;
+      align-items: center;
     }
-    .dropdown:hover .dropdown-menu { display: block; }
-    .dropdown-menu a { display: block; padding: 9px 14px; font-size: 13px; color: var(--text); border-radius: 7px; transition: background 0.15s, color 0.15s; text-decoration: none; }
-    .dropdown-menu a:hover { background: var(--accent-light); color: var(--accent); }
-    .dropdown-menu a.active { color: var(--accent); font-weight: 600; background: var(--accent-light); }
-    .nav-arrow { font-size: 10px; margin-left: 3px; color: var(--text3); }
-    .nav-btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 9px 22px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: background 0.2s; }
-    .nav-btn:hover { background: #4a5de0; }
+    .main-logo img {
+      height: 80px !important;
+    }
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 70px !important;
+    }
+    .main-nav a {
+      color: #333 !important;
+      text-decoration: none;
+      font-size: 20px !important;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .main-nav a:hover {
+      color: #6071E3 !important;
+      font-weight: 700;
+    }
+    .header-logout-btn {
+      background: #6071E3 !important;
+      border: none;
+      color: white !important;
+      padding: 14px 40px !important;
+      border-radius: 30px !important;
+      cursor: pointer;
+      font-size: 18px !important;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .header-logout-btn:hover {
+      background: #4f5fd4 !important;
+      transform: translateY(-2px);
+    }
 
     .content { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
 
@@ -245,31 +272,21 @@
 </head>
 <body>
 
-<nav class="navbar">
-  <a href="#" class="nav-logo"><img th:src="@{/images/logo.png}" alt="from 로고"></a>
-  <ul class="nav-links">
-    <li><a th:href="@{/book/register}">책 등록</a></li>
-    <li><a th:href="@{/ranking}">랭킹</a></li>
-    <li class="dropdown">
-      <a href="#" class="active">AI 독서 <span class="nav-arrow">▾</span></a>
-      <div class="dropdown-menu">
-        <a th:href="@{/review/create}">AI 독후감 생성</a>
-        <a th:href="@{/review/image}" class="active">이미지 생성</a>
-        <a th:href="@{/review/recommend}">책 추천</a>
-      </div>
-    </li>
-    <li class="dropdown">
-      <a href="#">마이페이지 <span class="nav-arrow">▾</span></a>
-      <div class="dropdown-menu">
-        <a th:href="@{/user/dashboard}">독서 대시보드</a>
-        <a th:href="@{/review/list}">내 독후감 기록</a>
-        <a th:href="@{/user/mypage}">비밀번호 변경</a>
-        <a th:href="@{/user/mypage}">회원 탈퇴</a>
-      </div>
-    </li>
-  </ul>
-  <button class="nav-btn">로그아웃</button>
-</nav>
+<!-- 헤더 -->
+<header class="main-header">
+    <a href="/" class="main-logo">
+        <img th:src="@{/images/logo.png}" alt="from">
+    </a>
+    <div style="display:flex; align-items:center; gap:70px;">
+        <nav class="main-nav">
+            <a th:href="@{/book/register}">책 등록</a>
+            <a th:href="@{/ranking}">랭킹</a>
+            <a th:href="@{/review}">독후감</a>
+            <a th:href="@{/user/mypage}">마이페이지</a>
+        </nav>
+        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+    </div>
+</header>
 
 <div class="content">
 
@@ -404,19 +421,41 @@
 </div>
 
 <script>
-  const BOOKS = {
-    '사랑의 기술': { emoji:'📖', author:'에리히 프롬', desc:'사랑의 철학적 의미를 탐구하는 따뜻하고 서정적인 분위기로, 부드러운 빛과 꽃들이 가득한 배경 속에 당신을 표현했습니다.' },
-    '채식주의자': { emoji:'🌿', author:'한강', desc:'한강의 몽환적이고 신비로운 세계관을 담아, 숲 속 나무와 빛이 어우러진 고요한 장면 속 주인공으로 재해석했습니다.' },
-    '코스모스': { emoji:'🌌', author:'칼 세이건', desc:'광대한 우주를 배경으로, 별빛이 쏟아지는 밤하늘 아래 서 있는 당신의 모습을 담았습니다.' },
-    '데미안': { emoji:'🦋', author:'헤르만 헤세', desc:'내면의 각성을 상징하는 나비와 빛의 이미지를 더해, 성장과 탐구의 여정 속 주인공으로 표현했습니다.' },
-    '1984': { emoji:'👁', author:'조지 오웰', desc:'디스토피아적 분위기 속에서도 빛을 향해 나아가는 강인한 존재로, 회색 도시를 배경으로 표현했습니다.' },
-    '사피엔스': { emoji:'🦴', author:'유발 하라리', desc:'인류 역사의 장대한 흐름 속에서, 문명의 시작점에 서 있는 탐험가의 모습으로 재해석했습니다.' },
-  };
+  let BOOKS = {};
+  let selectedBook = null, selectedStyle = null, uploadedFile = null;
 
-  let selectedBook = null, selectedStyle = null;
+  // 페이지 로드 시 등록된 책 목록 불러오기
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const response = await fetch('/review/books');
+      const books = await response.json();
+
+      if (books.length > 0) {
+        const bookSelector = document.querySelector('.book-selector');
+        bookSelector.innerHTML = '';
+
+        books.forEach(book => {
+          BOOKS[book.title] = { emoji: book.emoji, author: book.author, desc: '' };
+
+          const bookDiv = document.createElement('div');
+          bookDiv.className = 'book-option';
+          bookDiv.onclick = () => selectBook(bookDiv, book.title);
+          bookDiv.innerHTML = `
+            <div class="book-emoji">${book.emoji}</div>
+            <div class="book-name">${book.title}</div>
+            <div class="book-author">${book.author}</div>
+          `;
+          bookSelector.appendChild(bookDiv);
+        });
+      }
+    } catch (e) {
+      console.error('책 목록 로드 실패', e);
+    }
+  });
 
   function handleFile(e) {
     const file = e.target.files[0]; if (!file) return;
+    uploadedFile = file;
     const reader = new FileReader();
     reader.onload = (ev) => {
       const img = document.getElementById('previewImg');
@@ -437,6 +476,7 @@
     document.getElementById('uploadChange').classList.remove('show');
     document.getElementById('nextBtn1').disabled = true;
     document.getElementById('fileInput').value = '';
+    uploadedFile = null;
   }
 
   function selectBook(el, name) {
@@ -467,7 +507,7 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function startGeneration() {
+  async function startGeneration() {
     const data = BOOKS[selectedBook];
     document.getElementById('resultBookName').textContent = selectedBook;
     document.getElementById('resultBookAuthor').textContent = data.author;
@@ -480,44 +520,66 @@
 
     loading.style.display = 'flex'; imgArea.style.display = 'none'; downloadBtn.disabled = true;
 
-    setTimeout(() => {
-      loading.style.display = 'none';
-      imgArea.style.display = 'flex'; imgArea.textContent = data.emoji;
-      downloadBtn.disabled = false;
-      document.getElementById('resultDesc').textContent = data.desc;
+    // 백엔드 API 호출
+    try {
+      const formData = new FormData();
+      formData.append('image', uploadedFile);
+      formData.append('bookTitle', selectedBook);
+      formData.append('style', selectedStyle);
 
-      downloadBtn.onclick = () => {
-        const previewSrc = document.getElementById('previewImg').src;
-        const canvas = document.createElement('canvas');
-        canvas.width = 512; canvas.height = 680;
-        const ctx = canvas.getContext('2d');
-        const grad = ctx.createLinearGradient(0,0,512,680);
-        grad.addColorStop(0,'#eef0fe'); grad.addColorStop(1,'#cdd3f8');
-        ctx.fillStyle = grad; ctx.fillRect(0,0,512,680);
-        if (previewSrc && previewSrc.startsWith('data:')) {
-          const img = new Image();
-          img.onload = () => {
-            ctx.drawImage(img,0,0,512,680);
-            ctx.fillStyle='rgba(91,110,245,0.2)'; ctx.fillRect(0,0,512,680);
-            ctx.font='60px serif'; ctx.textAlign='center'; ctx.fillText(data.emoji,256,80);
-            ctx.font='bold 22px sans-serif'; ctx.fillStyle='white';
-            ctx.fillText(selectedBook+' · '+selectedStyle,256,660);
+      const response = await fetch('/review/image/generate', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        loading.style.display = 'none';
+        imgArea.style.display = 'flex'; imgArea.textContent = data.emoji;
+        downloadBtn.disabled = false;
+        document.getElementById('resultDesc').textContent = result.description;
+
+        downloadBtn.onclick = () => {
+          const previewSrc = document.getElementById('previewImg').src;
+          const canvas = document.createElement('canvas');
+          canvas.width = 512; canvas.height = 680;
+          const ctx = canvas.getContext('2d');
+          const grad = ctx.createLinearGradient(0,0,512,680);
+          grad.addColorStop(0,'#eef0fe'); grad.addColorStop(1,'#cdd3f8');
+          ctx.fillStyle = grad; ctx.fillRect(0,0,512,680);
+          if (previewSrc && previewSrc.startsWith('data:')) {
+            const img = new Image();
+            img.onload = () => {
+              ctx.drawImage(img,0,0,512,680);
+              ctx.fillStyle='rgba(91,110,245,0.2)'; ctx.fillRect(0,0,512,680);
+              ctx.font='60px serif'; ctx.textAlign='center'; ctx.fillText(data.emoji,256,80);
+              ctx.font='bold 22px sans-serif'; ctx.fillStyle='white';
+              ctx.fillText(selectedBook+' · '+selectedStyle,256,660);
+              const a = document.createElement('a');
+              a.href = canvas.toDataURL('image/png');
+              a.download = `from_${selectedBook}_${selectedStyle}.png`; a.click();
+            };
+            img.src = previewSrc;
+          } else {
+            ctx.font='140px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(data.emoji,256,300);
+            ctx.font='bold 26px sans-serif'; ctx.fillStyle='#5b6ef5'; ctx.fillText(selectedBook,256,560);
+            ctx.font='18px sans-serif'; ctx.fillStyle='#6b7280'; ctx.fillText(selectedStyle+' 스타일',256,610);
             const a = document.createElement('a');
             a.href = canvas.toDataURL('image/png');
             a.download = `from_${selectedBook}_${selectedStyle}.png`; a.click();
-          };
-          img.src = previewSrc;
-        } else {
-          ctx.font='140px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.fillText(data.emoji,256,300);
-          ctx.font='bold 26px sans-serif'; ctx.fillStyle='#5b6ef5'; ctx.fillText(selectedBook,256,560);
-          ctx.font='18px sans-serif'; ctx.fillStyle='#6b7280'; ctx.fillText(selectedStyle+' 스타일',256,610);
-          const a = document.createElement('a');
-          a.href = canvas.toDataURL('image/png');
-          a.download = `from_${selectedBook}_${selectedStyle}.png`; a.click();
-        }
-      };
-    }, 3000);
+          }
+        };
+      } else {
+        loading.style.display = 'none';
+        alert(result.message || '이미지 생성에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('이미지 생성 오류', error);
+      loading.style.display = 'none';
+      alert('이미지 생성 중 오류가 발생했습니다.');
+    }
   }
 </script>
 </body>

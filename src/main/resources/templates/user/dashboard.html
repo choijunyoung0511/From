@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>독서 대시보드 - from</title>
+<title>독서 대시보드 - FROM</title>
+<link rel="stylesheet" th:href="@{/css/common.css}">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
@@ -36,75 +37,56 @@
     min-height: 100vh;
   }
 
-  .navbar {
-    background: var(--white);
-    border-bottom: 1px solid var(--border);
-    padding: 0 40px;
-    height: 60px;
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 80px !important;
+    height: 100px !important;
+    background: white;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .main-logo {
+    text-decoration: none;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
-
-  .nav-logo img { height: 44px; object-fit: contain; display: block; }
-
-  .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
-  .nav-links a {
+  .main-logo img {
+    height: 80px !important;
+  }
+  .main-nav {
+    display: flex;
+    align-items: center;
+    gap: 70px !important;
+  }
+  .main-nav a {
+    color: #333 !important;
     text-decoration: none;
-    color: var(--text);
-    font-size: 14px;
+    font-size: 20px !important;
     font-weight: 500;
     transition: color 0.2s;
   }
-  .nav-links a:hover { color: var(--accent); }
-  .nav-links a.active { color: var(--accent); font-weight: 600; }
-
-  
-    .dropdown { position: relative; }
-    .dropdown-menu {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-      min-width: 140px;
-      padding: 6px;
-      display: none;
-      z-index: 200;
-    }
-    .dropdown:hover .dropdown-menu { display: block; }
-    .dropdown-menu a {
-      display: block;
-      padding: 9px 14px;
-      font-size: 13px;
-      color: var(--text);
-      border-radius: 7px;
-      transition: background 0.15s, color 0.15s;
-    }
-    .dropdown-menu a:hover { background: var(--accent-light); color: var(--accent); }
-    .dropdown-menu a.active { color: var(--accent); font-weight: 600; background: var(--accent-light); }
-    .nav-arrow { font-size: 10px; margin-left: 3px; color: var(--text3); }
-
-  .nav-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 9px 22px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: 'Noto Sans KR', sans-serif;
-    transition: background 0.2s;
+  .main-nav a:hover {
+    color: #6071E3 !important;
+    font-weight: 700;
   }
-  .nav-btn:hover { background: #4a6be0; }
+  .header-logout-btn {
+    background: #6071E3 !important;
+    border: none;
+    color: white !important;
+    padding: 14px 40px !important;
+    border-radius: 30px !important;
+    cursor: pointer;
+    font-size: 18px !important;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .header-logout-btn:hover {
+    background: #4f5fd4 !important;
+    transform: translateY(-2px);
+  }
 
   .content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 

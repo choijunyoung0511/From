@@ -1,23 +1,14 @@
-<nav class="landing-nav" id="navbar" th:fragment="navbar">
-    <div class="nav-inner">
-        <div class="nav-left">
-            <a th:href="@{/}" class="nav-logo">
-                <div class="nav-logo-mark">F</div>
-                <span>FROM</span>
-            </a>
-
-            <div class="nav-menu">
-                <a href="#intro">서비스소개</a>
-                <a href="#how">이용방법</a>
-                <a href="#stats">서비스지표</a>
-                <a href="#features">핵심기능</a>
-                <a href="#story">사용자경험</a>
-            </div>
-        </div>
-
-        <div class="nav-actions">
-            <a th:href="@{/user/login}" class="btn btn-outline-light">로그인</a>
-            <a th:href="@{/user/signup}" class="btn btn-primary-light">무료체험하기</a>
-        </div>
+<header class="main-header" th:fragment="navbar">
+    <a href="/" class="main-logo">
+        <img th:src="@{/images/logo.png}" alt="from">
+    </a>
+    <div style="display:flex; align-items:center; gap:70px;">
+        <nav class="main-nav">
+            <a th:href="@{/book/register}">책 등록</a>
+            <a th:href="@{/ranking}">랭킹</a>
+            <a th:href="@{/review/create}">AI독서</a>
+            <a th:href="@{/user/mypage}">마이페이지</a>
+        </nav>
+        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
     </div>
-</nav>
+</header>

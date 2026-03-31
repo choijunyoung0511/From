@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>책 추천 - FROM</title>
+  <link rel="stylesheet" th:href="@{/css/common.css}">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+    :root {
+      --accent: #5b7cf8;
+      --accent-light: #eef1fe;
+      --bg: #f5f6fa;
+      --white: #ffffff;
+      --border: #e4e7f0;
+      --text: #1a1d2e;
+      --text2: #6b7280;
+      --text3: #adb5c9;
+      --radius: 14px;
+      --shadow: 0 2px 12px rgba(91,124,248,0.08);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      min-height: 100vh;
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 80px !important;
+      height: 100px !important;
+      background: white;
+      border-bottom: 1px solid #eee;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .main-logo { text-decoration: none; display: flex; align-items: center; }
+    .main-logo img { height: 80px !important; }
+    .main-nav { display: flex; align-items: center; gap: 70px !important; }
+    .main-nav a {
+      color: #333 !important;
+      text-decoration: none;
+      font-size: 20px !important;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .main-nav a:hover { color: #6071E3 !important; font-weight: 700; }
+    .header-logout-btn {
+      background: #6071E3 !important;
+      border: none;
+      color: white !important;
+      padding: 14px 40px !important;
+      border-radius: 30px !important;
+      cursor: pointer;
+      font-size: 18px !important;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .header-logout-btn:hover { background: #4f5fd4 !important; transform: translateY(-2px); }
+
+    .content { max-width: 1000px; margin: 0 auto; padding: 40px 24px; }
+
+    .page-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .page-title span { color: var(--accent); }
+    .page-desc { font-size: 14px; color: var(--text2); margin-bottom: 32px; }
+
+    .analysis-banner {
+      background: linear-gradient(135deg, var(--accent-light), #e8eeff);
+      border: 1px solid rgba(91,124,248,0.2);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .banner-icon { font-size: 36px; }
+    .banner-text { flex: 1; }
+    .banner-text strong { font-size: 15px; font-weight: 700; display: block; margin-bottom: 4px; }
+    .banner-text span { font-size: 13px; color: var(--text2); }
+
+    .refresh-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      transition: background 0.2s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .refresh-btn:hover { background: #4a6be0; }
+    .refresh-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+    .section-title .count {
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--text3);
+      font-weight: 400;
+    }
+
+    /* ── GPT 로딩 ── */
+    .gpt-loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 0;
+      gap: 16px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .gpt-loading.show { display: flex; }
+
+    .gpt-loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    .gpt-loading-text { font-size: 15px; font-weight: 600; color: var(--text); }
+    .gpt-loading-sub { font-size: 13px; color: var(--text3); margin-top: -8px; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 메인 카드 (1위) ── */
+    .main-rec {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      animation: fadeUp 0.4s ease 0.1s both;
+      transition: box-shadow 0.2s;
+    }
+    .main-rec:hover { box-shadow: 0 4px 20px rgba(91,124,248,0.14); }
+
+    .main-rec-cover {
+      width: 110px;
+      height: 155px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      position: relative;
+      overflow: hidden;
+    }
+    .main-rec-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+    }
+    .main-rec:hover .main-rec-cover img { transform: scale(1.04); }
+
+    .top-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 99px;
+      font-family: 'DM Mono', monospace;
+      z-index: 1;
+    }
+
+    .main-rec-info { flex: 1; }
+
+    .rec-reason-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-light);
+      border-radius: 99px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .rec-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .rec-author { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+
+    .rec-reason-box {
+      background: var(--bg);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .btn-sm {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-outline-sm {
+      background: var(--white);
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
+    }
+    .btn-outline-sm:hover { background: var(--accent-light); }
+    .btn-outline-sm.saved { background: var(--accent-light); }
+    .btn-outline-sm:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── 그리드 ── */
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .rec-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: all 0.25s;
+      animation: fadeUp 0.4s ease both;
+    }
+    .rec-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 24px rgba(91,124,248,0.16);
+      transform: translateY(-5px);
+    }
+
+    /* 커버 영역 - 이미지 있으면 꽉 채우고 없으면 이모지 */
+    .rec-card-cover {
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+      position: relative;
+    }
+    .rec-card-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+    .rec-card:hover .rec-card-cover img { transform: scale(1.06); }
+
+    .rank-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(26,29,46,0.7);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-family: 'DM Mono', monospace;
+      backdrop-filter: blur(4px);
+    }
+
+    .rec-card-body { padding: 16px; }
+
+    .rec-card-reason-label {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .rec-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text);
+    }
+
+    .rec-card-author {
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rec-card-reason-text {
+      font-size: 12px;
+      color: var(--text2);
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .rec-card-footer { display: flex; justify-content: flex-end; }
+
+    .wishlist-btn {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--text2);
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      transition: all 0.2s;
+    }
+    .wishlist-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .wishlist-btn.saved { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+    .wishlist-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── 토스트 ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1a1d2e;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 99px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 300;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── 스켈레톤 ── */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f2f8 25%, #e4e7f0 50%, #f0f2f8 75%);
+      background-size: 400% 100%;
+      animation: skeleton-shimmer 1.5s ease infinite;
+      border-radius: 8px;
+    }
+    @keyframes skeleton-shimmer {
+      0%   { background-position: 100% 50%; }
+      100% { background-position: 0%   50%; }
+    }
+    .skeleton-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .skeleton-card .sk-cover { width: 100%; height: 200px; border-radius: 0; }
+    .skeleton-card .sk-body { padding: 16px; }
+    .skeleton-card .sk-line { margin-bottom: 8px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── 모달 ── */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-bg.show { display: flex; }
+
+    .modal {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+      animation: fadeUp 0.3s ease;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .modal-title { font-size: 17px; font-weight: 700; line-height: 1.4; flex: 1; padding-right: 12px; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text3); flex-shrink: 0; }
+
+    .modal-cover {
+      width: 100%;
+      height: 200px;
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    .modal-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .modal-author { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+
+    .modal-reason-box {
+      background: var(--bg);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-full {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Noto Sans KR', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-full:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .empty-state { text-align: center; padding: 60px 24px; color: var(--text3); }
+    .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; line-height: 1.8; }
+  </style>
+</head>
+<body>
+
+<header class="main-header">
+  <a href="/" class="main-logo">
+    <img th:src="@{/images/logo.png}" alt="from">
+  </a>
+  <div style="display:flex; align-items:center; gap:70px;">
+    <nav class="main-nav">
+      <a th:href="@{/book/register}">책 등록</a>
+      <a th:href="@{/ranking}">랭킹</a>
+      <a th:href="@{/review/create}">AI독서</a>
+      <a th:href="@{/user/mypage}">마이페이지</a>
+    </nav>
+    <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+  </div>
+</header>
+
+<div class="content">
+  <div class="page-title">나를 위한 <span>맞춤 추천</span></div>
+  <div class="page-desc">읽은 책과 독후감을 분석해서 딱 맞는 책을 추천해드려요!</div>
+
+  <div class="analysis-banner">
+    <div class="banner-icon">🤖</div>
+    <div class="banner-text">
+      <strong>AI 개인 맞춤 추천</strong>
+      <span>내 독서 기록을 바탕으로 AI가 추천해드려요. 2~3분 정도 소요됩니다.</span>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadRecommend()">
+      <span id="refreshIcon">✨</span> 새로 추천받기
+    </button>
+  </div>
+
+  <!-- GPT 로딩 -->
+  <div class="gpt-loading" id="gptLoading">
+    <div class="gpt-loading-spinner"></div>
+    <div class="gpt-loading-text">AI가 독서 기록을 분석하고 있어요...</div>
+    <div class="gpt-loading-sub">2~3분 정도 소요될 수 있어요</div>
+  </div>
+
+  <!-- 1위 메인 카드 -->
+  <div class="section-title" id="topSection" style="display:none;">
+    🏆 최고 추천 도서 <span class="count">AI가 가장 추천하는 책</span>
+  </div>
+  <div class="main-rec" id="mainRec" style="display:none;">
+    <div class="main-rec-cover" id="mainCover">
+      <div class="top-badge">TOP 1</div>
+    </div>
+    <div class="main-rec-info">
+      <div class="rec-reason-badge">✨ AI 맞춤 추천 1순위</div>
+      <div class="rec-title" id="mainTitle"></div>
+      <div class="rec-author" id="mainAuthor"></div>
+      <div class="rec-reason-box" id="mainReason"></div>
+      <div class="rec-actions">
+        <button class="btn-sm btn-outline-sm" id="mainRegBtn" onclick="registerBook(0, this)">♡ 등록하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2위~ 그리드 -->
+  <div class="section-title" id="listSection" style="display:none;">
+    📚 추천 도서 목록 <span class="count" id="recCount"></span>
+  </div>
+  <div class="rec-grid" id="recGrid"></div>
+
+  <!-- 에러 -->
+  <div class="empty-state" id="errorState" style="display:none;">
+    <div class="emoji">📖</div>
+    <p>추천을 받으려면 먼저 책을 등록해야 해요.<br>책 등록 후 다시 시도해주세요!</p>
+  </div>
+</div>
+
+<!-- 모달 -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-cover" id="modalCover"></div>
+    <div class="modal-author" id="modalAuthorText"></div>
+    <div class="modal-reason-box" id="modalReason"></div>
+    <div class="modal-actions">
+      <button class="btn-full" style="background:var(--accent);color:white;border:none;" onclick="closeModal()">닫기</button>
+      <button class="btn-full" id="modalRegBtn"
+              style="background:white;color:var(--accent);border:1.5px solid var(--accent);"
+              onclick="registerBook(currentModal, this)">♡ 등록하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // cover 없을 때 fallback 이모지 + 그라디언트
+  const FALLBACK = [
+    { emoji: '🌊', bg: 'linear-gradient(135deg, #e0f2fe, #bae6fd)' },
+    { emoji: '🌙', bg: 'linear-gradient(135deg, #ede9fe, #ddd6fe)' },
+    { emoji: '🔥', bg: 'linear-gradient(135deg, #fef3c7, #fde68a)' },
+    { emoji: '🌿', bg: 'linear-gradient(135deg, #d1fae5, #a7f3d0)' },
+    { emoji: '⭐', bg: 'linear-gradient(135deg, #fff7ed, #fed7aa)' },
+    { emoji: '🎭', bg: 'linear-gradient(135deg, #fce7f3, #fbcfe8)' },
+    { emoji: '🏔️', bg: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)' },
+    { emoji: '🦋', bg: 'linear-gradient(135deg, #ecfdf5, #bbf7d0)' },
+  ];
+
+  let books = [];
+  let registered = new Set();
+  let currentModal = null;
+
+  // ── 커버 HTML 생성 ─────────────────────────
+  // cover URL 있으면 img 태그, 없으면 이모지 fallback
+  function coverHtml(book, idx, extraStyle = '') {
+    const fb = FALLBACK[idx % FALLBACK.length];
+    if (book.cover) {
+      return `<img src="${book.cover}" alt="${book.title}"
+        onerror="this.parentElement.style.background='${fb.bg}';this.parentElement.innerHTML='<span>${fb.emoji}</span>'">`;
+    }
+    return `<span>${fb.emoji}</span>`;
+  }
+
+  function coverBg(book, idx) {
+    if (book.cover) return '';
+    return FALLBACK[idx % FALLBACK.length].bg;
+  }
+
+  // ── 토스트 ────────────────────────────────
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  // ── 실제 DB 등록 ──────────────────────────
+  async function registerBook(idx, btn) {
+    const book = books[idx];
+    if (!book) return;
+
+    if (registered.has(idx)) {
+      showToast('이미 등록된 책이에요!');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '등록 중...';
+
+    try {
+      const formData = new FormData();
+      formData.append('title', book.title);
+      formData.append('author', book.author);
+      formData.append('cover', book.cover || '');
+      formData.append('isbn', '');
+
+      const res = await fetch('/book/register', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.success) {
+        registered.add(idx);
+        btn.textContent = '♥ 등록됨';
+        btn.classList.add('saved');
+        btn.disabled = true;
+        showToast('✅ 내 책 목록에 등록되었어요!');
+        if (currentModal === idx) {
+          const modalBtn = document.getElementById('modalRegBtn');
+          modalBtn.textContent = '♥ 등록됨';
+          modalBtn.disabled = true;
+        }
+      } else {
+        btn.disabled = false;
+        btn.textContent = '♡ 등록하기';
+        showToast('❌ ' + (data.message || '등록에 실패했어요.'));
+      }
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = '♡ 등록하기';
+      showToast('❌ 오류가 발생했어요.');
+    }
+  }
+
+  // ── 스켈레톤 ──────────────────────────────
+  function showSkeleton() {
+    const grid = document.getElementById('recGrid');
+    grid.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+      const sk = document.createElement('div');
+      sk.className = 'skeleton-card';
+      sk.innerHTML = `
+        <div class="skeleton sk-cover"></div>
+        <div class="sk-body">
+          <div class="skeleton sk-line" style="height:11px;width:50%;margin-bottom:10px;"></div>
+          <div class="skeleton sk-line" style="height:15px;width:85%;margin-bottom:8px;"></div>
+          <div class="skeleton sk-line" style="height:12px;width:60%;margin-bottom:8px;"></div>
+          <div class="skeleton sk-line" style="height:36px;width:100%;margin-bottom:12px;"></div>
+          <div class="skeleton sk-line" style="height:30px;width:90px;margin-left:auto;border-radius:8px;"></div>
+        </div>
+      `;
+      grid.appendChild(sk);
+    }
+  }
+
+  // ── 메인 카드 렌더 ────────────────────────
+  function renderMain(book) {
+    const mainCover = document.getElementById('mainCover');
+    const fb = FALLBACK[0];
+
+    mainCover.innerHTML = '<div class="top-badge">TOP 1</div>';
+    if (book.cover) {
+      const img = document.createElement('img');
+      img.src = book.cover;
+      img.alt = book.title;
+      img.onerror = () => {
+        mainCover.style.background = fb.bg;
+        img.remove();
+        mainCover.insertAdjacentHTML('beforeend', `<span>${fb.emoji}</span>`);
+      };
+      mainCover.style.background = '';
+      mainCover.appendChild(img);
+    } else {
+      mainCover.style.background = fb.bg;
+      mainCover.insertAdjacentHTML('beforeend', `<span>${fb.emoji}</span>`);
+    }
+
+    document.getElementById('mainTitle').textContent = book.title;
+    document.getElementById('mainAuthor').textContent = book.author;
+    document.getElementById('mainReason').textContent = book.reason || '';
+
+    const btn = document.getElementById('mainRegBtn');
+    const isReg = registered.has(0);
+    btn.textContent = isReg ? '♥ 등록됨' : '♡ 등록하기';
+    btn.className = 'btn-sm btn-outline-sm' + (isReg ? ' saved' : '');
+    btn.disabled = isReg;
+
+    document.getElementById('topSection').style.display = 'flex';
+    document.getElementById('mainRec').style.display = 'flex';
+  }
+
+  // ── 그리드 렌더 ───────────────────────────
+  function renderGrid(list) {
+    const grid = document.getElementById('recGrid');
+    grid.innerHTML = '';
+    list.forEach((book, i) => {
+      const realIdx = i + 1;
+      const fb = FALLBACK[realIdx % FALLBACK.length];
+      const isReg = registered.has(realIdx);
+
+      const card = document.createElement('div');
+      card.className = 'rec-card';
+      card.style.animationDelay = `${i * 0.06}s`;
+
+      const imgHtml = book.cover
+              ? `<img src="${book.cover}" alt="${book.title}"
+            onerror="this.parentElement.style.background='${fb.bg}';this.outerHTML='<span>${fb.emoji}</span>'">`
+              : `<span>${fb.emoji}</span>`;
+
+      card.innerHTML = `
+        <div class="rec-card-cover" style="${book.cover ? '' : 'background:' + fb.bg}">
+          ${imgHtml}
+          <div class="rank-overlay">${realIdx + 1}위</div>
+        </div>
+        <div class="rec-card-body">
+          <div class="rec-card-reason-label">✨ AI 맞춤 추천</div>
+          <div class="rec-card-title">${book.title}</div>
+          <div class="rec-card-author">${book.author}</div>
+          <div class="rec-card-reason-text">${book.reason || ''}</div>
+          <div class="rec-card-footer">
+            <button class="wishlist-btn ${isReg ? 'saved' : ''}"
+              ${isReg ? 'disabled' : ''}
+              onclick="event.stopPropagation(); registerBook(${realIdx}, this)">
+              ${isReg ? '♥ 등록됨' : '♡ 등록하기'}
+            </button>
+          </div>
+        </div>
+      `;
+      card.addEventListener('click', () => openModal(realIdx));
+      grid.appendChild(card);
+    });
+
+    document.getElementById('listSection').style.display = 'flex';
+  }
+
+  // ── API 호출 ──────────────────────────────
+  async function loadRecommend() {
+    const btn = document.getElementById('refreshBtn');
+    const icon = document.getElementById('refreshIcon');
+    const errorState = document.getElementById('errorState');
+    const gptLoading = document.getElementById('gptLoading');
+
+    btn.disabled = true;
+    icon.textContent = '⏳';
+    errorState.style.display = 'none';
+    document.getElementById('mainRec').style.display = 'none';
+    document.getElementById('topSection').style.display = 'none';
+    document.getElementById('listSection').style.display = 'none';
+    gptLoading.classList.add('show');
+    showSkeleton();
+
+    try {
+      const res = await fetch('/book/ai-recommend');
+      if (!res.ok) throw new Error('API 오류');
+
+      books = await res.json();
+
+      if (!books || books.length === 0) {
+        document.getElementById('recGrid').innerHTML = '';
+        errorState.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('recCount').textContent = `${books.length - 1}권`;
+      renderMain(books[0]);
+      renderGrid(books.slice(1));
+
+    } catch (e) {
+      document.getElementById('recGrid').innerHTML = '';
+      errorState.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      icon.textContent = '✨';
+      gptLoading.classList.remove('show');
+    }
+  }
+
+  // ── 모달 ──────────────────────────────────
+  function openModal(idx) {
+    const book = books[idx];
+    if (!book) return;
+    currentModal = idx;
+
+    const fb = FALLBACK[idx % FALLBACK.length];
+    document.getElementById('modalTitle').textContent = book.title;
+    document.getElementById('modalAuthorText').textContent = book.author;
+    document.getElementById('modalReason').textContent = book.reason || '';
+
+    const cover = document.getElementById('modalCover');
+    if (book.cover) {
+      cover.style.background = '';
+      cover.innerHTML = `<img src="${book.cover}" alt="${book.title}"
+        onerror="this.parentElement.style.background='${fb.bg}';this.outerHTML='<span style=\\'font-size:64px\\'>${fb.emoji}</span>'">`;
+    } else {
+      cover.style.background = fb.bg;
+      cover.innerHTML = `<span>${fb.emoji}</span>`;
+    }
+
+    const isReg = registered.has(idx);
+    const modalBtn = document.getElementById('modalRegBtn');
+    modalBtn.textContent = isReg ? '♥ 등록됨' : '♡ 등록하기';
+    modalBtn.disabled = isReg;
+
+    document.getElementById('modalBg').classList.add('show');
+  }
+
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('modalBg')) return;
+    document.getElementById('modalBg').classList.remove('show');
+  }
+
+  loadRecommend();
+</script>
+</body>
+</html>

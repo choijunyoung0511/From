@@ -46,40 +46,11 @@
         .time-btn { padding: 10px 6px; border: 1.5px solid #E0D5CC; border-radius: 8px; background: white; cursor: pointer; font-size: 12px; transition: all 0.2s; font-family: 'Nanum Gothic', sans-serif; }
         .time-btn:hover, .time-btn.selected { border-color: #6071E3; background: #f0f0ff; color: #6071E3; font-weight: 600; }
 
-        /* 편지지 12종 그리드 */
-        .paper-group {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 12px;
-        }
-        .paper-item {
-            border: 2px solid transparent;
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .paper-item:hover, .paper-item.selected {
-            border-color: #6071E3;
-            box-shadow: 0 0 0 3px rgba(96,113,227,0.2);
-            transform: translateY(-2px);
-        }
-        .paper-preview {
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-        }
-        .paper-name {
-            text-align: center;
-            font-size: 11px;
-            color: #555;
-            font-weight: 600;
-            padding: 6px 4px;
-            background: white;
-        }
+        .paper-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+        .paper-item { border: 2px solid transparent; border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+        .paper-item:hover, .paper-item.selected { border-color: #6071E3; box-shadow: 0 0 0 3px rgba(96,113,227,0.2); transform: translateY(-2px); }
+        .paper-preview { height: 80px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .paper-name { text-align: center; font-size: 11px; color: #555; font-weight: 600; padding: 6px 4px; background: white; }
 
         .loading-wrap { text-align: center; padding: 60px 20px; }
         .loading-spinner { width: 48px; height: 48px; border: 4px solid #E0D5CC; border-top-color: #6071E3; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
@@ -94,8 +65,27 @@
     </style>
 </head>
 <body>
-<div th:replace="~{layout/navbar :: navbar}"></div>
 
+<nav class="navbar">
+    <div class="nav-logo">
+        <a th:href="@{/}">
+            <img th:src="@{/images/logo.png}" alt="FROM 로고">
+            <span class="logo-text">from</span>
+        </a>
+    </div>
+    <ul class="nav-menu">
+        <li><a th:href="@{/book/register}">책 등록</a></li>
+        <li><a th:href="@{/ranking}">랭킹</a></li>
+        <li><a th:href="@{/review}" class="active">독후감</a></li>
+        <li><a th:href="@{/mypage}">마이페이지</a></li>
+    </ul>
+    <div>
+        <a th:if="${session.loginUser == null}" th:href="@{/login}"
+           style="text-decoration:none; color:#555; font-size:20px; font-weight:500;">로그인</a>
+        <a th:if="${session.loginUser != null}" th:href="@{/logout}"
+           style="text-decoration:none; color:#555; font-size:20px; font-weight:500;">로그아웃</a>
+    </div>
+</nav>
 
 <div class="page-container" style="max-width: 560px;">
     <h2 style="text-align:center; color:#6071E3; margin-bottom:28px; font-family:'Nanum Myeongjo',serif;">AI 독후감 생성</h2>
@@ -214,7 +204,7 @@
         </div>
     </div>
 
-    <!-- STEP 4: 편지지 12종 -->
+    <!-- STEP 4 -->
     <div class="step-panel" id="panel4">
         <div class="book-header">
             <div class="book-name" id="book-name4"></div>
