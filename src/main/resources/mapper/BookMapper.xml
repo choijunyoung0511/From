@@ -4,8 +4,17 @@
 
 <mapper namespace="com.from.mapper.BookMapper">
 
+    <!-- resultMap 추가 -->
+    <resultMap id="BookResultMap" type="com.from.domain.Book">
+        <id property="bookId" column="book_id"/>
+        <result property="title" column="title"/>
+        <result property="author" column="author"/>
+        <result property="coverImage" column="cover_image"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
     <!-- 제목+저자로 중복 체크 -->
-    <select id="findByTitleAndAuthor" resultType="Book">
+    <select id="findByTitleAndAuthor" resultMap="BookResultMap">
         SELECT book_id, title, author, cover_image, created_at
         FROM books
         WHERE title = #{title} AND author = #{author}
@@ -20,20 +29,17 @@
 
     <!-- user_books 연결 -->
     <insert id="insertUserBook">
-        INSERT INTO user_books (user_id, book_id, registered_at)
+        INSERT IGNORE INTO user_books (user_id, book_id, registered_at)
         VALUES (#{userId}, #{bookId}, NOW())
     </insert>
 
     <!-- 유저가 등록한 책 목록 -->
-    <select id="findBooksByUserId" parameterType="Long" resultType="Book">
+    <select id="findBooksByUserId" parameterType="Long" resultMap="BookResultMap">
         SELECT b.book_id, b.title, b.author, b.cover_image
         FROM books b
                  JOIN user_books ub ON b.book_id = ub.book_id
         WHERE ub.user_id = #{userId}
         ORDER BY ub.registered_at DESC
     </select>
-
-
-
 
 </mapper>

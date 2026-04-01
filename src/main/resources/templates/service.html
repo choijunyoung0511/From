@@ -14,7 +14,6 @@
             font-family: 'Nanum Gothic', sans-serif;
         }
 
-        /* 헤더 - 훨씬 더 크게! */
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -25,19 +24,9 @@
             border-bottom: 1px solid #eee;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-        .main-logo {
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        .main-logo img {
-            height: 80px !important;
-        }
-        .main-nav {
-            display: flex;
-            align-items: center;
-            gap: 70px !important;
-        }
+        .main-logo { text-decoration: none; display: flex; align-items: center; }
+        .main-logo img { height: 80px !important; }
+        .main-nav { display: flex; align-items: center; gap: 70px !important; }
         .main-nav a {
             color: #333 !important;
             text-decoration: none;
@@ -45,10 +34,7 @@
             font-weight: 500;
             transition: color 0.2s;
         }
-        .main-nav a:hover {
-            color: #6071E3 !important;
-            font-weight: 700;
-        }
+        .main-nav a:hover { color: #6071E3 !important; font-weight: 700; }
         .header-logout-btn {
             background: #6071E3 !important;
             border: none;
@@ -61,12 +47,8 @@
             text-decoration: none;
             transition: background 0.2s, transform 0.2s;
         }
-        .header-logout-btn:hover {
-            background: #4f5fd4 !important;
-            transform: translateY(-2px);
-        }
+        .header-logout-btn:hover { background: #4f5fd4 !important; transform: translateY(-2px); }
 
-        /* 콘텐츠 */
         .hero-content {
             display: flex;
             flex-direction: column;
@@ -87,7 +69,6 @@
             line-height: 1.4;
         }
 
-        /* 카드 3개 - 훨씬 더 크게! */
         .service-cards {
             display: flex;
             gap: 50px;
@@ -117,13 +98,8 @@
             object-fit: contain;
             margin-bottom: 24px;
         }
-        .service-card-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333;
-        }
+        .service-card-title { font-size: 24px; font-weight: 700; color: #333; }
 
-        /* 안내 문구 - 더 크게 */
         .subtitle {
             font-size: 26px;
             color: white;
@@ -132,7 +108,6 @@
             font-weight: 600;
         }
 
-        /* 뒤로 가기 버튼 - 더 크게 */
         .back-btn {
             background: #6071E3;
             color: white;
@@ -153,63 +128,117 @@
             box-shadow: 0 15px 40px rgba(96,113,227,0.55);
         }
 
-        /* 반응형 */
-        @media (max-width: 1200px) {
-            .service-cards {
-                gap: 35px;
-            }
-            .service-card {
-                width: 320px;
-                padding: 50px 40px;
-            }
+        /* ── AI 독서 서브메뉴 모달 ── */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .modal-bg.show { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: 28px;
+            padding: 48px 40px;
+            max-width: 700px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            animation: fadeUp 0.3s ease;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .modal-desc {
+            font-size: 15px;
+            color: #888;
+            margin-bottom: 40px;
+        }
+
+        .sub-cards {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+
+        .sub-card {
+            background: #f8f9ff;
+            border: 2px solid #e4e7f0;
+            border-radius: 20px;
+            padding: 36px 28px;
+            width: 180px;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.25s;
+        }
+        .sub-card:hover {
+            border-color: #6071E3;
+            background: #eef1fe;
+            transform: translateY(-6px);
+            box-shadow: 0 10px 28px rgba(96,113,227,0.2);
+        }
+
+        .sub-card-icon { font-size: 48px; margin-bottom: 14px; }
+
+        .sub-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            padding: 12px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Nanum Gothic', sans-serif;
+        }
+        .modal-close-btn:hover { border-color: #6071E3; color: #6071E3; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 768px) {
-            .main-header {
-                padding: 0 30px !important;
-                height: 85px !important;
-            }
-            .main-logo img {
-                height: 65px !important;
-            }
-            .main-nav {
-                gap: 35px !important;
-            }
-            .main-nav a {
-                font-size: 17px !important;
-            }
-            .welcome-title {
-                font-size: 36px;
-                margin-bottom: 50px;
-            }
-            .service-cards {
-                gap: 25px;
-            }
-            .service-card {
-                width: 100%;
-                max-width: 350px;
-                padding: 45px 35px;
-            }
-            .service-card img {
-                width: 140px;
-                height: 140px;
-            }
-            .service-card-title {
-                font-size: 20px;
-            }
-            .subtitle {
-                font-size: 20px;
-            }
-            .back-btn {
-                padding: 18px 70px;
-                font-size: 19px;
-            }
+            .main-header { padding: 0 30px !important; height: 85px !important; }
+            .main-logo img { height: 65px !important; }
+            .main-nav { gap: 35px !important; }
+            .main-nav a { font-size: 17px !important; }
+            .welcome-title { font-size: 36px; margin-bottom: 50px; }
+            .service-cards { gap: 25px; }
+            .service-card { width: 100%; max-width: 350px; padding: 45px 35px; }
+            .service-card img { width: 140px; height: 140px; }
+            .service-card-title { font-size: 20px; }
+            .subtitle { font-size: 20px; }
+            .back-btn { padding: 18px 70px; font-size: 19px; }
+            .sub-card { width: 140px; padding: 28px 20px; }
+            .sub-card-icon { font-size: 38px; }
+            .sub-card-title { font-size: 14px; }
         }
     </style>
 </head>
 <body>
 
-<!-- 헤더 -->
 <header class="main-header">
     <a href="/" class="main-logo">
         <img th:src="@{/images/logo.png}" alt="from">
@@ -225,7 +254,6 @@
     </div>
 </header>
 
-<!-- 메인 콘텐츠 -->
 <div class="hero-content">
     <h1 class="welcome-title">
         <span th:text="${session.loginUser.name}">사용자</span>님 어서오세요!<br>
@@ -241,16 +269,52 @@
             <img th:src="@{/images/image 11.png}" alt="랭킹 보기">
             <div class="service-card-title">랭킹 보기</div>
         </a>
-        <a th:href="@{/review}" class="service-card">
-            <img th:src="@{/images/image 10.png}" alt="AI 독후감 생성">
-            <div class="service-card-title">AI 독후감 생성</div>
-        </a>
+        <!-- AI 독서 → 클릭 시 모달 오픈 -->
+        <div class="service-card" onclick="openAiModal()">
+            <img th:src="@{/images/image 10.png}" alt="AI 독서">
+            <div class="service-card-title">AI 독서</div>
+        </div>
     </div>
 
     <p class="subtitle">책을 등록하여 ai독후감을 생성해보세요!</p>
-
     <a href="javascript:history.back()" class="back-btn">뒤로 가기</a>
 </div>
+
+<!-- AI 독서 서브메뉴 모달 -->
+<div class="modal-bg" id="aiModal" onclick="closeAiModal(event)">
+    <div class="modal">
+        <div class="modal-title">AI 독서</div>
+        <div class="modal-desc">이용할 서비스를 선택해주세요</div>
+
+        <div class="sub-cards">
+            <a th:href="@{/review/create}" class="sub-card">
+                <div class="sub-card-icon">📝</div>
+                <div class="sub-card-title">AI 독후감</div>
+            </a>
+            <a th:href="@{/image/create}" class="sub-card">
+                <div class="sub-card-icon">🎨</div>
+                <div class="sub-card-title">책 속 주인공</div>
+            </a>
+            <a th:href="@{/book/recommend}" class="sub-card">
+                <div class="sub-card-icon">🤖</div>
+                <div class="sub-card-title">책 추천</div>
+            </a>
+        </div>
+
+        <button class="modal-close-btn" onclick="closeAiModal()">닫기</button>
+    </div>
+</div>
+
+<script>
+    function openAiModal() {
+        document.getElementById('aiModal').classList.add('show');
+    }
+
+    function closeAiModal(e) {
+        if (e && e.target !== document.getElementById('aiModal')) return;
+        document.getElementById('aiModal').classList.remove('show');
+    }
+</script>
 
 </body>
 </html>

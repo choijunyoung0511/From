@@ -16,16 +16,14 @@
             --primary-dark: #4D5ED1;
             --text-main: #3E3440;
             --text-soft: #6F6470;
-            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.08);
-            --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 10px 30px rgba(0,0,0,0.08);
+            --shadow-sm: 0 4px 16px rgba(0,0,0,0.06);
             --radius-xl: 24px;
             --radius-lg: 18px;
             --page-max-width: 720px;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -34,6 +32,43 @@
             font-family: 'Noto Serif KR', serif;
         }
 
+        /* ── 헤더 ── */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 80px !important;
+            height: 100px !important;
+            background: white;
+            border-bottom: 1px solid #eee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .main-logo { text-decoration: none; display: flex; align-items: center; }
+        .main-logo img { height: 80px !important; }
+        .main-nav { display: flex; align-items: center; gap: 70px !important; }
+        .main-nav a {
+            color: #333 !important;
+            text-decoration: none;
+            font-size: 20px !important;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .main-nav a:hover { color: #6071E3 !important; font-weight: 700; }
+        .header-logout-btn {
+            background: #6071E3 !important;
+            border: none;
+            color: white !important;
+            padding: 14px 40px !important;
+            border-radius: 30px !important;
+            cursor: pointer;
+            font-size: 18px !important;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .header-logout-btn:hover { background: #4f5fd4 !important; transform: translateY(-2px); }
+
+        /* ── 컨텐츠 ── */
         .page-container {
             max-width: var(--page-max-width);
             margin: 0 auto;
@@ -75,7 +110,7 @@
 
         .letter-wrap:hover {
             transform: translateY(-2px);
-            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.10);
+            box-shadow: 0 14px 36px rgba(0,0,0,0.10);
         }
 
         .letter-wrap::before {
@@ -83,7 +118,7 @@
             position: absolute;
             inset: 0;
             border-radius: inherit;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255,255,255,0.08);
             pointer-events: none;
         }
 
@@ -138,11 +173,7 @@
             color: var(--primary);
             background: #FFFFFF;
         }
-
-        .btn-outline-custom:hover {
-            background: #F5F7FF;
-            transform: translateY(-1px);
-        }
+        .btn-outline-custom:hover { background: #F5F7FF; transform: translateY(-1px); }
 
         .btn-primary-custom {
             border: 1.5px solid var(--primary);
@@ -150,109 +181,52 @@
             background: var(--primary);
             box-shadow: var(--shadow-sm);
         }
+        .btn-primary-custom:hover { background: var(--primary-dark); transform: translateY(-1px); }
 
-        .btn-primary-custom:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-        }
-
-        /* ===== 편지지 12종 ===== */
-
-        /* 기본 5종 */
-        .paper-1  {
-            background: linear-gradient(135deg, #FFF8F0, #F5E6D3);
-            color: #4A3B31;
-        }
-
-        .paper-2  {
-            background: linear-gradient(135deg, #FFE4E8, #FFBFCC);
-            color: #5A3D45;
-        }
-
-        .paper-3  {
-            background: linear-gradient(135deg, #1E3A5F, #2E5A8F);
-            color: #F8FBFF;
-        }
-
-        .paper-4  {
-            background: linear-gradient(135deg, #E0F5F0, #B8EAE0);
-            color: #355850;
-        }
-
-        .paper-5  {
-            background: linear-gradient(135deg, #F5F0E8, #E8DCC8);
-            color: #5B4A39;
-        }
-
-        /* 계절 4종 */
-        .paper-6  {
-            background: linear-gradient(135deg, #FFD6E7, #FFAFD2, #FFC8A2);
-            color: #5B3E4A;
-        }
-
-        .paper-7  {
-            background: linear-gradient(135deg, #E8F4FD, #AED6F1, #85C1E9);
-            color: #214865;
-        }
-
-        .paper-8  {
-            background: linear-gradient(135deg, #FDEBD0, #F0B27A, #E59866);
-            color: #5D2E0C;
-        }
-
-        .paper-9  {
-            background: linear-gradient(135deg, #EAF2FF, #D6E8FF, #C3DEFF);
-            color: #35506D;
-        }
-
-        /* 감정 3종 */
-        .paper-10 {
-            background: linear-gradient(135deg, #FFF0F5, #FFD6E8, #FFC2E0);
-            color: #5A3F4A;
-        }
-
-        .paper-11 {
-            background: linear-gradient(135deg, #2C3E50, #3D5166, #4A6278);
-            color: #F7FAFD;
-        }
-
-        .paper-12 {
-            background: linear-gradient(135deg, #F8F9FA, #E8F5E9, #C8E6C9);
-            color: #35513A;
-        }
+        /* ── 편지지 12종 ── */
+        .paper-1  { background: linear-gradient(135deg, #FFF8F0, #F5E6D3); color: #4A3B31; }
+        .paper-2  { background: linear-gradient(135deg, #FFE4E8, #FFBFCC); color: #5A3D45; }
+        .paper-3  { background: linear-gradient(135deg, #1E3A5F, #2E5A8F); color: #F8FBFF; }
+        .paper-4  { background: linear-gradient(135deg, #E0F5F0, #B8EAE0); color: #355850; }
+        .paper-5  { background: linear-gradient(135deg, #F5F0E8, #E8DCC8); color: #5B4A39; }
+        .paper-6  { background: linear-gradient(135deg, #FFD6E7, #FFAFD2, #FFC8A2); color: #5B3E4A; }
+        .paper-7  { background: linear-gradient(135deg, #E8F4FD, #AED6F1, #85C1E9); color: #214865; }
+        .paper-8  { background: linear-gradient(135deg, #FDEBD0, #F0B27A, #E59866); color: #5D2E0C; }
+        .paper-9  { background: linear-gradient(135deg, #EAF2FF, #D6E8FF, #C3DEFF); color: #35506D; }
+        .paper-10 { background: linear-gradient(135deg, #FFF0F5, #FFD6E8, #FFC2E0); color: #5A3F4A; }
+        .paper-11 { background: linear-gradient(135deg, #2C3E50, #3D5166, #4A6278); color: #F7FAFD; }
+        .paper-12 { background: linear-gradient(135deg, #F8F9FA, #E8F5E9, #C8E6C9); color: #35513A; }
 
         @media (max-width: 640px) {
-            .page-container {
-                padding: 28px 16px 48px;
-            }
-
-            .result-title {
-                font-size: 24px;
-            }
-
-            .letter-wrap {
-                padding: 36px 24px;
-                border-radius: 20px;
-            }
-
-            .letter-date {
-                margin-bottom: 22px;
-                font-size: 13px;
-            }
-
-            .letter-body {
-                font-size: 15px;
-                line-height: 1.95;
-            }
-
-            .btn-row {
-                flex-direction: column;
-            }
+            .main-header { padding: 0 30px !important; height: 85px !important; }
+            .main-logo img { height: 65px !important; }
+            .main-nav { gap: 35px !important; }
+            .main-nav a { font-size: 17px !important; }
+            .page-container { padding: 28px 16px 48px; }
+            .result-title { font-size: 24px; }
+            .letter-wrap { padding: 36px 24px; border-radius: 20px; }
+            .letter-date { margin-bottom: 22px; font-size: 13px; }
+            .letter-body { font-size: 15px; line-height: 1.95; }
+            .btn-row { flex-direction: column; }
         }
     </style>
 </head>
 <body>
-<div th:replace="~{layout/navbar :: navbar}"></div>
+
+<header class="main-header">
+    <a href="/" class="main-logo">
+        <img th:src="@{/images/logo.png}" alt="from">
+    </a>
+    <div style="display:flex; align-items:center; gap:70px;">
+        <nav class="main-nav">
+            <a th:href="@{/book/register}">책 등록</a>
+            <a th:href="@{/ranking}">랭킹</a>
+            <a th:href="@{/review/create}">AI독서</a>
+            <a th:href="@{/user/mypage}">마이페이지</a>
+        </nav>
+        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+    </div>
+</header>
 
 <div class="page-container">
     <header class="result-header">
@@ -262,22 +236,23 @@
         </div>
     </header>
 
-    <section class="letter-wrap" th:classappend="'paper-' + ${review.paperId}">
+    <section class="letter-wrap" th:classappend="'paper-' + ${reviewPaperId}">
         <div class="letter-content">
-            <p class="letter-date" th:text="${#temporals.format(#temporals.createNow(), 'yyyy년 MM월 dd일')}">
-                2026년 03월 23일
+            <p class="letter-date"
+               th:text="${#temporals.format(#temporals.createNow(), 'yyyy년 MM월 dd일')}">
+                2026년 03월 31일
             </p>
-
-            <p class="letter-body" th:text="${review.aiContent}">
+            <p class="letter-body" th:text="${reviewContent}">
                 독후감 내용이 여기에 표시됩니다.
             </p>
         </div>
     </section>
 
     <div class="btn-row">
-        <a th:href="@{/review}" class="btn-custom btn-outline-custom">새 독후감 만들기</a>
-        <a th:href="@{/service.html}" class="btn-custom btn-primary-custom">홈으로</a>
+        <a th:href="@{/review/create}" class="btn-custom btn-outline-custom">새 독후감 만들기</a>
+        <a th:href="@{/}" class="btn-custom btn-primary-custom">홈으로</a>
     </div>
 </div>
+
 </body>
 </html>

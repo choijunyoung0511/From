@@ -147,3 +147,37 @@ body.auth-page {
 =================================== */
 .page-container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
 .page-header { font-size: 24px; font-weight: 700; color: #6071E3; margin-bottom: 24px; font-family: 'Nanum Myeongjo', serif; }
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 80px !important;
+    height: 100px !important;
+    background: white;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.main-logo { text-decoration: none; display: flex; align-items: center; }
+.main-logo img { height: 80px !important; }
+.main-nav { display: flex; align-items: center; gap: 70px !important; }
+.main-nav a {
+    color: #333 !important;
+    text-decoration: none;
+    font-size: 20px !important;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+.main-nav a:hover { color: #6071E3 !important; font-weight: 700; }
+.header-logout-btn {
+    background: #6071E3 !important;
+    border: none;
+    color: white !important;
+    padding: 14px 40px !important;
+    border-radius: 30px !important;
+    cursor: pointer;
+    font-size: 18px !important;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+}
+.header-logout-btn:hover { background: #4f5fd4 !important; transform: translateY(-2px); }

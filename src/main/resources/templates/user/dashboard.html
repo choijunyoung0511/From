@@ -274,31 +274,20 @@
 </head>
 <body>
 
-<nav class="navbar">
-  <a href="#"><img th:src="@{/images/logo.png}" alt="from 로고"></a>
-    <ul class="nav-links">
-    <li><a href="@{/book/register}">책 등록</a></li>
-    <li><a href="@{/ranking}">랭킹</a></li>
-    <li class="dropdown">
-      <a href="#">AI 서비스 <span class="nav-arrow">▾</span></a>
-      <div class="dropdown-menu">
-        <a href="@{/review/create}">AI 독후감 생성</a>
-        <a href="@{/review/image}">이미지 생성</a>
-        <a href="@{/review/recommend}">책 추천</a>
-      </div>
-    </li>
-    <li class="dropdown">
-      <a href="#">마이페이지 <span class="nav-arrow">▾</span></a>
-      <div class="dropdown-menu">
-        <a href="#" class="active">독서 대시보드</a>
-        <a href="@{/review/list}">내 독후감 기록</a>
-        <a href="@{/user/mypage}">비밀번호 변경</a>
-        <a href="@{/user/mypage}">회원 탈퇴</a>
-      </div>
-    </li>
-  </ul>
-  <button class="nav-btn">로그아웃</button>
-</nav>
+<header class="main-header">
+  <a href="/" class="main-logo">
+    <img th:src="@{/images/logo.png}" alt="from">
+  </a>
+  <div style="display:flex; align-items:center; gap:70px;">
+    <nav class="main-nav">
+      <a th:href="@{/book/register}">책 등록</a>
+      <a th:href="@{/ranking}">랭킹</a>
+      <a th:href="@{/review/create}">AI독서</a>
+      <a th:href="@{/user/mypage}">마이페이지</a>
+    </nav>
+    <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+  </div>
+</header>
 
 <div class="content">
   <div class="page-title">최준영님의 <span>독서 대시보드</span> 📚</div>
