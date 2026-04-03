@@ -10,29 +10,24 @@
 <!-- STEP 1: 이름 + 이메일 입력 -->
 <div class="form-container" id="step1">
     <h2 class="form-title">아이디 찾기</h2>
-
     <div class="form-group">
         <input type="text" id="name" class="form-control" placeholder="이름을 입력해주세요.">
         <span class="error-msg" id="name-error"></span>
     </div>
-
     <div class="form-group">
         <input type="email" id="email" class="form-control" placeholder="이메일을 입력해주세요.">
         <span class="error-msg" id="email-error"></span>
     </div>
-
     <button class="btn btn-primary btn-block" onclick="sendCode()">인증메일 받기</button>
 </div>
 
 <!-- STEP 2: 인증번호 입력 -->
 <div class="form-container" id="step2" style="display:none;">
     <h2 class="form-title">인증번호 입력</h2>
-
     <div class="form-group">
         <input type="text" id="code" class="form-control" placeholder="이메일로 온 인증번호를 입력해주세요.">
         <span class="error-msg" id="code-error"></span>
     </div>
-
     <button class="btn btn-primary btn-block" onclick="verifyCode()">인증메일 확인</button>
 </div>
 
@@ -57,62 +52,62 @@
 </div>
 
 <script>
-function sendCode() {
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    document.getElementById('name-error').textContent = '';
-    document.getElementById('email-error').textContent = '';
+    function sendCode() {
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        document.getElementById('name-error').textContent = '';
+        document.getElementById('email-error').textContent = '';
 
-    if (!name) { document.getElementById('name-error').textContent = '이름이 입력되지 않았습니다.'; return; }
-    if (!email) { document.getElementById('email-error').textContent = '이메일이 입력되지 않았습니다.'; return; }
+        if (!name) { document.getElementById('name-error').textContent = '이름이 입력되지 않았습니다.'; return; }
+        if (!email) { document.getElementById('email-error').textContent = '이메일이 입력되지 않았습니다.'; return; }
 
-    fetch('/user/findId/sendCode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'block';
-        } else {
-            showModal(data.message || '아이디 혹은 이메일을 찾을수 없습니다.');
-        }
-    });
-}
+        fetch('/user/findId/sendCode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 1) { // ← 수정
+                    document.getElementById('step1').style.display = 'none';
+                    document.getElementById('step2').style.display = 'block';
+                } else {
+                    showModal(data.msg || '아이디 혹은 이메일을 찾을수 없습니다.'); // ← 수정
+                }
+            });
+    }
 
-function verifyCode() {
-    const code = document.getElementById('code').value.trim();
-    document.getElementById('code-error').textContent = '';
+    function verifyCode() {
+        const code = document.getElementById('code').value.trim();
+        document.getElementById('code-error').textContent = '';
 
-    if (!code) { document.getElementById('code-error').textContent = '인증번호가 입력되지 않았습니다.'; return; }
+        if (!code) { document.getElementById('code-error').textContent = '인증번호가 입력되지 않았습니다.'; return; }
 
-    fetch('/user/findId/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: `code=${encodeURIComponent(code)}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('step2').style.display = 'none';
-            document.getElementById('step3').style.display = 'block';
-            document.getElementById('found-name').textContent = document.getElementById('name').value + '님의 아이디를 찾았습니다!';
-            document.getElementById('found-username').textContent = data.username;
-        } else {
-            showModal('인증번호가 틀립니다.');
-        }
-    });
-}
+        fetch('/user/findId/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `code=${encodeURIComponent(code)}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.existsYn === 'Y') { // ← 수정
+                    document.getElementById('step2').style.display = 'none';
+                    document.getElementById('step3').style.display = 'block';
+                    document.getElementById('found-name').textContent = document.getElementById('name').value + '님의 아이디를 찾았습니다!';
+                    document.getElementById('found-username').textContent = data.userId; // ← 수정
+                } else {
+                    showModal('인증번호가 틀립니다.');
+                }
+            });
+    }
 
-function showModal(msg) {
-    document.getElementById('modal-msg').textContent = msg;
-    document.getElementById('modal').classList.add('show');
-}
-function closeModal() {
-    document.getElementById('modal').classList.remove('show');
-}
+    function showModal(msg) {
+        document.getElementById('modal-msg').textContent = msg;
+        document.getElementById('modal').classList.add('show');
+    }
+    function closeModal() {
+        document.getElementById('modal').classList.remove('show');
+    }
 </script>
 </body>
 </html>

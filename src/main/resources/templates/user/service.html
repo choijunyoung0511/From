@@ -240,38 +240,40 @@
 <body>
 
 <header class="main-header">
-    <a href="/" class="main-logo">
+    <a href="/static" class="main-logo">
         <img th:src="@{/images/logo.png}" alt="from">
     </a>
     <div style="display:flex; align-items:center; gap:70px;">
         <nav class="main-nav">
             <a th:href="@{/book/register}">책 등록</a>
-            <a th:href="@{/ranking}">랭킹</a>
+            <a th:href="@{/templates/ranking}">랭킹</a>
             <a th:href="@{/review/create}">AI독서</a>
             <a th:href="@{/user/mypage}">마이페이지</a>
         </nav>
-        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+        <form th:action="@{/user/logout}" method="post" style="display:inline;">
+            <button type="submit" class="header-logout-btn">로그아웃</button>
+        </form>
     </div>
 </header>
 
 <div class="hero-content">
     <h1 class="welcome-title">
-        <span th:text="${session.loginUser.name}">사용자</span>님 어서오세요!<br>
+        <span th:text="${session.SS_USER_NAME}">사용자</span>님 어서오세요!
         어떤 서비스를 이용하고 싶으신가요?
     </h1>
 
     <div class="service-cards">
         <a th:href="@{/book/register}" class="service-card">
-            <img th:src="@{/images/image 8.png}" alt="책 등록하기">
+            <img th:src="@{/images/image}" alt="책 등록하기">
             <div class="service-card-title">책 등록하기</div>
         </a>
-        <a th:href="@{/ranking}" class="service-card">
-            <img th:src="@{/images/image 11.png}" alt="랭킹 보기">
+        <a th:href="@{/templates/ranking}" class="service-card">
+            <img th:src="@{/images/image}" alt="랭킹 보기">
             <div class="service-card-title">랭킹 보기</div>
         </a>
         <!-- AI 독서 → 클릭 시 모달 오픈 -->
         <div class="service-card" onclick="openAiModal()">
-            <img th:src="@{/images/image 10.png}" alt="AI 독서">
+            <img th:src="@{/images/image}" alt="AI 독서">
             <div class="service-card-title">AI 독서</div>
         </div>
     </div>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>책 속 주인공 이미지 생성 · FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        .step-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 32px 0 0;
+            gap: 0;
+        }
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            background: white;
+            color: #aaa;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .step.active .step-circle { background: #6071E3; border-color: #6071E3; color: white; }
+        .step.done .step-circle   { background: #a0a8f0; border-color: #a0a8f0; color: white; }
+        .step-label { font-size: 12px; color: #aaa; white-space: nowrap; }
+        .step.active .step-label  { color: #6071E3; font-weight: 700; }
+        .step-line { width: 80px; height: 2px; background: #ddd; margin-bottom: 22px; }
+        .step-line.done { background: #a0a8f0; }
+
+        .upload-zone {
+            border: 2px dashed #C8BFB8;
+            border-radius: 12px;
+            padding: 48px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #FAFAFA;
+            position: relative;
+            transition: border-color 0.2s, background 0.2s;
+            margin-bottom: 20px;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: #6071E3;
+            background: #f5f5ff;
+        }
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .upload-icon { font-size: 48px; display: block; margin-bottom: 12px; }
+        .upload-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: #333; }
+        .upload-hint { font-size: 14px; color: #999; }
+
+        #preview-wrap { display: none; text-align: center; margin-bottom: 20px; }
+        #preview-wrap img {
+            max-height: 240px;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            object-fit: cover;
+        }
+        #preview-wrap p { font-size: 13px; color: #999; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<!-- 네비게이션 -->
+<header class="main-header">
+    <a class="main-logo" th:href="@{/}">
+        <img th:src="@{/images/logo.png}" alt="FROM">
+    </a>
+    <nav class="main-nav">
+        <a th:href="@{/book/register}">책 등록</a>
+        <a th:href="@{/ranking}">랭킹</a>
+        <a th:href="@{/review}" class="active">독후감</a>
+        <a th:href="@{/mypage}">마이페이지</a>
+        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+    </nav>
+</header>
+
+<!-- 스텝 바 -->
+<div class="step-bar">
+    <div class="step active">
+        <div class="step-circle">1</div>
+        <span class="step-label">사진 업로드</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+        <div class="step-circle">2</div>
+        <span class="step-label">스타일 선택</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+        <div class="step-circle">3</div>
+        <span class="step-label">결과 확인</span>
+    </div>
+</div>
+
+<div class="page-container">
+    <div class="form-container">
+        <h2 class="form-title">책 속 주인공 이미지 생성</h2>
+
+        <form th:action="@{/image/create}" method="post" enctype="multipart/form-data">
+
+            <!-- 사진 업로드 -->
+            <div class="upload-zone" id="dropZone">
+                <input type="file" name="photo" id="photoInput" accept="image/*">
+                <span class="upload-icon">🖼️</span>
+                <p class="upload-title">사진을 선택하거나 드래그하세요</p>
+                <p class="upload-hint">JPG, PNG, WEBP · 최대 10MB</p>
+            </div>
+
+            <div id="preview-wrap">
+                <img id="previewImg" src="" alt="미리보기">
+                <p>업로드된 사진</p>
+            </div>
+
+            <!-- 책 선택 -->
+            <div class="form-group">
+                <label>책 선택</label>
+                <select name="bookId" id="bookSelect" class="form-control" required>
+                    <option value="">책을 선택해주세요</option>
+                    <option th:each="book : ${userBooks}"
+                            th:value="${book.bookId}"
+                            th:text="${book.title}">책 제목</option>
+                </select>
+            </div>
+            <input type="hidden" name="bookTitle" id="bookTitleInput">
+
+            <span class="error-msg" th:if="${error}" th:text="${error}"></span>
+
+            <button type="submit" class="btn btn-primary btn-block" id="nextBtn" disabled>
+                다음 단계로 →
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const photoInput = document.getElementById('photoInput');
+    const dropZone   = document.getElementById('dropZone');
+    const previewWrap = document.getElementById('preview-wrap');
+    const previewImg  = document.getElementById('previewImg');
+    const nextBtn     = document.getElementById('nextBtn');
+    const bookSelect  = document.getElementById('bookSelect');
+    const bookTitleInput = document.getElementById('bookTitleInput');
+    let hasPhoto = false;
+
+    function showPreview(file) {
+        const reader = new FileReader();
+        reader.onload = e => { previewImg.src = e.target.result; previewWrap.style.display = 'block'; };
+        reader.readAsDataURL(file);
+        hasPhoto = true;
+        updateBtn();
+    }
+
+    photoInput.addEventListener('change', e => { if (e.target.files[0]) showPreview(e.target.files[0]); });
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault(); dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            showPreview(file);
+            const dt = new DataTransfer(); dt.items.add(file); photoInput.files = dt.files;
+        }
+    });
+
+    bookSelect.addEventListener('change', () => {
+        bookTitleInput.value = bookSelect.options[bookSelect.selectedIndex].text;
+        updateBtn();
+    });
+
+    function updateBtn() { nextBtn.disabled = !(hasPhoto && bookSelect.value); }
+</script>
+</body>
+</html>

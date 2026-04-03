@@ -25,7 +25,7 @@
     <div class="hero-overlay"></div>
 
     <div class="hero-inner">
-        <div class="hero-badge fade-up">AI 독후감 분석 · 미래 편지 생성 서비스</div>
+        <div class="hero-badge fade-up">AI 독후감 · 주인공 이미지 · 맞춤 책 추천 · 독서 기록</div>
 
         <h1 class="hero-title fade-up">
             지금의 나를 기록해<br>
@@ -36,6 +36,7 @@
         <p class="hero-desc fade-up">
             책을 읽고 느낀 생각과 감정을 남기면, FROM이 AI 분석을 통해
             미래의 나에게 도착할 한 편의 편지로 정리해줍니다.
+            책 속 주인공을 이미지로 만들고, 나의 취향에 맞는 책도 추천받아보세요.
             단순한 독서 기록을 넘어, 시간이 지나도 다시 꺼내볼 수 있는 나만의 아카이브를 만드세요.
         </p>
 
@@ -78,8 +79,16 @@
                         <span>감정과 핵심 내용을 정리해 편지 문체로 변환</span>
                     </div>
                     <div class="mini-point">
-                        <strong>미래 편지 전달</strong>
-                        <span>원하는 시점의 나에게 다시 도착하는 경험 제공</span>
+                        <strong>책 속 주인공 이미지 생성 · NEW</strong>
+                        <span>AI가 책 속 주인공을 감성적인 이미지로 시각화</span>
+                    </div>
+                    <div class="mini-point">
+                        <strong>사용자 기반 책 추천 · NEW</strong>
+                        <span>나의 독서 취향을 분석해 딱 맞는 책을 AI가 추천</span>
+                    </div>
+                    <div class="mini-point">
+                        <strong>잔디심기 & 독서량 통계 · NEW</strong>
+                        <span>매일 독서 기록으로 잔디를 심고 독서 패턴을 한눈에</span>
                     </div>
                     <div class="mini-point">
                         <strong>랭킹과 기록 관리</strong>
@@ -165,14 +174,26 @@
 
             <div class="step-card fade-up">
                 <div class="step-num">03</div>
-                <h3>AI 분석</h3>
-                <p>입력한 독후감을 기반으로 핵심 주제와 감정 흐름을 분석하고, 메시지 중심으로 정리합니다.</p>
+                <h3>AI 분석 & 이미지 생성</h3>
+                <p>입력한 독후감을 기반으로 핵심 주제와 감정 흐름을 분석하고, 책 속 주인공을 AI 이미지로 시각화합니다.</p>
             </div>
 
             <div class="step-card fade-up">
                 <div class="step-num">04</div>
                 <h3>미래 편지 생성</h3>
                 <p>지금의 나에게서 미래의 나에게 보내는 편지 형태로 결과를 생성하고 저장합니다.</p>
+            </div>
+
+            <div class="step-card fade-up">
+                <div class="step-num">05</div>
+                <h3>맞춤 책 추천</h3>
+                <p>나의 독서 기록과 취향을 분석해 AI가 다음에 읽을 책을 개인화해서 추천해줍니다.</p>
+            </div>
+
+            <div class="step-card fade-up">
+                <div class="step-num">06</div>
+                <h3>독서 습관 관리</h3>
+                <p>잔디심기로 매일의 독서를 기록하고, 통계로 나의 독서 패턴과 성장을 한눈에 확인합니다.</p>
             </div>
         </div>
     </div>
@@ -240,6 +261,25 @@
                 <p>지금 남긴 기록이 시간이 지난 후 다시 도착하는 구조로, 서비스만의 감성 포인트를 강화했습니다.</p>
             </div>
 
+            <!-- NEW 기능 3가지 -->
+            <div class="feature-card fade-up">
+                <div class="feature-icon">🎨</div>
+                <h3>책 속 주인공 이미지 <span style="font-size:12px;background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:white;padding:2px 8px;border-radius:20px;font-weight:700;vertical-align:middle;">NEW</span></h3>
+                <p>책 속 주인공을 AI가 감성적인 이미지로 시각화해줍니다. 읽은 책을 새로운 방식으로 경험할 수 있습니다.</p>
+            </div>
+
+            <div class="feature-card fade-up">
+                <div class="feature-icon">✨</div>
+                <h3>사용자 기반 책 추천 <span style="font-size:12px;background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:white;padding:2px 8px;border-radius:20px;font-weight:700;vertical-align:middle;">NEW</span></h3>
+                <p>나의 독서 기록과 취향을 분석해 AI가 다음에 읽을 책을 개인화해서 추천해줍니다.</p>
+            </div>
+
+            <div class="feature-card fade-up">
+                <div class="feature-icon">🌿</div>
+                <h3>잔디심기 & 독서량 통계 <span style="font-size:12px;background:linear-gradient(135deg,#ff6b6b,#ee5a24);color:white;padding:2px 8px;border-radius:20px;font-weight:700;vertical-align:middle;">NEW</span></h3>
+                <p>매일 독서 기록으로 잔디를 심고, 월별·장르별 통계로 나의 독서 습관 성장을 한눈에 확인합니다.</p>
+            </div>
+
             <div class="feature-card fade-up">
                 <div class="feature-icon">🏆</div>
                 <h3>랭킹과 독서 동기부여</h3>
@@ -250,12 +290,6 @@
                 <div class="feature-icon">🗂️</div>
                 <h3>기록 누적과 회고</h3>
                 <p>독서 감상 하나하나가 지나간 시간의 나를 보여주는 데이터가 되도록 경험을 설계했습니다.</p>
-            </div>
-
-            <div class="feature-card fade-up">
-                <div class="feature-icon">✨</div>
-                <h3>감성적인 결과 화면</h3>
-                <p>독후감 결과를 딱딱한 분석표가 아니라 읽고 싶어지는 편지 형태의 결과 화면으로 연결합니다.</p>
             </div>
         </div>
     </div>
@@ -271,14 +305,15 @@
         <div class="story-grid">
             <div class="story-card fade-up">
                 <p class="story-quote">
-                    “그때의 나는 어떤 생각을 했는지,
+                    "그때의 나는 어떤 생각을 했는지,
                     시간이 지난 뒤 다시 읽을 수 있다는 점이
-                    이 서비스의 가장 큰 매력입니다.”
+                    이 서비스의 가장 큰 매력입니다."
                 </p>
                 <p class="story-text">
                     FROM은 독서를 많이 하는 사람만을 위한 서비스가 아니라,
                     책을 통해 지금의 감정을 남기고 싶은 사람을 위한 서비스입니다.
-                    그래서 메인페이지도 기능 나열보다 감정과 사용 흐름이 먼저 느껴지도록 구성하는 게 중요합니다.
+                    이제는 AI 이미지, 맞춤 추천, 잔디심기까지 더해져
+                    독서의 모든 순간을 더 풍부하게 기록할 수 있습니다.
                 </p>
             </div>
 
@@ -295,6 +330,10 @@
                     <strong>신뢰 + 감성 둘 다 확보</strong>
                     <span>숫자 지표와 감성 문구를 같이 배치해서 너무 감성적이기만 하거나 너무 기능적이기만 하지 않게 잡았습니다.</span>
                 </div>
+                <div class="story-mini fade-up">
+                    <strong>새 기능으로 확장된 경험</strong>
+                    <span>주인공 이미지, 맞춤 추천, 잔디심기로 독서의 즐거움을 더 다양하게 이어갑니다.</span>
+                </div>
             </div>
         </div>
     </div>
@@ -309,7 +348,7 @@
             </h2>
             <p>
                 책 한 권의 기록이 시간이 지나도 다시 읽히는 메시지가 되도록.
-                FROM에서 나만의 독서 흐름을 시작해보세요.
+                AI 이미지, 맞춤 추천, 잔디심기까지 — FROM에서 나만의 독서 흐름을 시작해보세요.
             </p>
 
             <div class="final-btn-group">

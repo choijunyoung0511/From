@@ -3,12 +3,24 @@
         <img th:src="@{/images/logo.png}" alt="from">
     </a>
     <div style="display:flex; align-items:center; gap:70px;">
-        <nav class="main-nav">
+
+        <!-- 로그인 상태일 때만 nav 표시 -->
+        <nav class="main-nav" th:if="${session.SS_USER_ID != null}">
             <a th:href="@{/book/register}">책 등록</a>
             <a th:href="@{/ranking}">랭킹</a>
             <a th:href="@{/review/create}">AI독서</a>
             <a th:href="@{/user/mypage}">마이페이지</a>
         </nav>
-        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+
+        <!-- 로그인 상태 → 로그아웃 버튼 -->
+        <form th:if="${session.SS_USER_ID != null}"
+              th:action="@{/user/logout}" method="post" style="display:inline;">
+            <button type="submit" class="header-logout-btn">로그아웃</button>
+        </form>
+
+        <!-- 비로그인 상태 → 로그인 버튼 -->
+        <a th:if="${session.SS_USER_ID == null}"
+           th:href="@{/user/login}" class="header-logout-btn">로그인</a>
+
     </div>
 </header>

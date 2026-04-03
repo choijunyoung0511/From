@@ -180,15 +180,15 @@
         if (!username) { usernameError.textContent = '아이디를 입력해주세요.'; return; }
         if (!password) { passwordError.textContent = '비밀번호를 입력해주세요.'; return; }
 
-        fetch('/user/login', {
+        fetch('/user/loginProc', {  // ← /login → /loginProc
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+            body: `userId=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`  // ← username → userId
         })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    window.location.href = '/user/service';  // ✅ 수정: 서비스 페이지로 이동
+                if (data.result === 1) {  // ← data.success → data.result === 1
+                    window.location.href = '/user/service';
                 } else {
                     document.getElementById('errorModal').classList.add('show');
                 }

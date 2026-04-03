@@ -8,7 +8,6 @@
 </head>
 <body class="auth-page">
 <div class="form-container">
-    <!-- 로고 영역 (클릭시 홈으로 이동) -->
     <div class="form-title">
         <a th:href="@{/}">
             <img th:src="@{/images/logo.png}" alt="FROM 로고" class="form-logo">
@@ -55,7 +54,7 @@
         <span class="error-msg" id="email-error"></span>
     </div>
 
-    <!-- 인증번호 입력 (이메일 발송 후 표시) -->
+    <!-- 인증번호 입력 -->
     <div class="form-group" id="email-code-group" style="display:none;">
         <div class="form-row">
             <input type="text" id="email-code" class="form-control" placeholder="이메일주소로 온 인증번호를 입력해주세요.">
@@ -81,8 +80,8 @@
 </div>
 
 <script>
-    let usernameChecked = false;  // 아이디 중복확인 여부
-    let emailVerified = false;    // 이메일 인증 여부
+    let usernameChecked = false;
+    let emailVerified = false;
 
     // 아이디 중복 확인
     function checkUsername() {
@@ -167,7 +166,7 @@
         })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
+                if (data.result === 1) { // ← 수정
                     success.textContent = '인증되었습니다.';
                     emailVerified = true;
                 } else {
@@ -183,9 +182,7 @@
         const password = document.getElementById('password').value;
         const passwordConfirm = document.getElementById('password-confirm').value;
         const email = document.getElementById('email').value.trim();
-        const emailCode = document.getElementById('email-code').value.trim();
 
-        // 유효성 검사
         if (!name) { document.getElementById('name-error').textContent = '이름을 입력해주세요.'; return; }
         if (!username) { document.getElementById('username-error').textContent = '아이디를 입력해주세요.'; return; }
         if (!usernameChecked) { showModal('아이디 중복 확인을 해주세요.'); return; }
@@ -198,16 +195,17 @@
         fetch('/user/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `name=${encodeURIComponent(name)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&email=${encodeURIComponent(email)}&emailCode=${encodeURIComponent(emailCode)}`
+            // ← userId 추가, username도 함께 전송
+            body: `userId=${encodeURIComponent(username)}&username=${encodeURIComponent(username)}&name=${encodeURIComponent(name)}&password=${encodeURIComponent(password)}&email=${encodeURIComponent(email)}`
         })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
+                if (data.result === 1) { // ← 수정
                     document.getElementById('modal-msg').textContent = '회원가입 되셨습니다.';
                     document.getElementById('modal-btn').onclick = () => window.location.href = '/user/login';
                     document.getElementById('modal').classList.add('show');
                 } else {
-                    showModal(data.message || '회원가입에 실패했습니다.');
+                    showModal(data.msg || '회원가입에 실패했습니다.'); // ← 수정
                 }
             });
     }

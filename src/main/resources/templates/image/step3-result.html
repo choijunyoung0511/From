@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 생성 완료 · FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        .step-bar { display: flex; justify-content: center; align-items: center; padding: 32px 0 0; gap: 0; }
+        .step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .step-circle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #ddd; background: white; color: #aaa; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .step.done .step-circle { background: #a0a8f0; border-color: #a0a8f0; color: white; }
+        .step-label { font-size: 12px; color: #aaa; white-space: nowrap; }
+        .step.done .step-label { color: #6071E3; font-weight: 700; }
+        .step-line { width: 80px; height: 2px; background: #a0a8f0; margin-bottom: 22px; }
+
+        .result-img-wrap {
+            background: #1a1410;
+            border-radius: 12px;
+            overflow: hidden;
+            text-align: center;
+            min-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .result-img-wrap img { max-width: 100%; max-height: 440px; object-fit: contain; display: block; }
+
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        .info-table td { padding: 10px 0; border-bottom: 1px solid #F0EAE4; font-size: 15px; }
+        .info-table td:first-child { color: #999; width: 90px; }
+        .info-table td:last-child { font-weight: 600; color: #333; }
+
+        .btn-row { display: flex; gap: 12px; margin-bottom: 12px; }
+        .btn-row .btn { flex: 1; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    </style>
+</head>
+<body>
+
+<header class="main-header">
+    <a class="main-logo" th:href="@{/}"><img th:src="@{/images/logo.png}" alt="FROM"></a>
+    <nav class="main-nav">
+        <a th:href="@{/book/register}">책 등록</a>
+        <a th:href="@{/ranking}">랭킹</a>
+        <a th:href="@{/review}" class="active">독후감</a>
+        <a th:href="@{/mypage}">마이페이지</a>
+        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+    </nav>
+</header>
+
+<div class="step-bar">
+    <div class="step done"><div class="step-circle">✓</div><span class="step-label">사진 업로드</span></div>
+    <div class="step-line"></div>
+    <div class="step done"><div class="step-circle">✓</div><span class="step-label">스타일 선택</span></div>
+    <div class="step-line"></div>
+    <div class="step done"><div class="step-circle">✓</div><span class="step-label">결과 확인</span></div>
+</div>
+
+<div class="page-container">
+    <div class="form-container">
+        <h2 class="form-title">✅ 이미지 생성 완료!</h2>
+
+        <div class="result-img-wrap">
+            <img id="resultImg" src="" alt="생성된 이미지">
+        </div>
+
+        <table class="info-table">
+            <tr><td>책 제목</td><td id="infoBook">-</td></tr>
+            <tr><td>스타일</td><td id="infoStyle">-</td></tr>
+        </table>
+
+        <div class="btn-row">
+            <a id="downloadBtn" href="#" class="btn btn-primary" download="from-character.png">⬇️ 이미지 저장</a>
+            <a th:href="@{/image/create}" class="btn btn-outline">🔄 다시 만들기</a>
+        </div>
+        <a th:href="@{/mypage}" class="btn btn-outline btn-block">마이페이지에서 전체 기록 보기</a>
+    </div>
+</div>
+
+<div id="imageIdData" th:data-id="${imageId}" style="display:none"></div>
+
+<script>
+    const imageId = document.getElementById('imageIdData').dataset.id;
+
+    if (imageId && imageId !== 'undefined') {
+        fetch(`/image/detail/${imageId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.imageUrl) {
+                    document.getElementById('resultImg').src = data.imageUrl;
+                    document.getElementById('downloadBtn').href = data.imageUrl;
+                }
+                document.getElementById('infoBook').textContent  = data.bookTitle || '-';
+                document.getElementById('infoStyle').textContent = data.style     || '-';
+            })
+            .catch(() => {
+                document.getElementById('resultImg').alt = '이미지를 불러올 수 없습니다.';
+            });
+    } else {
+        document.getElementById('resultImg').alt = '이미지 ID가 올바르지 않습니다.';
+    }
+</script>
+</body>
+</html>

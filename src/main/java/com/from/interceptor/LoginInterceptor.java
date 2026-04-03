@@ -18,12 +18,11 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         HttpSession session = request.getSession();
 
-        if (session.getAttribute("loginUser") == null) {
-            // POST 요청이면 JSON 응답, GET 요청이면 redirect
+        if (session.getAttribute("SS_USER_ID") == null) { // ← 수정
             if ("POST".equalsIgnoreCase(request.getMethod())) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"success\":false,\"message\":\"로그인이 필요합니다.\"}");
+                response.getWriter().write("{\"result\":0,\"msg\":\"로그인이 필요합니다.\"}"); // ← MsgDTO 형식으로 수정
             } else {
                 session.setAttribute("loginRequired", true);
                 response.sendRedirect("/");
