@@ -240,7 +240,7 @@
 <body>
 
 <header class="main-header">
-    <a href="/static" class="main-logo">
+    <a th:href="@{/user/service}" class="main-logo">
         <img th:src="@{/images/logo.png}" alt="from">
     </a>
     <div style="display:flex; align-items:center; gap:70px;">
@@ -264,16 +264,16 @@
 
     <div class="service-cards">
         <a th:href="@{/book/register}" class="service-card">
-            <img th:src="@{/images/image}" alt="책 등록하기">
+            <img th:src="@{/images/image 8.png}" alt="책 등록하기">
             <div class="service-card-title">책 등록하기</div>
         </a>
-        <a th:href="@{/templates/ranking}" class="service-card">
-            <img th:src="@{/images/image}" alt="랭킹 보기">
+        <a th:href="@{/ranking}" class="service-card">
+            <img th:src="@{/images/image 11.png}" alt="랭킹 보기">
             <div class="service-card-title">랭킹 보기</div>
         </a>
         <!-- AI 독서 → 클릭 시 모달 오픈 -->
         <div class="service-card" onclick="openAiModal()">
-            <img th:src="@{/images/image}" alt="AI 독서">
+            <img th:src="@{/images/image 10.png}" alt="AI 독서">
             <div class="service-card-title">AI 독서</div>
         </div>
     </div>

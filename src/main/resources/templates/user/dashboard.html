@@ -10,218 +10,88 @@
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
-    --accent: #5b7cf8;
-    --accent2: #7c9cff;
-    --accent-light: #eef1fe;
-    --bg: #f5f6fa;
-    --white: #ffffff;
-    --border: #e4e7f0;
-    --text: #1a1d2e;
-    --text2: #6b7280;
-    --text3: #adb5c9;
-    --green0: #edf0f7;
-    --green1: #c8e6c9;
-    --green2: #81c784;
-    --green3: #4caf50;
-    --green4: #2e7d32;
-    --radius: 14px;
-    --shadow: 0 2px 12px rgba(91,124,248,0.08);
+    --accent: #5b7cf8; --accent2: #7c9cff; --accent-light: #eef1fe;
+    --bg: #f5f6fa; --white: #ffffff; --border: #e4e7f0;
+    --text: #1a1d2e; --text2: #6b7280; --text3: #adb5c9;
+    --green0: #edf0f7; --green1: #c8e6c9; --green2: #81c784;
+    --green3: #4caf50; --green4: #2e7d32;
+    --radius: 14px; --shadow: 0 2px 12px rgba(91,124,248,0.08);
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans KR', sans-serif;
-    min-height: 100vh;
-  }
+  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; }
 
   .main-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 80px !important;
-    height: 100px !important;
-    background: white;
-    border-bottom: 1px solid #eee;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 80px !important; height: 100px !important;
+    background: white; border-bottom: 1px solid #eee;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   }
-  .main-logo {
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-  }
-  .main-logo img {
-    height: 80px !important;
-  }
-  .main-nav {
-    display: flex;
-    align-items: center;
-    gap: 70px !important;
-  }
-  .main-nav a {
-    color: #333 !important;
-    text-decoration: none;
-    font-size: 20px !important;
-    font-weight: 500;
-    transition: color 0.2s;
-  }
-  .main-nav a:hover {
-    color: #6071E3 !important;
-    font-weight: 700;
-  }
+  .main-logo { text-decoration: none; display: flex; align-items: center; }
+  .main-logo img { height: 80px !important; }
+  .main-nav { display: flex; align-items: center; gap: 70px !important; }
+  .main-nav a { color: #333 !important; text-decoration: none; font-size: 20px !important; font-weight: 500; transition: color 0.2s; }
+  .main-nav a:hover { color: #6071E3 !important; font-weight: 700; }
   .header-logout-btn {
-    background: #6071E3 !important;
-    border: none;
-    color: white !important;
-    padding: 14px 40px !important;
-    border-radius: 30px !important;
-    cursor: pointer;
-    font-size: 18px !important;
-    font-weight: 700;
-    text-decoration: none;
+    background: #6071E3 !important; border: none; color: white !important;
+    padding: 14px 40px !important; border-radius: 30px !important; cursor: pointer;
+    font-size: 18px !important; font-weight: 700; text-decoration: none;
     transition: background 0.2s, transform 0.2s;
   }
-  .header-logout-btn:hover {
-    background: #4f5fd4 !important;
-    transform: translateY(-2px);
-  }
+  .header-logout-btn:hover { background: #4f5fd4 !important; transform: translateY(-2px); }
 
   .content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 
-  .page-title {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 24px;
-  }
+  .page-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 24px; }
   .page-title span { color: var(--accent); }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
   .card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-    box-shadow: var(--shadow);
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow);
     animation: fadeUp 0.4s ease both;
   }
   .card-full { grid-column: 1 / -1; }
+  .card-title { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text3); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 18px; }
 
-  .card-title {
-    font-size: 12px;
-    font-family: 'DM Mono', monospace;
-    color: var(--text3);
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    margin-bottom: 18px;
-  }
-
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    grid-column: 1 / -1;
-  }
-
-  .stat-item {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    box-shadow: var(--shadow);
-    animation: fadeUp 0.4s ease both;
-  }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; grid-column: 1 / -1; }
+  .stat-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; box-shadow: var(--shadow); animation: fadeUp 0.4s ease both; }
   .stat-item:nth-child(1) { animation-delay: 0.05s; }
   .stat-item:nth-child(2) { animation-delay: 0.1s; }
   .stat-item:nth-child(3) { animation-delay: 0.15s; }
   .stat-item:nth-child(4) { animation-delay: 0.2s; }
-
-  .stat-item .num {
-    font-size: 32px;
-    font-weight: 700;
-    font-family: 'DM Mono', monospace;
-    color: var(--accent);
-    line-height: 1;
-    margin-bottom: 8px;
-  }
+  .stat-item .num { font-size: 32px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--accent); line-height: 1; margin-bottom: 8px; }
   .stat-item .label { font-size: 12px; color: var(--text2); }
 
   .grass-wrap { overflow-x: auto; padding-bottom: 4px; }
   .grass-months { display: flex; margin-bottom: 6px; padding-left: 28px; }
-  .grass-month-label {
-    font-size: 11px;
-    color: var(--text3);
-    font-family: 'DM Mono', monospace;
-  }
+  .grass-month-label { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
   .grass-body { display: flex; gap: 4px; align-items: flex-start; }
   .grass-days { display: flex; flex-direction: column; gap: 3px; margin-right: 4px; }
-  .grass-day-label {
-    font-size: 10px;
-    color: var(--text3);
-    font-family: 'DM Mono', monospace;
-    height: 13px; line-height: 13px; width: 24px; text-align: right;
-  }
+  .grass-day-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; height: 13px; line-height: 13px; width: 24px; text-align: right; }
   .grass-cols { display: flex; gap: 3px; }
   .grass-col { display: flex; flex-direction: column; gap: 3px; }
-  .grass-cell {
-    width: 13px; height: 13px; border-radius: 3px;
-    cursor: pointer; transition: transform 0.15s;
-  }
+  .grass-cell { width: 13px; height: 13px; border-radius: 3px; cursor: pointer; transition: transform 0.15s; }
   .grass-cell:hover { transform: scale(1.3); }
   .grass-cell.l0 { background: var(--green0); }
   .grass-cell.l1 { background: var(--green1); }
   .grass-cell.l2 { background: var(--green2); }
   .grass-cell.l3 { background: var(--green3); }
   .grass-cell.l4 { background: var(--green4); }
-
-  .grass-legend {
-    display: flex; align-items: center; gap: 4px;
-    margin-top: 12px; justify-content: flex-end;
-  }
+  .grass-legend { display: flex; align-items: center; gap: 4px; margin-top: 12px; justify-content: flex-end; }
   .grass-legend span { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
   .legend-cell { width: 13px; height: 13px; border-radius: 3px; }
 
-  .tooltip {
-    position: fixed;
-    background: #1a1d2e;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 12px;
-    color: white;
-    font-family: 'DM Mono', monospace;
-    pointer-events: none;
-    z-index: 999;
-    display: none;
-    white-space: nowrap;
-  }
+  .tooltip { position: fixed; background: #1a1d2e; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: white; font-family: 'DM Mono', monospace; pointer-events: none; z-index: 999; display: none; white-space: nowrap; }
 
   .chart-container { position: relative; height: 210px; }
 
   .book-list { display: flex; flex-direction: column; gap: 10px; }
-  .book-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px; background: var(--bg);
-    border-radius: 10px; border: 1px solid var(--border);
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .book-item:hover {
-    border-color: var(--accent);
-    box-shadow: 0 2px 8px rgba(91,124,248,0.12);
-  }
-  .book-cover {
-    width: 36px; height: 50px; border-radius: 4px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; background: var(--accent-light);
-  }
+  .book-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg); border-radius: 10px; border: 1px solid var(--border); transition: border-color 0.2s, box-shadow 0.2s; }
+  .book-item:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(91,124,248,0.12); }
+  .book-cover { width: 36px; height: 50px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; background: var(--accent-light); }
   .book-info { flex: 1; min-width: 0; }
-  .book-title {
-    font-size: 14px; font-weight: 600;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px;
-  }
+  .book-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
   .book-author { font-size: 12px; color: var(--text2); }
   .book-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; flex-shrink: 0; }
 
@@ -230,28 +100,12 @@
   .goal-header { display: flex; justify-content: space-between; align-items: center; }
   .goal-label { font-size: 13px; color: var(--text2); font-weight: 500; }
   .goal-val { font-size: 13px; font-family: 'DM Mono', monospace; color: var(--accent); }
-  .progress-bar {
-    height: 8px; background: var(--bg); border-radius: 99px;
-    overflow: hidden; border: 1px solid var(--border);
-  }
-  .progress-fill {
-    height: 100%; border-radius: 99px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    transition: width 1s cubic-bezier(0.4,0,0.2,1);
-    width: 0%;
-  }
+  .progress-bar { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 1s cubic-bezier(0.4,0,0.2,1); width: 0%; }
   .goal-input-row { display: flex; gap: 8px; margin-top: 4px; }
-  .goal-input {
-    flex: 1; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 8px; padding: 8px 12px; color: var(--text);
-    font-family: 'Noto Sans KR', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s;
-  }
+  .goal-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; }
   .goal-input:focus { border-color: var(--accent); }
-  .goal-btn {
-    background: var(--accent); border: none; border-radius: 8px;
-    padding: 8px 16px; color: white; font-size: 13px; cursor: pointer;
-    font-family: 'Noto Sans KR', sans-serif; transition: background 0.2s;
-  }
+  .goal-btn { background: var(--accent); border: none; border-radius: 8px; padding: 8px 16px; color: white; font-size: 13px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: background 0.2s; }
   .goal-btn:hover { background: #4a6be0; }
 
   .genre-wrap { display: flex; align-items: center; gap: 20px; }
@@ -262,10 +116,9 @@
   .genre-name { flex: 1; color: var(--text2); }
   .genre-pct { font-family: 'DM Mono', monospace; color: var(--text3); font-size: 12px; }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .empty-books { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   .card:nth-child(1) { animation-delay: 0.1s; }
   .card:nth-child(2) { animation-delay: 0.15s; }
   .card:nth-child(3) { animation-delay: 0.2s; }
@@ -275,7 +128,7 @@
 <body>
 
 <header class="main-header">
-  <a href="/" class="main-logo">
+  <a th:href="@{/user/service}" class="main-logo">
     <img th:src="@{/images/logo.png}" alt="from">
   </a>
   <div style="display:flex; align-items:center; gap:70px;">
@@ -283,33 +136,26 @@
       <a th:href="@{/book/register}">책 등록</a>
       <a th:href="@{/ranking}">랭킹</a>
       <a th:href="@{/review/create}">AI독서</a>
-      <a th:href="@{/user/mypage}">마이페이지</a>
+      <a th:href="@{/user/mypage}" class="active">마이페이지</a>
     </nav>
-    <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+    <form th:action="@{/user/logout}" method="post" style="display:inline;">
+      <button type="submit" class="header-logout-btn">로그아웃</button>
+    </form>
   </div>
 </header>
 
 <div class="content">
-  <div class="page-title">최준영님의 <span>독서 대시보드</span> 📚</div>
+  <!-- 유저 이름은 Thymeleaf 로 서버에서 주입 -->
+  <div class="page-title">
+    <span th:text="${userName}">사용자</span>님의 <span>독서 대시보드</span> 📚
+  </div>
 
   <div class="grid" style="margin-bottom: 16px;">
     <div class="stat-grid">
-      <div class="stat-item">
-        <div class="num" id="totalBooks">0</div>
-        <div class="label">올해 읽은 책</div>
-      </div>
-      <div class="stat-item">
-        <div class="num" id="streak">0</div>
-        <div class="label">연속 독서일 🔥</div>
-      </div>
-      <div class="stat-item">
-        <div class="num" id="thisMonth">0</div>
-        <div class="label">이번 달 독서</div>
-      </div>
-      <div class="stat-item">
-        <div class="num" id="avgPerMonth">0</div>
-        <div class="label">월평균 독서량</div>
-      </div>
+      <div class="stat-item"><div class="num" id="totalBooks">0</div><div class="label">등록한 책</div></div>
+      <div class="stat-item"><div class="num" id="streak">0</div><div class="label">연속 독서일 🔥</div></div>
+      <div class="stat-item"><div class="num" id="thisMonth">0</div><div class="label">이번 달 등록</div></div>
+      <div class="stat-item"><div class="num" id="avgPerMonth">0</div><div class="label">월평균 등록량</div></div>
     </div>
   </div>
 
@@ -385,220 +231,275 @@
 <div id="tooltip" class="tooltip"></div>
 
 <script>
-const BOOKS = [
-  { title: '사랑의 기술', author: '에리히 프롬', date: '2025-03-20', genre: '철학', emoji: '📖' },
-  { title: '채식주의자', author: '한강', date: '2025-03-15', genre: '소설', emoji: '🌿' },
-  { title: '자본론', author: '칼 마르크스', date: '2025-03-08', genre: '경제', emoji: '📚' },
-  { title: '코스모스', author: '칼 세이건', date: '2025-02-28', genre: '과학', emoji: '🌌' },
-  { title: '데미안', author: '헤르만 헤세', date: '2025-02-20', genre: '소설', emoji: '🦋' },
-  { title: '총균쇠', author: '재레드 다이아몬드', date: '2025-02-10', genre: '역사', emoji: '⚔️' },
-  { title: '1984', author: '조지 오웰', date: '2025-01-28', genre: '소설', emoji: '👁' },
-  { title: '사피엔스', author: '유발 하라리', date: '2025-01-15', genre: '역사', emoji: '🦴' },
-  { title: '노인과 바다', author: '어니스트 헤밍웨이', date: '2025-01-05', genre: '소설', emoji: '🌊' },
-  { title: '멋진 신세계', author: '올더스 헉슬리', date: '2024-12-20', genre: '소설', emoji: '🧬' },
-];
+// ── 상태 ─────────────────────────────────────────────────────────────────────
+let BOOKS = [];       // API 에서 받은 실제 책 목록
+let readDates = new Set();
+let goals = { weekly: 3, monthly: 10 };
+let monthChartInstance = null;
+let genreChartInstance = null;
 
-function generateReadDates() {
-  const dates = new Set(BOOKS.map(b => b.date));
-  const today = new Date();
-  for (let i = 0; i < 80; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - Math.floor(Math.random() * 300));
-    if (Math.random() > 0.6) dates.add(d.toISOString().split('T')[0]);
-  }
-  return dates;
+// ── 장르 추정 (책 제목 키워드 기반) ─────────────────────────────────────────
+function guessGenre(title) {
+    if (!title) return '기타';
+    if (/역사|조선|왕|전쟁|삼국|세계사/.test(title))   return '역사';
+    if (/과학|우주|물리|생물|뇌|코스모스/.test(title)) return '과학';
+    if (/철학|논어|성찰|인생|존재/.test(title))         return '철학';
+    if (/경제|투자|주식|돈|자본/.test(title))           return '경제';
+    if (/심리|마음|감정|관계/.test(title))               return '심리';
+    return '소설';
 }
 
-const readDates = generateReadDates();
+function getBookEmoji(title) {
+    if (!title) return '📚';
+    if (/사랑/.test(title))  return '📖';
+    if (/채식/.test(title))  return '🌿';
+    if (/코스모스/.test(title)) return '🌌';
+    if (/데미안/.test(title)) return '🦋';
+    if (/1984/.test(title))  return '👁';
+    if (/사피엔스/.test(title)) return '🦴';
+    return '📚';
+}
+
+// ── 1. API 호출 후 전체 렌더 ─────────────────────────────────────────────────
+fetch('/user/dashboard/stats')
+    .then(res => {
+        if (res.status === 401) { window.location.href = '/user/login'; throw new Error('unauth'); }
+        return res.json();
+    })
+    .then(data => {
+        // 책 목록에 장르·이모지 추가
+        BOOKS = (data.books || []).map(b => ({
+            ...b,
+            genre: guessGenre(b.title),
+            emoji: getBookEmoji(b.title)
+        }));
+        // 책 등록일을 독서 날짜 Set 으로 변환
+        readDates = new Set(BOOKS.map(b => b.date).filter(Boolean));
+
+        updateStats();
+        buildGrass();
+        buildMonthChart();
+        buildGenreChart();
+        buildBookList();
+        updateGoals();
+    })
+    .catch(err => { if (err.message !== 'unauth') console.error('대시보드 로딩 실패', err); });
+
+// ── 2. 통계 수치 업데이트 ────────────────────────────────────────────────────
+function updateStats() {
+    const now = new Date();
+    const yearBooks  = BOOKS.filter(b => b.date && new Date(b.date).getFullYear() === now.getFullYear()).length;
+    const monthBooks = BOOKS.filter(b => {
+        if (!b.date) return false;
+        const d = new Date(b.date);
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }).length;
+    const monthsPassed = Math.max(now.getMonth() + 1, 1);
+
+    document.getElementById('totalBooks').textContent  = BOOKS.length;
+    document.getElementById('streak').textContent      = calcStreak();
+    document.getElementById('thisMonth').textContent   = monthBooks;
+    document.getElementById('avgPerMonth').textContent = (yearBooks / monthsPassed).toFixed(1);
+}
 
 function calcStreak() {
-  const today = new Date();
-  let streak = 0;
-  for (let i = 0; i < 365; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    if (readDates.has(d.toISOString().split('T')[0])) streak++;
-    else if (i > 0) break;
-  }
-  return streak;
+    const today = new Date();
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        if (readDates.has(d.toISOString().split('T')[0])) { streak++; }
+        else if (i > 0) { break; }
+    }
+    return streak;
 }
 
-function updateStats() {
-  const now = new Date();
-  const yearBooks = BOOKS.filter(b => new Date(b.date).getFullYear() === 2025).length;
-  const monthBooks = BOOKS.filter(b => {
-    const d = new Date(b.date);
-    return d.getFullYear() === 2025 && d.getMonth() === now.getMonth();
-  }).length;
-  document.getElementById('totalBooks').textContent = yearBooks;
-  document.getElementById('streak').textContent = calcStreak();
-  document.getElementById('thisMonth').textContent = monthBooks;
-  document.getElementById('avgPerMonth').textContent = (yearBooks / Math.max(now.getMonth() + 1, 1)).toFixed(1);
-}
-
+// ── 3. 잔디 차트 ─────────────────────────────────────────────────────────────
 function buildGrass() {
-  const today = new Date();
-  const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - 364);
-  startDate.setDate(startDate.getDate() - startDate.getDay());
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - 364);
+    startDate.setDate(startDate.getDate() - startDate.getDay());
 
-  const cols = document.getElementById('grassCols');
-  const monthsEl = document.getElementById('grassMonths');
-  const dayLabels = document.getElementById('grassDayLabels');
-  const tooltip = document.getElementById('tooltip');
+    const cols      = document.getElementById('grassCols');
+    const monthsEl  = document.getElementById('grassMonths');
+    const dayLabels = document.getElementById('grassDayLabels');
+    const tooltip   = document.getElementById('tooltip');
 
-  ['', '월', '', '수', '', '금', ''].forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'grass-day-label';
-    el.textContent = d;
-    dayLabels.appendChild(el);
-  });
+    cols.innerHTML = ''; monthsEl.innerHTML = ''; dayLabels.innerHTML = '';
 
-  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-  let lastMonth = -1;
-  const cur = new Date(startDate);
+    ['', '월', '', '수', '', '금', ''].forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'grass-day-label';
+        el.textContent = d;
+        dayLabels.appendChild(el);
+    });
 
-  while (cur <= today) {
-    const col = document.createElement('div');
-    col.className = 'grass-col';
-    for (let dow = 0; dow < 7; dow++) {
-      const cell = document.createElement('div');
-      cell.className = 'grass-cell';
-      const dateKey = cur.toISOString().split('T')[0];
-      const month = cur.getMonth();
+    const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    let lastMonth = -1;
+    const cur = new Date(startDate);
 
-      if (cur > today) {
-        cell.classList.add('l0');
-        cell.style.opacity = '0';
-      } else {
-        const hasRead = readDates.has(dateKey);
-        const count = hasRead ? Math.floor(Math.random() * 3) + 1 : 0;
-        cell.classList.add(`l${Math.min(count, 4)}`);
-        const bookOnDate = BOOKS.filter(b => b.date === dateKey);
-        cell.addEventListener('mouseenter', e => {
-          tooltip.style.display = 'block';
-          tooltip.innerHTML = bookOnDate.length > 0
-            ? `${dateKey}<br>${bookOnDate.map(b => b.title).join(', ')}`
-            : `${dateKey}<br>기록 없음`;
-        });
-        cell.addEventListener('mousemove', e => {
-          tooltip.style.left = (e.clientX + 12) + 'px';
-          tooltip.style.top = (e.clientY - 36) + 'px';
-        });
-        cell.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
-      }
+    while (cur <= today) {
+        const col = document.createElement('div');
+        col.className = 'grass-col';
+        for (let dow = 0; dow < 7; dow++) {
+            const cell    = document.createElement('div');
+            cell.className = 'grass-cell';
+            const dateKey = cur.toISOString().split('T')[0];
+            const month   = cur.getMonth();
 
-      col.appendChild(cell);
-      if (dow === 0 && month !== lastMonth) {
-        const mLabel = document.createElement('div');
-        mLabel.className = 'grass-month-label';
-        mLabel.textContent = monthNames[month];
-        mLabel.style.width = '52px';
-        monthsEl.appendChild(mLabel);
-        lastMonth = month;
-      }
-      cur.setDate(cur.getDate() + 1);
+            if (cur > today) {
+                cell.classList.add('l0'); cell.style.opacity = '0';
+            } else {
+                const booksOnDate = BOOKS.filter(b => b.date === dateKey);
+                const count = booksOnDate.length;
+                cell.classList.add('l' + Math.min(count, 4));
+                cell.addEventListener('mouseenter', e => {
+                    tooltip.style.display = 'block';
+                    tooltip.innerHTML = count > 0
+                        ? dateKey + '<br>' + booksOnDate.map(b => b.title).join(', ')
+                        : dateKey + '<br>기록 없음';
+                });
+                cell.addEventListener('mousemove', e => {
+                    tooltip.style.left = (e.clientX + 12) + 'px';
+                    tooltip.style.top  = (e.clientY - 36) + 'px';
+                });
+                cell.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+            }
+
+            col.appendChild(cell);
+            if (dow === 0 && month !== lastMonth) {
+                const mLabel = document.createElement('div');
+                mLabel.className = 'grass-month-label';
+                mLabel.textContent = monthNames[month];
+                mLabel.style.width = '52px';
+                monthsEl.appendChild(mLabel);
+                lastMonth = month;
+            }
+            cur.setDate(cur.getDate() + 1);
+        }
+        cols.appendChild(col);
     }
-    cols.appendChild(col);
-  }
 }
 
+// ── 4. 월별 차트 ─────────────────────────────────────────────────────────────
 function buildMonthChart() {
-  const monthData = Array(12).fill(0);
-  BOOKS.forEach(b => {
-    const d = new Date(b.date);
-    if (d.getFullYear() === 2025) monthData[d.getMonth()]++;
-  });
-  const now = new Date();
-  new Chart(document.getElementById('monthChart'), {
-    type: 'bar',
-    data: {
-      labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
-      datasets: [{
-        data: monthData,
-        backgroundColor: monthData.map((v, i) =>
-          i === now.getMonth() ? 'rgba(91,124,248,0.85)' : 'rgba(91,124,248,0.25)'),
-        borderColor: monthData.map((v, i) =>
-          i === now.getMonth() ? 'rgba(91,124,248,1)' : 'rgba(91,124,248,0.4)'),
-        borderWidth: 1, borderRadius: 6,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: '#f0f2f8' }, ticks: { color: '#adb5c9', font: { family: 'DM Mono', size: 11 } } },
-        y: { grid: { color: '#f0f2f8' }, ticks: { color: '#adb5c9', font: { family: 'DM Mono', size: 11 }, stepSize: 1 }, beginAtZero: true }
-      }
-    }
-  });
+    const now = new Date();
+    const monthData = Array(12).fill(0);
+    BOOKS.forEach(b => {
+        if (!b.date) return;
+        const d = new Date(b.date);
+        if (d.getFullYear() === now.getFullYear()) monthData[d.getMonth()]++;
+    });
+
+    if (monthChartInstance) { monthChartInstance.destroy(); }
+    monthChartInstance = new Chart(document.getElementById('monthChart'), {
+        type: 'bar',
+        data: {
+            labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
+            datasets: [{
+                data: monthData,
+                backgroundColor: monthData.map((v, i) => i === now.getMonth() ? 'rgba(91,124,248,0.85)' : 'rgba(91,124,248,0.25)'),
+                borderColor:     monthData.map((v, i) => i === now.getMonth() ? 'rgba(91,124,248,1)'    : 'rgba(91,124,248,0.4)'),
+                borderWidth: 1, borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: '#f0f2f8' }, ticks: { color: '#adb5c9', font: { family: 'DM Mono', size: 11 } } },
+                y: { grid: { color: '#f0f2f8' }, ticks: { color: '#adb5c9', font: { family: 'DM Mono', size: 11 }, stepSize: 1 }, beginAtZero: true }
+            }
+        }
+    });
 }
 
+// ── 5. 장르 도넛 차트 ────────────────────────────────────────────────────────
 function buildGenreChart() {
-  const genreCount = {};
-  BOOKS.forEach(b => { genreCount[b.genre] = (genreCount[b.genre] || 0) + 1; });
-  const labels = Object.keys(genreCount);
-  const data = Object.values(genreCount);
-  const colors = ['#5b7cf8','#7c9cff','#34d399','#f59e0b','#f472b6','#60a5fa'];
-  new Chart(document.getElementById('genreChart'), {
-    type: 'doughnut',
-    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }] },
-    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
-  });
-  const legend = document.getElementById('genreLegend');
-  const total = data.reduce((a, b) => a + b, 0);
-  labels.forEach((l, i) => {
-    const item = document.createElement('div');
-    item.className = 'genre-item';
-    item.innerHTML = `<div class="genre-dot" style="background:${colors[i]}"></div><span class="genre-name">${l}</span><span class="genre-pct">${Math.round(data[i]/total*100)}%</span>`;
-    legend.appendChild(item);
-  });
+    const genreCount = {};
+    BOOKS.forEach(b => { genreCount[b.genre] = (genreCount[b.genre] || 0) + 1; });
+
+    const labels = Object.keys(genreCount);
+    const data   = Object.values(genreCount);
+
+    if (labels.length === 0) {
+        document.getElementById('genreLegend').innerHTML = '<p style="color:var(--text3);font-size:13px;">등록된 책이 없습니다.</p>';
+        return;
+    }
+
+    const colors = ['#5b7cf8','#7c9cff','#34d399','#f59e0b','#f472b6','#60a5fa'];
+    if (genreChartInstance) { genreChartInstance.destroy(); }
+    genreChartInstance = new Chart(document.getElementById('genreChart'), {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+    });
+
+    const legend = document.getElementById('genreLegend');
+    legend.innerHTML = '';
+    const total = data.reduce((a, b) => a + b, 0);
+    labels.forEach((l, i) => {
+        const item = document.createElement('div');
+        item.className = 'genre-item';
+        item.innerHTML = `<div class="genre-dot" style="background:${colors[i % colors.length]}"></div><span class="genre-name">${l}</span><span class="genre-pct">${Math.round(data[i]/total*100)}%</span>`;
+        legend.appendChild(item);
+    });
 }
 
+// ── 6. 최근 독서 목록 ────────────────────────────────────────────────────────
 function buildBookList() {
-  const list = document.getElementById('bookList');
-  BOOKS.slice(0, 5).forEach(b => {
-    const item = document.createElement('div');
-    item.className = 'book-item';
-    item.innerHTML = `<div class="book-cover">${b.emoji}</div><div class="book-info"><div class="book-title">${b.title}</div><div class="book-author">${b.author}</div></div><div class="book-date">${b.date}</div>`;
-    list.appendChild(item);
-  });
+    const list = document.getElementById('bookList');
+    list.innerHTML = '';
+
+    if (BOOKS.length === 0) {
+        list.innerHTML = '<div class="empty-books">등록된 책이 없습니다.<br>책을 등록하고 독서 기록을 시작해보세요!</div>';
+        return;
+    }
+
+    BOOKS.slice(0, 5).forEach(b => {
+        const item = document.createElement('div');
+        item.className = 'book-item';
+        item.innerHTML = `<div class="book-cover">${b.emoji}</div>
+            <div class="book-info">
+                <div class="book-title">${b.title}</div>
+                <div class="book-author">${b.author}</div>
+            </div>
+            <div class="book-date">${b.date || ''}</div>`;
+        list.appendChild(item);
+    });
 }
 
-let goals = { weekly: 3, monthly: 10 };
-
+// ── 7. 독서 목표 ─────────────────────────────────────────────────────────────
 function setGoal(type) {
-  const input = document.getElementById(`${type}GoalInput`);
-  const val = parseInt(input.value);
-  if (!val || val < 1) return;
-  goals[type] = val;
-  input.value = '';
-  updateGoals();
+    const input = document.getElementById(type + 'GoalInput');
+    const val   = parseInt(input.value);
+    if (!val || val < 1) return;
+    goals[type] = val;
+    input.value = '';
+    updateGoals();
 }
 
 function updateGoals() {
-  const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay());
-  const weeklyRead = BOOKS.filter(b => new Date(b.date) >= weekStart).length;
-  const monthlyRead = BOOKS.filter(b => {
-    const d = new Date(b.date);
-    return d.getFullYear() === 2025 && d.getMonth() === now.getMonth();
-  }).length;
-  document.getElementById('weeklyVal').textContent = `${weeklyRead} / ${goals.weekly}권`;
-  document.getElementById('monthlyVal').textContent = `${monthlyRead} / ${goals.monthly}권`;
-  setTimeout(() => {
-    document.getElementById('weeklyBar').style.width = Math.min(weeklyRead/goals.weekly*100,100) + '%';
-    document.getElementById('monthlyBar').style.width = Math.min(monthlyRead/goals.monthly*100,100) + '%';
-  }, 300);
-}
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
 
-updateStats();
-buildGrass();
-buildMonthChart();
-buildGenreChart();
-buildBookList();
-updateGoals();
+    const weeklyRead  = BOOKS.filter(b => b.date && new Date(b.date) >= weekStart).length;
+    const monthlyRead = BOOKS.filter(b => {
+        if (!b.date) return false;
+        const d = new Date(b.date);
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }).length;
+
+    document.getElementById('weeklyVal').textContent  = weeklyRead  + ' / ' + goals.weekly  + '권';
+    document.getElementById('monthlyVal').textContent = monthlyRead + ' / ' + goals.monthly + '권';
+
+    setTimeout(() => {
+        document.getElementById('weeklyBar').style.width  = Math.min(weeklyRead  / goals.weekly  * 100, 100) + '%';
+        document.getElementById('monthlyBar').style.width = Math.min(monthlyRead / goals.monthly * 100, 100) + '%';
+    }, 300);
+}
 </script>
 </body>
 </html>

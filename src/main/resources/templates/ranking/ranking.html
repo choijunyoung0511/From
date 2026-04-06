@@ -61,17 +61,19 @@
 <body>
 
 <header class="main-header">
-    <a href="/" class="main-logo">
+    <a th:href="@{/user/service}" class="main-logo">
         <img th:src="@{/images/logo.png}" alt="from">
     </a>
     <div style="display:flex; align-items:center; gap:70px;">
         <nav class="main-nav">
             <a th:href="@{/book/register}">책 등록</a>
-            <a th:href="@{/ranking}">랭킹</a>
+            <a th:href="@{/ranking}" class="active">랭킹</a>
             <a th:href="@{/review/create}">AI독서</a>
             <a th:href="@{/user/mypage}">마이페이지</a>
         </nav>
-        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+        <form th:action="@{/user/logout}" method="post" style="display:inline;">
+            <button type="submit" class="header-logout-btn">로그아웃</button>
+        </form>
     </div>
 </header>
 
@@ -95,14 +97,17 @@
             </thead>
             <tbody>
             <tr th:each="r : ${rankings}"
-                th:classappend="${session.loginUser != null and r.username == session.loginUser.username} ? 'my-row'">
+                th:classappend="${session.SS_USER_ID != null and r.userId == session.SS_USER_ID} ? 'my-row'">
                 <td>
+                    <!-- RankingDto 필드: rankPosition -->
                     <span class="rank-badge"
-                          th:classappend="${r.rank == 1} ? 'rank-1' : (${r.rank == 2} ? 'rank-2' : (${r.rank == 3} ? 'rank-3' : ''))"
-                          th:text="${r.rank}">1</span>
+                          th:classappend="${r.rankPosition == 1} ? 'rank-1' : (${r.rankPosition == 2} ? 'rank-2' : (${r.rankPosition == 3} ? 'rank-3' : ''))"
+                          th:text="${r.rankPosition}">1</span>
                 </td>
-                <td th:text="${r.username}">닉네임</td>
-                <td th:text="${r.weeklyCount} + '권'">0권</td>
+                <!-- RankingDto 필드: userName -->
+                <td th:text="${r.userName}">닉네임</td>
+                <!-- RankingDto 필드: weeklyBookCount -->
+                <td th:text="${r.weeklyBookCount} + '권'">0권</td>
                 <td th:text="${r.consecutiveDays} + '일'">0일</td>
             </tr>
             </tbody>

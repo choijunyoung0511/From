@@ -33,4 +33,7 @@ public interface IUserInfoService {
 
     // 비밀번호 찾기 - 인증번호 발송
     String findPasswordSendCode(String username, String email) throws Exception;
+
+    // 유저 정보 조회 (마이페이지·대시보드용)
+    UserInfoDTO getUserInfo(String userId) throws Exception;
 }

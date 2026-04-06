@@ -24,14 +24,8 @@
             border-bottom: 1px solid #eee;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-        .main-logo {
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        .main-logo img {
-            height: 80px !important;
-        }
+        .main-logo { text-decoration: none; display: flex; align-items: center; }
+        .main-logo img { height: 80px !important; }
         .main-nav { display: flex; align-items: center; gap: 70px !important; }
         .main-nav a { color: #333 !important; text-decoration: none; font-size: 20px !important; font-weight: 500; transition: color 0.2s; }
         .main-nav a:hover, .main-nav a.active { color: #6071E3 !important; font-weight: 700; }
@@ -53,7 +47,7 @@
         .tab-btn {
             flex: 1; padding: 14px 20px; border: none; background: transparent;
             color: #666; font-size: 16px; font-weight: 600; border-radius: 8px;
-            cursor: pointer; transition: all 0.2s;
+            cursor: pointer; transition: all 0.2s; font-family: 'Nanum Myeongjo', serif;
         }
         .tab-btn.active { background: #6071E3; color: white; }
         .tab-btn:hover:not(.active) { background: #f0f0f0; color: #333; }
@@ -77,7 +71,7 @@
             display: block; width: 100%; padding: 18px 0;
             text-decoration: none; color: #333; font-size: 16px;
             background: none; border: none; cursor: pointer; text-align: left;
-            transition: color 0.2s;
+            transition: color 0.2s; font-family: 'Nanum Myeongjo', serif;
         }
         .menu-list button:hover { color: #6071E3; font-weight: 600; }
         .menu-list .danger { color: #e74c3c; }
@@ -134,7 +128,7 @@
         .form-control {
             width: 100%; padding: 14px 18px; border: 1.5px solid #ddd;
             border-radius: 8px; font-size: 15px; box-sizing: border-box;
-            outline: none; transition: border-color 0.2s;
+            outline: none; transition: border-color 0.2s; font-family: 'Nanum Myeongjo', serif;
         }
         .form-control:focus { border-color: #6071E3; }
         .hint { font-size: 13px; color: #aaa; margin-top: 6px; display: block; }
@@ -144,13 +138,37 @@
             width: 100%; padding: 16px; background: #6071E3; color: white;
             border: none; border-radius: 8px; font-size: 17px; font-weight: 700;
             cursor: pointer; margin-top: 8px; transition: background 0.2s;
+            font-family: 'Nanum Myeongjo', serif;
         }
         .btn-submit:hover { background: #4f5fd4; }
 
+        /* ── 모달 공통 ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45); z-index: 500;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: white; border-radius: 16px; padding: 36px 32px;
+            max-width: 400px; width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .modal-box p { font-size: 16px; color: #333; margin-bottom: 20px; line-height: 1.6; }
+        .btn { padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; border: none; font-family: 'Nanum Myeongjo', serif; }
+        .btn-primary { background: #6071E3; color: white; }
+        .btn-primary:hover { background: #4f5fd4; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-outline { background: white; color: #666; border: 1.5px solid #ddd; }
+        .btn-outline:hover { border-color: #6071E3; color: #6071E3; }
+        .btn-block { display: block; width: 100%; }
+
         @media (max-width: 768px) {
-            .main-header { padding: 0 30px; height: 85px; }
-            .main-nav { gap: 35px; }
-            .main-nav a { font-size: 17px; }
+            .main-header { padding: 0 30px !important; height: 85px !important; }
+            .main-logo img { height: 65px !important; }
+            .main-nav { gap: 35px !important; }
+            .main-nav a { font-size: 17px !important; }
             .tab-menu { flex-direction: column; gap: 4px; }
         }
     </style>
@@ -158,7 +176,7 @@
 <body>
 
 <header class="main-header">
-    <a href="/" class="main-logo">
+    <a th:href="@{/user/service}" class="main-logo">
         <img th:src="@{/images/logo.png}" alt="from">
     </a>
     <div style="display:flex; align-items:center; gap:70px;">
@@ -168,31 +186,36 @@
             <a th:href="@{/review/create}">AI독서</a>
             <a th:href="@{/user/mypage}" class="active">마이페이지</a>
         </nav>
-        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
+        <!-- 로그아웃은 반드시 POST (CSRF 보호 및 세션 무효화) -->
+        <form th:action="@{/user/logout}" method="post" style="display:inline;">
+            <button type="submit" class="header-logout-btn">로그아웃</button>
+        </form>
     </div>
 </header>
 
 <div class="mypage-container">
     <div class="tab-menu">
-        <button class="tab-btn active" onclick="showTab('profile')">프로필</button>
-        <button class="tab-btn" onclick="showTab('reviews')">독후감 기록</button>
-        <button class="tab-btn" onclick="showTab('password')">비밀번호 변경</button>
+        <button class="tab-btn active"  onclick="showTab('profile')">프로필</button>
+        <button class="tab-btn"         onclick="showTab('reviews')">독후감 기록</button>
+        <button class="tab-btn"         onclick="showTab('password')">비밀번호 변경</button>
     </div>
 
-    <!-- 탭 1: 프로필 -->
+    <!-- ── 탭 1: 프로필 ── -->
     <div id="profile-tab" class="tab-content active">
         <div class="user-card">
             <div class="user-info">
-                <h3 th:text="${session.loginUser.name}">이름</h3>
+                <!-- model 에서 user 객체를 받아 표시 (컨트롤러에서 DB 조회 후 주입) -->
+                <h3 th:text="${user != null ? user.name : session.SS_USER_NAME}">이름</h3>
             </div>
             <div style="margin-top: 20px;">
                 <div class="info-row">
                     <span class="info-label">이메일</span>
-                    <span class="info-value" th:text="${session.loginUser.email}">이메일</span>
+                    <span class="info-value" th:text="${user != null ? user.email : '-'}">이메일</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">아이디</span>
-                    <span class="info-value" th:text="${session.loginUser.username}">아이디</span>
+                    <!-- userId = 로그인 ID (VARCHAR PK) -->
+                    <span class="info-value" th:text="${user != null ? user.userId : session.SS_USER_ID}">아이디</span>
                 </div>
             </div>
         </div>
@@ -208,13 +231,13 @@
         </div>
     </div>
 
-    <!-- 탭 2: 독후감 기록 -->
+    <!-- ── 탭 2: 독후감 기록 ── -->
     <div id="reviews-tab" class="tab-content">
         <h2 class="page-title">📖 내 독후감 기록</h2>
 
         <div th:if="${reviews != null and !reviews.isEmpty()}">
             <div class="review-card" th:each="r : ${reviews}">
-                <div class="review-book" th:text="${r.bookTitle}">책 제목</div>
+                <div class="review-book"   th:text="${r.bookTitle}">책 제목</div>
                 <div class="review-author" th:text="'저자: ' + ${r.bookAuthor}">저자</div>
                 <div class="review-meta">
                     <span th:text="'발송일: ' + ${r.deliveryDate}"></span>
@@ -233,7 +256,7 @@
         </div>
     </div>
 
-    <!-- 탭 3: 비밀번호 변경 -->
+    <!-- ── 탭 3: 비밀번호 변경 ── -->
     <div id="password-tab" class="tab-content">
         <div class="card">
             <h2>🔒 비밀번호 변경</h2>
@@ -246,16 +269,16 @@
 
             <div class="form-group">
                 <label>새 비밀번호</label>
-                <input type="password" id="newPassword" class="form-control" placeholder="새 비밀번호를 입력해주세요."
-                       oninput="checkNewPassword()">
+                <input type="password" id="newPassword" class="form-control"
+                       placeholder="새 비밀번호를 입력해주세요." oninput="checkNewPassword()">
                 <span class="hint">문자, 숫자, 특수문자 포함 8~20자 이내</span>
                 <span class="error-msg" id="new-error"></span>
             </div>
 
             <div class="form-group">
                 <label>새 비밀번호 확인</label>
-                <input type="password" id="confirmPassword" class="form-control" placeholder="새 비밀번호를 다시 입력해주세요."
-                       oninput="checkConfirm()">
+                <input type="password" id="confirmPassword" class="form-control"
+                       placeholder="새 비밀번호를 다시 입력해주세요." oninput="checkConfirm()">
                 <span class="error-msg" id="confirm-error"></span>
             </div>
 
@@ -264,7 +287,7 @@
     </div>
 </div>
 
-<!-- 회원탈퇴 모달 -->
+<!-- ── 회원탈퇴 모달 ── -->
 <div class="modal-overlay" id="deleteModal">
     <div class="modal-box">
         <p>회원을 탈퇴하려면 비밀번호를 입력해주세요.</p>
@@ -277,15 +300,15 @@
     </div>
 </div>
 
-<!-- 결과 모달 -->
+<!-- ── 결과 안내 모달 ── -->
 <div class="modal-overlay" id="resultModal">
     <div class="modal-box">
         <p id="result-msg"></p>
-        <button class="btn btn-primary" id="result-btn">확인</button>
+        <button class="btn btn-primary" id="result-btn" onclick="document.getElementById('resultModal').classList.remove('show')">확인</button>
     </div>
 </div>
 
-<!-- 비밀번호 변경 완료 모달 -->
+<!-- ── 비밀번호 변경 완료 모달 ── -->
 <div class="modal-overlay" id="successModal">
     <div class="modal-box">
         <p>비밀번호가 성공적으로 변경되었습니다.</p>
@@ -294,11 +317,18 @@
 </div>
 
 <script>
+    /** 탭 전환. event.target 대신 탭 인덱스로 버튼을 찾아 active 처리한다 */
+    const TAB_NAMES = ['profile', 'reviews', 'password'];
+
     function showTab(tabName) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.getElementById(tabName + '-tab').classList.add('active');
-        event.target.classList.add('active');
+
+        // 탭 버튼을 인덱스로 찾아 active 처리 (event.target 미사용 → 함수 직접 호출 가능)
+        const idx = TAB_NAMES.indexOf(tabName);
+        document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', i === idx);
+        });
     }
 
     function showDeleteModal() { document.getElementById('deleteModal').classList.add('show'); }
@@ -310,26 +340,28 @@
 
     function deleteAccount() {
         const password = document.getElementById('delete-password').value;
-        const error = document.getElementById('delete-error');
+        const error    = document.getElementById('delete-error');
         error.textContent = '';
         if (!password) { error.textContent = '비밀번호를 입력해주세요.'; return; }
 
         fetch('/user/mypage/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `password=${encodeURIComponent(password)}`
+            body: 'password=' + encodeURIComponent(password)
         })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    closeDeleteModal();
-                    document.getElementById('result-msg').textContent = '회원탈퇴가 완료되었습니다.';
-                    document.getElementById('result-btn').onclick = () => window.location.href = '/';
-                    document.getElementById('resultModal').classList.add('show');
-                } else {
-                    error.textContent = '비밀번호가 일치하지 않습니다.';
-                }
-            });
+        .then(res => res.json())
+        .then(data => {
+            // MsgDTO: {"result": 1, "msg": "..."}
+            if (data.result === 1) {
+                closeDeleteModal();
+                document.getElementById('result-msg').textContent = '회원탈퇴가 완료되었습니다.';
+                document.getElementById('result-btn').onclick = () => window.location.href = '/';
+                document.getElementById('resultModal').classList.add('show');
+            } else {
+                error.textContent = data.msg || '비밀번호가 일치하지 않습니다.';
+            }
+        })
+        .catch(() => { error.textContent = '오류가 발생했습니다. 다시 시도해주세요.'; });
     }
 
     const PW_REGEX = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*])[a-zA-Z\d!@#$%^&*]{8,20}$/;
@@ -337,49 +369,53 @@
     function checkNewPassword() {
         const val = document.getElementById('newPassword').value;
         const err = document.getElementById('new-error');
-        if (val && !PW_REGEX.test(val)) { err.textContent = '비밀번호가 조건에 맞지 않습니다.'; }
-        else { err.textContent = ''; }
+        err.textContent = (val && !PW_REGEX.test(val)) ? '비밀번호가 조건에 맞지 않습니다.' : '';
         checkConfirm();
     }
 
     function checkConfirm() {
-        const newPw = document.getElementById('newPassword').value;
+        const newPw   = document.getElementById('newPassword').value;
         const confirm = document.getElementById('confirmPassword').value;
-        const err = document.getElementById('confirm-error');
-        if (confirm && newPw !== confirm) { err.textContent = '비밀번호가 일치하지 않습니다.'; }
-        else { err.textContent = ''; }
+        const err     = document.getElementById('confirm-error');
+        err.textContent = (confirm && newPw !== confirm) ? '비밀번호가 일치하지 않습니다.' : '';
     }
 
     function changePassword() {
         const currentPassword = document.getElementById('currentPassword').value;
-        const newPassword = document.getElementById('newPassword').value;
+        const newPassword     = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
 
         document.getElementById('current-error').textContent = '';
-        document.getElementById('new-error').textContent = '';
+        document.getElementById('new-error').textContent     = '';
         document.getElementById('confirm-error').textContent = '';
 
         if (!currentPassword) { document.getElementById('current-error').textContent = '현재 비밀번호를 입력해주세요.'; return; }
-        if (!newPassword) { document.getElementById('new-error').textContent = '새 비밀번호를 입력해주세요.'; return; }
+        if (!newPassword)      { document.getElementById('new-error').textContent     = '새 비밀번호를 입력해주세요.'; return; }
         if (!PW_REGEX.test(newPassword)) { document.getElementById('new-error').textContent = '비밀번호가 조건에 맞지 않습니다.'; return; }
         if (newPassword !== confirmPassword) { document.getElementById('confirm-error').textContent = '비밀번호가 일치하지 않습니다.'; return; }
 
         fetch('/user/mypage/changePassword', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `currentPassword=${encodeURIComponent(currentPassword)}&newPassword=${encodeURIComponent(newPassword)}`
+            body: 'currentPassword=' + encodeURIComponent(currentPassword) +
+                  '&newPassword='    + encodeURIComponent(newPassword)
         })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) { document.getElementById('successModal').classList.add('show'); }
-                else { document.getElementById('current-error').textContent = data.message || '현재 비밀번호가 일치하지 않습니다.'; }
-            });
+        .then(res => res.json())
+        .then(data => {
+            // MsgDTO: {"result": 1, "msg": "..."}
+            if (data.result === 1) {
+                document.getElementById('successModal').classList.add('show');
+            } else {
+                document.getElementById('current-error').textContent = data.msg || '현재 비밀번호가 일치하지 않습니다.';
+            }
+        })
+        .catch(() => { document.getElementById('current-error').textContent = '오류가 발생했습니다.'; });
     }
 
     function closeSuccessModal() {
         document.getElementById('successModal').classList.remove('show');
         document.getElementById('currentPassword').value = '';
-        document.getElementById('newPassword').value = '';
+        document.getElementById('newPassword').value     = '';
         document.getElementById('confirmPassword').value = '';
         showTab('profile');
     }

@@ -1,30 +1,38 @@
 package com.from.controller;
 
-import com.from.config.EncryptUtil;
-//import com.from.domain.BookReviewDocument;
+import com.from.domain.Book;
+import com.from.domain.BookReviewDocument;
 import com.from.dto.MsgDTO;
 import com.from.dto.UserInfoDTO;
-//import com.from.repository.BookReviewMongoRepository;
+import com.from.mapper.BookMapper;
+import com.from.repository.BookReviewMongoRepository;
 import com.from.service.IUserInfoService;
 import com.from.util.CmmUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-@Slf4j
-@Controller
-@RequestMapping("/user")
-@RequiredArgsConstructor
+@Slf4j //로그 찍는 어노테이션
+@Controller // 이 클래스가 컨트롤러임을 스프링에게 암시
+@RequestMapping("/user") //이클래스의 모든 url은 /user로 시작
+@RequiredArgsConstructor //final 필드를 자동으로 생성자 주입
 public class UserInfoController {
-
+    /** 유저 비즈니스 로직 (실제 구현체: UserInfoService) */
     private final IUserInfoService userInfoService;
-//    private final BookReviewMongoRepository bookReviewMongoRepository;
+    /** MongoDB 독후감 저장소 (마이페이지 독후감 이력 조회에 사용) */
+    private final BookReviewMongoRepository bookReviewMongoRepository;
+    /** 책 MyBatis 매퍼 (대시보드 독서 통계에 사용) */
+    private final BookMapper bookMapper;
 
     // 회원가입 화면
     @GetMapping("/signup")
@@ -65,11 +73,13 @@ public class UserInfoController {
         String code = userInfoService.checkEmailAndSendCode(email);
 
         UserInfoDTO rDTO;
+        //중복메일 일시 반환
         if ("DUPLICATE".equals(code)) {
             rDTO = UserInfoDTO.builder().existsYn("Y").build();
         } else {
-            session.setAttribute("emailCode", code);
-            session.setAttribute("emailTarget", email);
+            //발송 성공시 인증번호와 이메일을 세션에 저장
+            session.setAttribute("emailCode", code); //인증번호
+            session.setAttribute("emailTarget", email); //대상 이메일 저장
             rDTO = UserInfoDTO.builder().existsYn("N").build();
         }
 
@@ -382,28 +392,103 @@ public class UserInfoController {
         return dto;
     }
 
-    // 마이페이지 화면
+    /**
+     * 마이페이지 화면.
+     * 유저 정보(이름·아이디·이메일)와 독후감 이력을 Model 에 담아 반환한다.
+     */
     @GetMapping("/mypage")
-    public String mypage(HttpSession session) {
+    public String mypage(HttpSession session, Model model) throws Exception {
         log.info("{}.user/mypage Start!", this.getClass().getName());
-        if (session.getAttribute("SS_USER_ID") == null)
-            return "redirect:/user/login";
+
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return "redirect:/user/login";
+
+        // 유저 기본 정보 조회 (이메일 복호화 포함)
+        UserInfoDTO userInfo = userInfoService.getUserInfo(userId);
+        model.addAttribute("user", userInfo);
+
+        // 독후감 이력 조회 (탭 2에 표시)
+        List<BookReviewDocument> reviews = bookReviewMongoRepository.findByUserId(userId);
+        model.addAttribute("reviews", reviews);
+
         log.info("{}.user/mypage End!", this.getClass().getName());
         return "user/mypage";
     }
 
-//    // 내 독후감 기록 조회
-//    @GetMapping("/mypage/reviews")
-//    public String mypageReviews(HttpSession session, Model model) {
-//        log.info("{}.mypageReviews Start!", this.getClass().getName());
-//
-//        String userId = (String) session.getAttribute("SS_USER_ID");
-//        List<BookReviewDocument> reviews = bookReviewMongoRepository.findByUserId(userId);
-//        model.addAttribute("reviews", reviews);
-//
-//        log.info("{}.mypageReviews End!", this.getClass().getName());
-//        return "user/mypage-reviews";
-//    }
+    /**
+     * 독서 대시보드 화면.
+     */
+    @GetMapping("/dashboard")
+    public String dashboard(HttpSession session, Model model) throws Exception {
+        log.info("{}.dashboard Start!", this.getClass().getName());
+
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return "redirect:/user/login";
+
+        // 유저 이름을 Model 에 담아 대시보드 제목에 표시
+        model.addAttribute("userName", session.getAttribute("SS_USER_NAME"));
+
+        log.info("{}.dashboard End!", this.getClass().getName());
+        return "user/dashboard";
+    }
+
+    /**
+     * 대시보드 독서 통계 JSON API.
+     * 유저가 등록한 책 목록을 [{title, author, date}] 형태로 반환한다.
+     * dashboard.html 의 Chart.js 가 이 데이터를 AJAX 로 가져온다.
+     */
+    @GetMapping("/dashboard/stats")
+    @ResponseBody
+    public ResponseEntity<?> dashboardStats(HttpSession session) {
+        log.info("{}.dashboardStats Start!", this.getClass().getName());
+
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return ResponseEntity.status(401).build();
+
+        // 등록된 책 목록 조회 (createdAt 을 독서 날짜로 사용)
+        List<Book> books = bookMapper.findBooksByUserId(userId);
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        List<Map<String, String>> bookList = books.stream()
+                .map(b -> {
+                    Map<String, String> m = new HashMap<>();
+                    m.put("title",  b.getTitle());
+                    m.put("author", b.getAuthor());
+                    m.put("date",   b.getCreatedAt() != null
+                            ? b.getCreatedAt().format(fmt) : "");
+                    return m;
+                })
+                .toList();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("userName", session.getAttribute("SS_USER_NAME"));
+        result.put("books",    bookList);
+
+        log.info("{}.dashboardStats End! - {}권", this.getClass().getName(), bookList.size());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 마이페이지 - 내 독후감 이력 화면을 반환한다.
+     * MongoDB 에서 현재 유저의 독후감 목록을 조회하여 Model 에 담는다.
+     *
+     * @param session 로그인 세션
+     * @param model   독후감 목록(reviews) 전달용
+     * @return user/mypage-reviews 템플릿
+     */
+    @GetMapping("/mypage/reviews")
+    public String mypageReviews(HttpSession session, Model model) {
+        log.info("{}.mypageReviews Start!", this.getClass().getName());
+
+        String userId = (String) session.getAttribute("SS_USER_ID");
+
+        // MongoDB 에서 유저의 독후감 이력 조회
+        List<BookReviewDocument> reviews = bookReviewMongoRepository.findByUserId(userId);
+        model.addAttribute("reviews", reviews);
+
+        log.info("{}.mypageReviews End!", this.getClass().getName());
+        return "user/mypage-reviews";
+    }
 
     // 비밀번호 변경 - 마이페이지용 (Ajax)
     @ResponseBody

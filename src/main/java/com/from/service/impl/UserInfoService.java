@@ -182,6 +182,26 @@ public class UserInfoService implements IUserInfoService {
         return code;
     }
 
+    // 유저 정보 조회 (마이페이지·대시보드용, 이메일 복호화 포함)
+    @Override
+    public UserInfoDTO getUserInfo(String userId) throws Exception {
+        log.info("{}.getUserInfo Start!", this.getClass().getName());
+
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+        if (rEntity.isEmpty()) return null;
+
+        UserInfoEntity user = rEntity.get();
+        UserInfoDTO rDTO = UserInfoDTO.builder()
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .name(user.getName())
+                .email(EncryptUtil.decryptAES(user.getEmail()))
+                .build();
+
+        log.info("{}.getUserInfo End!", this.getClass().getName());
+        return rDTO;
+    }
+
     // 6자리 인증번호 생성
     private String generateCode() {
         return String.valueOf(100000 + new Random().nextInt(900000));
