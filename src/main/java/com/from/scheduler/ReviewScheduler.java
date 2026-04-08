@@ -36,8 +36,6 @@ public class ReviewScheduler {
      */
     @Scheduled(fixedRate = 60000)
     public void sendScheduledReviews() {
-        log.info("{}.sendScheduledReviews Start!", this.getClass().getName());
-
         // 아직 발송되지 않은 독후감 전체 조회
         List<BookReviewDocument> pending = bookReviewMongoRepository.findByIsSent(0);
 
@@ -52,9 +50,10 @@ public class ReviewScheduler {
                 .toList();
 
         if (toSend.isEmpty()) {
-            log.info("{}.sendScheduledReviews End! - 발송 대상 없음", this.getClass().getName());
             return;
         }
+
+        log.info("{}.sendScheduledReviews Start!", this.getClass().getName());
 
         log.info("발송 대상 독후감: {}건", toSend.size());
 
