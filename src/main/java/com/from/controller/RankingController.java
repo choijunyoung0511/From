@@ -1,6 +1,6 @@
 package com.from.controller;
 
-import com.from.dto.ranking.RankingDto;
+import com.from.dto.RankingDto;
 import com.from.mapper.RankingMapper;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;

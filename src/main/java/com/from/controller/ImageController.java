@@ -4,7 +4,7 @@ import com.from.domain.Book;
 import com.from.dto.ImageDto;
 import com.from.mapper.BookMapper;
 import com.from.repository.ImageResultRepository;
-import com.from.service.ImageService;
+import com.from.service.IImageService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ImageController {
 
-    private final ImageService imageService;
+    private final IImageService imageService;
     private final ImageResultRepository imageResultRepository;
     private final BookMapper bookMapper;
 
@@ -153,11 +153,7 @@ public class ImageController {
         if (photoBytes == null) return ResponseEntity.badRequest().build();
 
         // 이미지 생성 요청 DTO 구성
-        ImageDto.GenerateRequest request = new ImageDto.GenerateRequest();
-        request.setBookId(bookId);
-        request.setBookTitle(bookTitle);
-        request.setScene(scene);
-        request.setStyle(style);
+        ImageDto.GenerateRequest request = new ImageDto.GenerateRequest(bookId, bookTitle, scene, style);
 
         ImageDto.GenerateResponse response =
                 imageService.generateAndSave(photoBytes, photoType, request, userId);

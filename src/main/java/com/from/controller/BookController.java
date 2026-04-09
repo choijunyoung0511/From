@@ -103,6 +103,7 @@ public class BookController {
             return ResponseEntity.status(401).body("로그인이 필요합니다.");
         }
 
+
         try {
             // 1. 유저가 등록한 책 목록 조회
             List<Book> userBooks = bookMapper.findBooksByUserId(userId);

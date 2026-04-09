@@ -10,10 +10,8 @@ public interface UserMapper {
     String checkUsernameExists(String username);
     String checkEmailExists(String email);
     int insertUser(User user);
-    int insertKakaoUser(User user);
     User findByUsername(String username);
     User findByUserId(Long userId);
-    User findByKakaoId(Long kakaoId);
     int deleteUser(Long userId);
     int updatePassword(User user);  // 비밀번호 찾기용 (기존)
 

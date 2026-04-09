@@ -21,6 +21,4 @@ public class User {
     private LocalTime createAt;
     private LocalTime updatedAt;
     private LocalTime deleteAt;
-    private Long kakaoId;
-    private String loginType;
 }

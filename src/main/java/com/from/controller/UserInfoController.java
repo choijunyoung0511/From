@@ -27,13 +27,12 @@ import java.util.Map;
 @RequestMapping("/user") //이클래스의 모든 url은 /user로 시작
 @RequiredArgsConstructor //final 필드를 자동으로 생성자 주입
 public class UserInfoController {
-    /** 유저 비즈니스 로직 (실제 구현체: UserInfoService) */
     private final IUserInfoService userInfoService;
     /** MongoDB 독후감 저장소 (마이페이지 독후감 이력 조회에 사용) */
     private final BookReviewMongoRepository bookReviewMongoRepository;
     /** 책 MyBatis 매퍼 (대시보드 독서 통계에 사용) */
     private final BookMapper bookMapper;
-
+    //GET: url에 데이터를 포함시켜 요청,데이터를 헤더에 포함하여 전송,보안에 취약,캐싱할수 있음
     // 회원가입 화면
     @GetMapping("/signup")
     public String signupForm() {
@@ -43,16 +42,17 @@ public class UserInfoController {
     }
 
     // 아이디 중복 체크 (Ajax)
+    //Post: URL에 데이터를 노출시키지 않고 요청, 데이터를 바디에 포함,캐싱x,get보다 보안이 높음
     @ResponseBody
     @PostMapping("/checkUsername")
     public UserInfoDTO checkUsername(HttpServletRequest request) throws Exception {
         log.info("{}.checkUsername Start!", this.getClass().getName());
-
+        // 요청 파라미터에서 username 값 추출(null이면 빈 문자열로 처리)
         String username = CmmUtil.nvl(request.getParameter("username"));
         log.info("username : {}", username);
-
+        // 서비스 호출: 해당 아이디가 이미 존재하는지 확인("Y"/"N" 반환)
         String existsYn = userInfoService.checkUsernameExists(username);
-
+        //빌더 패턴으로 응답 DTO 생성 후 반환(Json으로 자동 반환됨)
         UserInfoDTO rDTO = UserInfoDTO.builder()
                 .existsYn(existsYn)
                 .build();
@@ -80,7 +80,7 @@ public class UserInfoController {
             //발송 성공시 인증번호와 이메일을 세션에 저장
             session.setAttribute("emailCode", code); //인증번호
             session.setAttribute("emailTarget", email); //대상 이메일 저장
-            rDTO = UserInfoDTO.builder().existsYn("N").build();
+            rDTO = UserInfoDTO.builder().existsYn("N").build(); //존재하면 N
         }
 
         log.info("{}.checkEmail End!", this.getClass().getName());

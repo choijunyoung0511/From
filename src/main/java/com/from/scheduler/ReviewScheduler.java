@@ -72,7 +72,7 @@ public class ReviewScheduler {
                 String email = EncryptUtil.decryptAES(userEntity.getEmail());
 
                 if (email == null || email.isBlank()) {
-                    log.warn("이메일 없음 (카카오 로그인 등) - id: {}", review.getId());
+                    log.warn("이메일 없음 - id: {}", review.getId());
                     // 발송 불가 항목은 완료 처리하여 무한 재시도 방지
                     review.setIsSent(1);
                     bookReviewMongoRepository.save(review);

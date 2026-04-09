@@ -1,6 +1,6 @@
 package com.from.mapper;
 
-import com.from.dto.ranking.RankingDto;
+import com.from.dto.RankingDto;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

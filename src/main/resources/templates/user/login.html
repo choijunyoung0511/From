@@ -78,34 +78,6 @@
             background: #4f5fd4;
         }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 20px 0;
-            color: #ccc;
-            font-size: 12px;
-        }
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #eee;
-        }
-
-        .btn-kakao {
-            display: block;
-            width: 100%;
-            cursor: pointer;
-            border: none;
-            background: none;
-            padding: 0;
-        }
-        .btn-kakao img {
-            width: 100%;
-            border-radius: 8px;
-        }
-
         .form-footer {
             text-align: center;
             margin-top: 20px;
@@ -139,16 +111,6 @@
     </div>
 
     <button class="btn-login" onclick="doLogin()">로그인</button>
-
-    <!-- 구분선 -->
-    <div class="divider">또는</div>
-
-    <!-- 카카오 로그인 버튼 -->
-    <a th:href="@{/user/kakao/login}">
-        <img th:src="@{/images/kakao_login_medium_narrow.png}"
-             src="/images/kakao_login_medium.png"
-             style="width:100%; border-radius:8px; cursor:pointer;">
-    </a>
 
     <div class="form-footer">
         <a th:href="@{/user/signup}">회원가입</a>
