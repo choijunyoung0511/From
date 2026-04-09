@@ -1,9 +1,9 @@
 package com.from.controller;
 
-import com.from.domain.Book;
 import com.from.dto.ImageDto;
-import com.from.mapper.BookMapper;
 import com.from.repository.ImageResultRepository;
+import com.from.repository.entity.BookEntity;
+import com.from.service.IBookService;
 import com.from.service.IImageService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class ImageController {
 
     private final IImageService imageService;
     private final ImageResultRepository imageResultRepository;
-    private final BookMapper bookMapper;
+    private final IBookService bookService;
 
     /**
      * Step 1: 사진 업로드 화면을 반환한다.
@@ -53,7 +53,7 @@ public class ImageController {
         if (userId == null) return "redirect:/user/login";
 
         // 책 선택 드롭다운에 표시할 유저의 등록 책 목록
-        List<Book> userBooks = bookMapper.findBooksByUserId(userId);
+        List<BookEntity> userBooks = bookService.findByUserId(userId);
         model.addAttribute("userBooks", userBooks);
 
         log.info("{}.uploadPage End!", this.getClass().getName());

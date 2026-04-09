@@ -2,8 +2,8 @@ package com.from.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.from.domain.Book;
-import com.from.mapper.BookMapper;
+import com.from.repository.entity.BookEntity;
+import com.from.service.IBookService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -46,78 +47,50 @@ public class BookController {
     @Value("${openai.api.key}")
     private String openaiApiKey;
 
-    private final BookMapper bookMapper;
+    private final IBookService bookService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 책 등록 화면을 반환한다.
-     *
-     * @param session 로그인 세션
-     * @return book/register 템플릿
      */
     @GetMapping("/register")
     public String register(HttpSession session) {
         log.info("{}.register Start!", this.getClass().getName());
-
-        if (session.getAttribute("SS_USER_ID") == null) {
-            return "redirect:/user/login";
-        }
-
+        if (session.getAttribute("SS_USER_ID") == null) return "redirect:/user/login";
         log.info("{}.register End!", this.getClass().getName());
         return "book/register";
     }
 
     /**
      * AI 맞춤 책 추천 화면을 반환한다.
-     *
-     * @param session 로그인 세션
-     * @return book/recommend 템플릿
      */
     @GetMapping("/recommend")
     public String recommendPage(HttpSession session) {
         log.info("{}.recommendPage Start!", this.getClass().getName());
-
-        if (session.getAttribute("SS_USER_ID") == null) {
-            return "redirect:/user/login";
-        }
-
+        if (session.getAttribute("SS_USER_ID") == null) return "redirect:/user/login";
         log.info("{}.recommendPage End!", this.getClass().getName());
         return "book/recommend";
     }
 
     /**
      * 유저의 독서 이력을 바탕으로 GPT 가 책 5권을 추천한다.
-     * 추천 결과에 알라딘 API 로 표지 이미지를 추가하여 반환한다.
-     *
-     * @param session 로그인 세션
-     * @return 추천 책 목록 JSON [{title, author, reason, cover}]
      */
     @GetMapping("/ai-recommend")
     @ResponseBody
     public ResponseEntity<?> getAiRecommend(HttpSession session) {
         log.info("{}.getAiRecommend Start!", this.getClass().getName());
 
-        // 로그인 ID를 세션에서 직접 꺼낸다 (SS_USER_ID = users.user_id VARCHAR)
         String userId = (String) session.getAttribute("SS_USER_ID");
-        if (userId == null) {
-            return ResponseEntity.status(401).body("로그인이 필요합니다.");
-        }
-
+        if (userId == null) return ResponseEntity.status(401).body("로그인이 필요합니다.");
 
         try {
-            // 1. 유저가 등록한 책 목록 조회
-            List<Book> userBooks = bookMapper.findBooksByUserId(userId);
+            List<BookEntity> userBooks = bookService.findByUserId(userId);
+            if (userBooks == null || userBooks.isEmpty()) return ResponseEntity.ok(List.of());
 
-            if (userBooks == null || userBooks.isEmpty()) {
-                return ResponseEntity.ok(List.of());
-            }
-
-            // 2. 책 목록을 "제목 - 저자" 형식의 문자열로 변환
             String bookList = userBooks.stream()
                     .map(b -> b.getTitle() + " - " + b.getAuthor())
                     .collect(Collectors.joining("\n"));
 
-            // 3. GPT 추천 프롬프트 생성
             String prompt = """
                     사용자가 읽은 책 목록:
                     %s
@@ -127,15 +100,11 @@ public class BookController {
                     [{"title": "책제목", "author": "저자", "reason": "추천이유 2~3문장"}]
                     """.formatted(bookList);
 
-            // 4. GPT API 요청 본문 구성
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", "gpt-4o-mini");
             requestBody.put("max_tokens", 1000);
-            requestBody.put("messages", List.of(
-                    Map.of("role", "user", "content", prompt)
-            ));
+            requestBody.put("messages", List.of(Map.of("role", "user", "content", prompt)));
 
-            // 5. GPT API 호출
             String gptResponse = WebClient.create("https://api.openai.com")
                     .post()
                     .uri("/v1/chat/completions")
@@ -146,12 +115,8 @@ public class BookController {
                     .bodyToMono(String.class)
                     .block();
 
-            // 6. GPT 응답에서 content 텍스트 추출
             JsonNode root = objectMapper.readTree(gptResponse);
-            String content = root.path("choices").get(0)
-                    .path("message").path("content").asText();
-
-            // 코드 블록 마커 제거 후 JSON 파싱
+            String content = root.path("choices").get(0).path("message").path("content").asText();
             content = content.replaceAll("```json", "").replaceAll("```", "").trim();
 
             List<Map<String, String>> result = objectMapper.readValue(
@@ -159,10 +124,8 @@ public class BookController {
                     objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class)
             );
 
-            // 7. 각 추천 책의 표지 이미지를 알라딘 API 로 검색하여 추가
             for (Map<String, String> rec : result) {
-                String cover = searchCoverFromAladin(rec.get("title"));
-                rec.put("cover", cover);
+                rec.put("cover", searchCoverFromAladin(rec.get("title")));
             }
 
             log.info("{}.getAiRecommend End!", this.getClass().getName());
@@ -175,46 +138,7 @@ public class BookController {
     }
 
     /**
-     * 알라딘 API 에서 책 제목으로 표지 이미지 URL 을 검색한다.
-     *
-     * @param title 검색할 책 제목
-     * @return 표지 이미지 URL, 찾지 못하면 빈 문자열
-     */
-    private String searchCoverFromAladin(String title) {
-        try {
-            String xml = WebClient.create("https://www.aladin.co.kr").get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/ttb/api/ItemSearch.aspx")
-                            .queryParam("TTBKey",      apiKey)
-                            .queryParam("Query",       title)
-                            .queryParam("QueryType",   "Title")
-                            .queryParam("MaxResults",  1)
-                            .queryParam("SearchTarget","Book")
-                            .queryParam("output",      "xml")
-                            .queryParam("Version",     "20131101")
-                            .build())
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-
-            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
-            NodeList items = doc.getElementsByTagName("item");
-
-            if (items.getLength() > 0) {
-                return getTagValue("cover", (Element) items.item(0));
-            }
-        } catch (Exception e) {
-            log.error("알라딘 표지 검색 오류: {}", title, e);
-        }
-        return "";
-    }
-
-    /**
-     * 알라딘 API 에서 책 제목으로 검색하고 결과를 반환한다.
-     *
-     * @param query 검색어
-     * @return 검색된 책 목록 [{title, author, cover, isbn}]
+     * 알라딘 API 에서 책 제목으로 검색한다.
      */
     @GetMapping("/search")
     @ResponseBody
@@ -238,11 +162,7 @@ public class BookController {
                     .bodyToMono(String.class)
                     .block();
 
-            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
-            NodeList items = doc.getElementsByTagName("item");
-
-            // XML item 요소마다 제목·저자·표지·ISBN 추출
+            NodeList items = parseXml(xml).getElementsByTagName("item");
             for (int i = 0; i < items.getLength(); i++) {
                 Element item = (Element) items.item(i);
                 Map<String, String> book = new HashMap<>();
@@ -262,14 +182,6 @@ public class BookController {
 
     /**
      * 선택한 책을 현재 유저의 독서 목록에 등록한다.
-     * books 테이블에 책이 없으면 먼저 등록한 뒤 user_books 에 연결한다.
-     *
-     * @param title   책 제목
-     * @param author  저자
-     * @param cover   표지 이미지 URL (선택)
-     * @param isbn    ISBN-13 (선택)
-     * @param session 로그인 세션
-     * @return {success, message}
      */
     @PostMapping("/register")
     @ResponseBody
@@ -290,20 +202,16 @@ public class BookController {
         }
 
         try {
-            // 이미 등록된 책인지 확인
-            Book book = bookMapper.findByTitleAndAuthor(title, author);
+            Optional<BookEntity> existing = bookService.findByTitleAndAuthor(title, author);
+            BookEntity book = existing.orElseGet(() ->
+                    bookService.save(BookEntity.builder()
+                            .title(title)
+                            .author(author)
+                            .coverImage(cover)
+                            .build())
+            );
 
-            if (book == null) {
-                // 새 책 등록
-                book = new Book();
-                book.setTitle(title);
-                book.setAuthor(author);
-                book.setCoverImage(cover);
-                bookMapper.insertBook(book);
-            }
-
-            // 유저-책 연결 (중복이면 INSERT IGNORE 로 무시)
-            bookMapper.insertUserBook(userId, book.getBookId());
+            bookService.saveUserBook(userId, book.getBookId());
 
             result.put("success", true);
             result.put("message", "등록되었습니다.");
@@ -320,8 +228,6 @@ public class BookController {
 
     /**
      * 알라딘 베스트셀러 Top 10 을 반환한다.
-     *
-     * @return 베스트셀러 목록 [{title, author, cover, isbn}]
      */
     @GetMapping("/bestseller")
     @ResponseBody
@@ -344,10 +250,7 @@ public class BookController {
                     .bodyToMono(String.class)
                     .block();
 
-            DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            Document doc = builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
-            NodeList items = doc.getElementsByTagName("item");
-
+            NodeList items = parseXml(xml).getElementsByTagName("item");
             for (int i = 0; i < items.getLength(); i++) {
                 Element item = (Element) items.item(i);
                 Map<String, String> book = new HashMap<>();
@@ -365,13 +268,36 @@ public class BookController {
         return result;
     }
 
-    /**
-     * XML Element 에서 특정 태그의 텍스트 값을 추출한다.
-     *
-     * @param tag     추출할 태그명
-     * @param element 부모 Element
-     * @return 태그 텍스트 값, 없으면 빈 문자열
-     */
+    private String searchCoverFromAladin(String title) {
+        try {
+            String xml = WebClient.create("https://www.aladin.co.kr").get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/ttb/api/ItemSearch.aspx")
+                            .queryParam("TTBKey",      apiKey)
+                            .queryParam("Query",       title)
+                            .queryParam("QueryType",   "Title")
+                            .queryParam("MaxResults",  1)
+                            .queryParam("SearchTarget","Book")
+                            .queryParam("output",      "xml")
+                            .queryParam("Version",     "20131101")
+                            .build())
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            NodeList items = parseXml(xml).getElementsByTagName("item");
+            if (items.getLength() > 0) return getTagValue("cover", (Element) items.item(0));
+        } catch (Exception e) {
+            log.error("알라딘 표지 검색 오류: {}", title, e);
+        }
+        return "";
+    }
+
+    private Document parseXml(String xml) throws Exception {
+        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        return builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+    }
+
     private String getTagValue(String tag, Element element) {
         NodeList list = element.getElementsByTagName(tag);
         if (list.getLength() > 0 && list.item(0).getChildNodes().getLength() > 0) {

@@ -1,11 +1,11 @@
 package com.from.controller;
 
-import com.from.domain.Book;
 import com.from.domain.BookReviewDocument;
 import com.from.dto.MsgDTO;
 import com.from.dto.UserInfoDTO;
-import com.from.mapper.BookMapper;
 import com.from.repository.BookReviewMongoRepository;
+import com.from.repository.entity.BookEntity;
+import com.from.service.IBookService;
 import com.from.service.IUserInfoService;
 import com.from.util.CmmUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,10 +28,8 @@ import java.util.Map;
 @RequiredArgsConstructor //final 필드를 자동으로 생성자 주입
 public class UserInfoController {
     private final IUserInfoService userInfoService;
-    /** MongoDB 독후감 저장소 (마이페이지 독후감 이력 조회에 사용) */
     private final BookReviewMongoRepository bookReviewMongoRepository;
-    /** 책 MyBatis 매퍼 (대시보드 독서 통계에 사용) */
-    private final BookMapper bookMapper;
+    private final IBookService bookService;
     //GET: url에 데이터를 포함시켜 요청,데이터를 헤더에 포함하여 전송,보안에 취약,캐싱할수 있음
     // 회원가입 화면
     @GetMapping("/signup")
@@ -446,7 +444,7 @@ public class UserInfoController {
         if (userId == null) return ResponseEntity.status(401).build();
 
         // 등록된 책 목록 조회 (createdAt 을 독서 날짜로 사용)
-        List<Book> books = bookMapper.findBooksByUserId(userId);
+        List<BookEntity> books = bookService.findByUserId(userId);
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         List<Map<String, String>> bookList = books.stream()
