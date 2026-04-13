@@ -247,7 +247,7 @@
         <nav class="main-nav">
             <a th:href="@{/book/register}">책 등록</a>
             <a th:href="@{/templates/ranking}">랭킹</a>
-            <a th:href="@{/review/create}">AI독서</a>
+            <a href="javascript:void(0)" onclick="openAiModal()">AI독서</a>
             <a th:href="@{/user/mypage}">마이페이지</a>
         </nav>
         <form th:action="@{/user/logout}" method="post" style="display:inline;">

@@ -1,4 +1,6 @@
-<header class="main-header" th:fragment="navbar">
+<th:block th:fragment="navbar">
+
+<header class="main-header">
     <a href="/" class="main-logo">
         <img th:src="@{/images/logo.png}" alt="from">
     </a>
@@ -8,7 +10,7 @@
         <nav class="main-nav" th:if="${session.SS_USER_ID != null}">
             <a th:href="@{/book/register}">책 등록</a>
             <a th:href="@{/ranking}">랭킹</a>
-            <a th:href="@{/review/create}">AI독서</a>
+            <a href="javascript:void(0)" onclick="openNavAiModal()">AI독서</a>
             <a th:href="@{/user/mypage}">마이페이지</a>
         </nav>
 
@@ -24,3 +26,62 @@
 
     </div>
 </header>
+
+<!-- AI독서 서브메뉴 모달 -->
+<div id="navAiModal" onclick="closeNavAiModal(event)"
+     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+            z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+    <div style="background:white; border-radius:28px; padding:48px 40px; max-width:600px;
+                width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.25); text-align:center;">
+        <div style="font-size:24px; font-weight:700; color:#333; margin-bottom:8px;">AI 독서</div>
+        <div style="font-size:14px; color:#888; margin-bottom:36px;">이용할 서비스를 선택해주세요</div>
+
+        <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom:32px;">
+            <a th:href="@{/review/create}"
+               style="background:#f8f9ff; border:2px solid #e4e7f0; border-radius:20px;
+                      padding:32px 24px; width:160px; text-align:center; text-decoration:none;
+                      transition:all 0.25s; display:block;"
+               onmouseover="this.style.borderColor='#6071E3'; this.style.background='#eef1fe'; this.style.transform='translateY(-6px)';"
+               onmouseout="this.style.borderColor='#e4e7f0'; this.style.background='#f8f9ff'; this.style.transform='none';">
+                <div style="font-size:44px; margin-bottom:12px;">📝</div>
+                <div style="font-size:15px; font-weight:700; color:#333;">AI 독후감</div>
+            </a>
+            <a th:href="@{/image/create}"
+               style="background:#f8f9ff; border:2px solid #e4e7f0; border-radius:20px;
+                      padding:32px 24px; width:160px; text-align:center; text-decoration:none;
+                      transition:all 0.25s; display:block;"
+               onmouseover="this.style.borderColor='#6071E3'; this.style.background='#eef1fe'; this.style.transform='translateY(-6px)';"
+               onmouseout="this.style.borderColor='#e4e7f0'; this.style.background='#f8f9ff'; this.style.transform='none';">
+                <div style="font-size:44px; margin-bottom:12px;">🎨</div>
+                <div style="font-size:15px; font-weight:700; color:#333;">책 속 주인공</div>
+            </a>
+            <a th:href="@{/book/recommend}"
+               style="background:#f8f9ff; border:2px solid #e4e7f0; border-radius:20px;
+                      padding:32px 24px; width:160px; text-align:center; text-decoration:none;
+                      transition:all 0.25s; display:block;"
+               onmouseover="this.style.borderColor='#6071E3'; this.style.background='#eef1fe'; this.style.transform='translateY(-6px)';"
+               onmouseout="this.style.borderColor='#e4e7f0'; this.style.background='#f8f9ff'; this.style.transform='none';">
+                <div style="font-size:44px; margin-bottom:12px;">🤖</div>
+                <div style="font-size:15px; font-weight:700; color:#333;">책 추천</div>
+            </a>
+        </div>
+
+        <button onclick="closeNavAiModal()"
+                style="background:none; border:2px solid #ddd; border-radius:50px;
+                       padding:10px 36px; font-size:15px; font-weight:600; color:#888;
+                       cursor:pointer; font-family:inherit;">닫기</button>
+    </div>
+</div>
+
+<script>
+    function openNavAiModal() {
+        const modal = document.getElementById('navAiModal');
+        modal.style.display = 'flex';
+    }
+    function closeNavAiModal(e) {
+        if (e && e.target !== document.getElementById('navAiModal')) return;
+        document.getElementById('navAiModal').style.display = 'none';
+    }
+</script>
+
+</th:block>

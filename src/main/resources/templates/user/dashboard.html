@@ -20,25 +20,6 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; }
 
-  .main-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0 80px !important; height: 100px !important;
-    background: white; border-bottom: 1px solid #eee;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-  .main-logo { text-decoration: none; display: flex; align-items: center; }
-  .main-logo img { height: 80px !important; }
-  .main-nav { display: flex; align-items: center; gap: 70px !important; }
-  .main-nav a { color: #333 !important; text-decoration: none; font-size: 20px !important; font-weight: 500; transition: color 0.2s; }
-  .main-nav a:hover { color: #6071E3 !important; font-weight: 700; }
-  .header-logout-btn {
-    background: #6071E3 !important; border: none; color: white !important;
-    padding: 14px 40px !important; border-radius: 30px !important; cursor: pointer;
-    font-size: 18px !important; font-weight: 700; text-decoration: none;
-    transition: background 0.2s, transform 0.2s;
-  }
-  .header-logout-btn:hover { background: #4f5fd4 !important; transform: translateY(-2px); }
-
   .content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 
   .page-title { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 24px; }
@@ -127,22 +108,7 @@
 </head>
 <body>
 
-<header class="main-header">
-  <a th:href="@{/user/service}" class="main-logo">
-    <img th:src="@{/images/logo.png}" alt="from">
-  </a>
-  <div style="display:flex; align-items:center; gap:70px;">
-    <nav class="main-nav">
-      <a th:href="@{/book/register}">책 등록</a>
-      <a th:href="@{/ranking}">랭킹</a>
-      <a th:href="@{/review/create}">AI독서</a>
-      <a th:href="@{/user/mypage}" class="active">마이페이지</a>
-    </nav>
-    <form th:action="@{/user/logout}" method="post" style="display:inline;">
-      <button type="submit" class="header-logout-btn">로그아웃</button>
-    </form>
-  </div>
-</header>
+<div th:replace="~{layout/navbar :: navbar}"></div>
 
 <div class="content">
   <!-- 유저 이름은 Thymeleaf 로 서버에서 주입 -->

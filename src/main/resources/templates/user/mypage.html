@@ -14,29 +14,6 @@
             font-family: 'Nanum Myeongjo', serif;
         }
 
-        .main-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 80px !important;
-            height: 100px !important;
-            background: white;
-            border-bottom: 1px solid #eee;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        .main-logo { text-decoration: none; display: flex; align-items: center; }
-        .main-logo img { height: 80px !important; }
-        .main-nav { display: flex; align-items: center; gap: 70px !important; }
-        .main-nav a { color: #333 !important; text-decoration: none; font-size: 20px !important; font-weight: 500; transition: color 0.2s; }
-        .main-nav a:hover, .main-nav a.active { color: #6071E3 !important; font-weight: 700; }
-        .header-logout-btn {
-            background: #6071E3 !important; border: none; color: white !important;
-            padding: 14px 40px !important; border-radius: 30px !important; cursor: pointer;
-            font-size: 18px !important; font-weight: 700; text-decoration: none;
-            transition: background 0.2s, transform 0.2s;
-        }
-        .header-logout-btn:hover { background: #4f5fd4 !important; transform: translateY(-2px); }
-
         .mypage-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
 
         .tab-menu {
@@ -165,33 +142,13 @@
         .btn-block { display: block; width: 100%; }
 
         @media (max-width: 768px) {
-            .main-header { padding: 0 30px !important; height: 85px !important; }
-            .main-logo img { height: 65px !important; }
-            .main-nav { gap: 35px !important; }
-            .main-nav a { font-size: 17px !important; }
             .tab-menu { flex-direction: column; gap: 4px; }
         }
     </style>
 </head>
 <body>
 
-<header class="main-header">
-    <a th:href="@{/user/service}" class="main-logo">
-        <img th:src="@{/images/logo.png}" alt="from">
-    </a>
-    <div style="display:flex; align-items:center; gap:70px;">
-        <nav class="main-nav">
-            <a th:href="@{/book/register}">책 등록</a>
-            <a th:href="@{/ranking}">랭킹</a>
-            <a th:href="@{/review/create}">AI독서</a>
-            <a th:href="@{/user/mypage}" class="active">마이페이지</a>
-        </nav>
-        <!-- 로그아웃은 반드시 POST (CSRF 보호 및 세션 무효화) -->
-        <form th:action="@{/user/logout}" method="post" style="display:inline;">
-            <button type="submit" class="header-logout-btn">로그아웃</button>
-        </form>
-    </div>
-</header>
+<div th:replace="~{layout/navbar :: navbar}"></div>
 
 <div class="mypage-container">
     <div class="tab-menu">
