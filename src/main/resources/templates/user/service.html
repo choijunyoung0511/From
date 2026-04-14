@@ -18,19 +18,19 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 80px !important;
-            height: 100px !important;
+            padding: 0 60px !important;
+            height: 64px !important;
             background: white;
             border-bottom: 1px solid #eee;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .main-logo { text-decoration: none; display: flex; align-items: center; }
-        .main-logo img { height: 80px !important; }
-        .main-nav { display: flex; align-items: center; gap: 70px !important; }
+        .main-logo img { height: 44px !important; }
+        .main-nav { display: flex; align-items: center; gap: 40px !important; }
         .main-nav a {
             color: #333 !important;
             text-decoration: none;
-            font-size: 20px !important;
+            font-size: 15px !important;
             font-weight: 500;
             transition: color 0.2s;
         }
@@ -39,10 +39,10 @@
             background: #6071E3 !important;
             border: none;
             color: white !important;
-            padding: 14px 40px !important;
+            padding: 8px 24px !important;
             border-radius: 30px !important;
             cursor: pointer;
-            font-size: 18px !important;
+            font-size: 13px !important;
             font-weight: 700;
             text-decoration: none;
             transition: background 0.2s, transform 0.2s;
@@ -220,10 +220,10 @@
         }
 
         @media (max-width: 768px) {
-            .main-header { padding: 0 30px !important; height: 85px !important; }
-            .main-logo img { height: 65px !important; }
-            .main-nav { gap: 35px !important; }
-            .main-nav a { font-size: 17px !important; }
+            .main-header { padding: 0 20px !important; height: 56px !important; }
+            .main-logo img { height: 36px !important; }
+            .main-nav { gap: 20px !important; }
+            .main-nav a { font-size: 13px !important; }
             .welcome-title { font-size: 36px; margin-bottom: 50px; }
             .service-cards { gap: 25px; }
             .service-card { width: 100%; max-width: 350px; padding: 45px 35px; }
@@ -246,7 +246,7 @@
     <div style="display:flex; align-items:center; gap:70px;">
         <nav class="main-nav">
             <a th:href="@{/book/register}">책 등록</a>
-            <a th:href="@{/templates/ranking}">랭킹</a>
+            <a th:href="@{/ranking}">랭킹</a>
             <a href="javascript:void(0)" onclick="openAiModal()">AI독서</a>
             <a th:href="@{/user/mypage}">마이페이지</a>
         </nav>

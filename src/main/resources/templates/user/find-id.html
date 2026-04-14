@@ -5,11 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>아이디 찾기 - FROM</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        .form-container {
+            max-width: 480px;
+            width: 90%;
+            padding: 56px 56px;
+        }
+        .form-logo { height: 64px; }
+        .form-container p[style*="font-size:15px"] {
+            font-size: 20px !important;
+            margin-bottom: 32px !important;
+        }
+        .form-group { margin-bottom: 28px; }
+        .form-control {
+            padding: 18px 20px;
+            font-size: 17px;
+            border-radius: 10px;
+        }
+        .error-msg { font-size: 14px; }
+        .btn-primary.btn-block {
+            padding: 18px;
+            font-size: 17px;
+            border-radius: 10px;
+            margin-top: 8px;
+        }
+        #found-name { font-size: 16px !important; margin-bottom: 16px !important; }
+        #step3 p[style*="font-size:18px"] { font-size: 22px !important; margin-bottom: 36px !important; }
+    </style>
 </head>
-<body>
+<body class="auth-page">
 <!-- STEP 1: 이름 + 이메일 입력 -->
 <div class="form-container" id="step1">
-    <h2 class="form-title">아이디 찾기</h2>
+    <div class="form-title">
+        <a th:href="@{/}">
+            <img th:src="@{/images/logo.png}" alt="FROM 로고" class="form-logo">
+        </a>
+    </div>
+    <p style="text-align:center; font-size:15px; font-weight:700; color:#1E3A5F; margin-bottom:24px;">아이디 찾기</p>
     <div class="form-group">
         <input type="text" id="name" class="form-control" placeholder="이름을 입력해주세요.">
         <span class="error-msg" id="name-error"></span>
@@ -23,7 +55,12 @@
 
 <!-- STEP 2: 인증번호 입력 -->
 <div class="form-container" id="step2" style="display:none;">
-    <h2 class="form-title">인증번호 입력</h2>
+    <div class="form-title">
+        <a th:href="@{/}">
+            <img th:src="@{/images/logo.png}" alt="FROM 로고" class="form-logo">
+        </a>
+    </div>
+    <p style="text-align:center; font-size:15px; font-weight:700; color:#1E3A5F; margin-bottom:24px;">인증번호 입력</p>
     <div class="form-group">
         <input type="text" id="code" class="form-control" placeholder="이메일로 온 인증번호를 입력해주세요.">
         <span class="error-msg" id="code-error"></span>
@@ -33,7 +70,12 @@
 
 <!-- STEP 3: 아이디 찾기 완료 -->
 <div class="form-container" id="step3" style="display:none;">
-    <h2 class="form-title">아이디 찾기 완료</h2>
+    <div class="form-title">
+        <a th:href="@{/}">
+            <img th:src="@{/images/logo.png}" alt="FROM 로고" class="form-logo">
+        </a>
+    </div>
+    <p style="text-align:center; font-size:15px; font-weight:700; color:#1E3A5F; margin-bottom:24px;">아이디 찾기 완료</p>
     <p style="text-align:center; color:#555; margin-bottom:12px;" id="found-name"></p>
     <p style="text-align:center; font-size:18px; font-weight:700; color:#1E3A5F; margin-bottom:28px;">
         아이디: <span id="found-username"></span>

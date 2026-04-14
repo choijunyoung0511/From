@@ -151,19 +151,19 @@ body.auth-page {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 80px !important;
-    height: 100px !important;
+    padding: 0 60px !important;
+    height: 64px !important;
     background: white;
     border-bottom: 1px solid #eee;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 .main-logo { text-decoration: none; display: flex; align-items: center; }
-.main-logo img { height: 80px !important; }
-.main-nav { display: flex; align-items: center; gap: 70px !important; }
+.main-logo img { height: 44px !important; }
+.main-nav { display: flex; align-items: center; gap: 40px !important; }
 .main-nav a {
     color: #333 !important;
     text-decoration: none;
-    font-size: 20px !important;
+    font-size: 15px !important;
     font-weight: 500;
     transition: color 0.2s;
 }
@@ -172,10 +172,10 @@ body.auth-page {
     background: #6071E3 !important;
     border: none;
     color: white !important;
-    padding: 14px 40px !important;
+    padding: 8px 24px !important;
     border-radius: 30px !important;
     cursor: pointer;
-    font-size: 18px !important;
+    font-size: 13px !important;
     font-weight: 700;
     text-decoration: none;
     transition: background 0.2s, transform 0.2s;

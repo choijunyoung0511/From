@@ -142,17 +142,23 @@ public class BookController {
      */
     @GetMapping("/search")
     @ResponseBody
-    public List<Map<String, String>> searchBooks(@RequestParam String query) {
-        log.info("{}.searchBooks Start! - query:{}", this.getClass().getName(), query);
+    public List<Map<String, String>> searchBooks(@RequestParam String query,
+                                                  @RequestParam(defaultValue = "Keyword") String type) {
+        log.info("{}.searchBooks Start! - query:{}, type:{}", this.getClass().getName(), query, type);
 
         List<Map<String, String>> result = new ArrayList<>();
         try {
+            String queryType = switch (type) {
+                case "Title"  -> "Title";
+                case "Author" -> "Author";
+                default       -> "Keyword";
+            };
             String xml = WebClient.create("https://www.aladin.co.kr").get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/ttb/api/ItemSearch.aspx")
                             .queryParam("TTBKey",      apiKey)
                             .queryParam("Query",       query)
-                            .queryParam("QueryType",   "Title")
+                            .queryParam("QueryType",   queryType)
                             .queryParam("MaxResults",  10)
                             .queryParam("SearchTarget","Book")
                             .queryParam("output",      "xml")
@@ -211,7 +217,13 @@ public class BookController {
                             .build())
             );
 
-            bookService.saveUserBook(userId, book.getBookId());
+            boolean registered = bookService.saveUserBook(userId, book.getBookId());
+
+            if (!registered) {
+                result.put("success", false);
+                result.put("message", "이미 등록된 책입니다.");
+                return result;
+            }
 
             result.put("success", true);
             result.put("message", "등록되었습니다.");
