@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마이페이지 - FROM</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -144,6 +145,63 @@
         @media (max-width: 768px) {
             .tab-menu { flex-direction: column; gap: 4px; }
         }
+
+        /* ── 독서 대시보드 탭 ── */
+        .db { --accent:#5b7cf8; --accent2:#7c9cff; --accent-light:#eef1fe; --db-bg:#f5f6fa; --border:#e4e7f0; --text2:#6b7280; --text3:#adb5c9; --radius:14px; --shadow:0 2px 12px rgba(91,124,248,0.08); }
+        .db-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        .db-card { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow); }
+        .db-card-full { grid-column:1 / -1; }
+        .db-card-title { font-size:12px; font-family:monospace; color:var(--text3); letter-spacing:1.2px; text-transform:uppercase; margin-bottom:18px; }
+        .db-stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; grid-column:1 / -1; }
+        .db-stat-item { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:20px; text-align:center; box-shadow:var(--shadow); }
+        .db-stat-item .num { font-size:32px; font-weight:700; font-family:monospace; color:var(--accent); line-height:1; margin-bottom:8px; }
+        .db-stat-item .lbl { font-size:12px; color:var(--text2); }
+        .db-grass-wrap { overflow-x:auto; padding-bottom:4px; }
+        .db-grass-months { display:flex; margin-bottom:6px; padding-left:28px; }
+        .db-grass-month-label { font-size:11px; color:var(--text3); font-family:monospace; }
+        .db-grass-body { display:flex; gap:4px; align-items:flex-start; }
+        .db-grass-days { display:flex; flex-direction:column; gap:3px; margin-right:4px; }
+        .db-grass-day-label { font-size:10px; color:var(--text3); font-family:monospace; height:13px; line-height:13px; width:24px; text-align:right; }
+        .db-grass-cols { display:flex; gap:3px; }
+        .db-grass-col { display:flex; flex-direction:column; gap:3px; }
+        .db-grass-cell { width:13px; height:13px; border-radius:3px; cursor:pointer; transition:transform 0.15s; }
+        .db-grass-cell:hover { transform:scale(1.3); }
+        .db-grass-cell.l0 { background:#edf0f7; } .db-grass-cell.l1 { background:#c8e6c9; }
+        .db-grass-cell.l2 { background:#81c784; } .db-grass-cell.l3 { background:#4caf50; }
+        .db-grass-cell.l4 { background:#2e7d32; }
+        .db-grass-legend { display:flex; align-items:center; gap:4px; margin-top:12px; justify-content:flex-end; }
+        .db-grass-legend span { font-size:11px; color:var(--text3); font-family:monospace; }
+        .db-legend-cell { width:13px; height:13px; border-radius:3px; }
+        .db-chart-container { position:relative; height:210px; }
+        .db-book-list { display:flex; flex-direction:column; gap:10px; }
+        .db-book-item { display:flex; align-items:center; gap:12px; padding:12px; background:var(--db-bg); border-radius:10px; border:1px solid var(--border); transition:border-color 0.2s; }
+        .db-book-item:hover { border-color:var(--accent); }
+        .db-book-cover { width:36px; height:50px; border-radius:4px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:18px; background:var(--accent-light); }
+        .db-book-info { flex:1; min-width:0; }
+        .db-book-title { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
+        .db-book-author { font-size:12px; color:var(--text2); }
+        .db-book-date { font-size:11px; color:var(--text3); font-family:monospace; flex-shrink:0; }
+        .db-goal-section { display:flex; flex-direction:column; gap:18px; }
+        .db-goal-item { display:flex; flex-direction:column; gap:8px; }
+        .db-goal-header { display:flex; justify-content:space-between; align-items:center; }
+        .db-goal-label { font-size:13px; color:var(--text2); font-weight:500; }
+        .db-goal-val { font-size:13px; font-family:monospace; color:var(--accent); }
+        .db-progress-bar { height:8px; background:var(--db-bg); border-radius:99px; overflow:hidden; border:1px solid var(--border); }
+        .db-progress-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width 1s cubic-bezier(0.4,0,0.2,1); width:0%; }
+        .db-goal-input-row { display:flex; gap:8px; margin-top:4px; }
+        .db-goal-input { flex:1; background:var(--db-bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:13px; outline:none; transition:border-color 0.2s; font-family:inherit; }
+        .db-goal-input:focus { border-color:var(--accent); }
+        .db-goal-btn { background:var(--accent); border:none; border-radius:8px; padding:8px 16px; color:white; font-size:13px; cursor:pointer; transition:background 0.2s; font-family:inherit; }
+        .db-goal-btn:hover { background:#4a6be0; }
+        .db-genre-wrap { display:flex; align-items:center; gap:20px; }
+        .db-genre-chart { width:160px; height:160px; flex-shrink:0; }
+        .db-genre-legend { flex:1; display:flex; flex-direction:column; gap:10px; }
+        .db-genre-item { display:flex; align-items:center; gap:8px; font-size:13px; }
+        .db-genre-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+        .db-genre-name { flex:1; color:var(--text2); }
+        .db-genre-pct { font-family:monospace; color:var(--text3); font-size:12px; }
+        .db-empty { text-align:center; padding:40px 20px; color:var(--text3); font-size:14px; }
+        .db-tooltip { position:fixed; background:#1a1d2e; border-radius:8px; padding:8px 12px; font-size:12px; color:white; font-family:monospace; pointer-events:none; z-index:999; display:none; white-space:nowrap; }
     </style>
 </head>
 <body>
@@ -154,6 +212,7 @@
     <div class="tab-menu">
         <button class="tab-btn active"  onclick="showTab('profile')">프로필</button>
         <button class="tab-btn"         onclick="showTab('reviews')">독후감 기록</button>
+        <button class="tab-btn"         onclick="showTab('dashboard')">독서 대시보드</button>
         <button class="tab-btn"         onclick="showTab('password')">비밀번호 변경</button>
     </div>
 
@@ -188,7 +247,77 @@
         </div>
     </div>
 
-    <!-- ── 탭 2: 독후감 기록 ── -->
+    <!-- ── 탭 2: 독서 대시보드 ── -->
+    <div id="dashboard-tab" class="tab-content db">
+        <div class="db-grid" style="margin-bottom:16px;">
+            <div class="db-stat-grid">
+                <div class="db-stat-item"><div class="num" id="db-totalBooks">0</div><div class="lbl">등록한 책</div></div>
+                <div class="db-stat-item"><div class="num" id="db-streak">0</div><div class="lbl">연속 독서일 🔥</div></div>
+                <div class="db-stat-item"><div class="num" id="db-thisMonth">0</div><div class="lbl">이번 달 등록</div></div>
+                <div class="db-stat-item"><div class="num" id="db-avgPerMonth">0</div><div class="lbl">월평균 등록량</div></div>
+            </div>
+        </div>
+        <div class="db-grid">
+            <div class="db-card db-card-full">
+                <div class="db-card-title">독서 스트릭</div>
+                <div class="db-grass-wrap">
+                    <div class="db-grass-months" id="db-grassMonths"></div>
+                    <div class="db-grass-body">
+                        <div class="db-grass-days" id="db-grassDayLabels"></div>
+                        <div class="db-grass-cols" id="db-grassCols"></div>
+                    </div>
+                </div>
+                <div class="db-grass-legend">
+                    <span>없음</span>
+                    <div class="db-legend-cell" style="background:#edf0f7;border:1px solid #e4e7f0"></div>
+                    <div class="db-legend-cell" style="background:#c8e6c9"></div>
+                    <div class="db-legend-cell" style="background:#81c784"></div>
+                    <div class="db-legend-cell" style="background:#4caf50"></div>
+                    <div class="db-legend-cell" style="background:#2e7d32"></div>
+                    <span>많음</span>
+                </div>
+            </div>
+            <div class="db-card">
+                <div class="db-card-title">월별 독서량</div>
+                <div class="db-chart-container"><canvas id="db-monthChart"></canvas></div>
+            </div>
+            <div class="db-card">
+                <div class="db-card-title">장르 분포</div>
+                <div class="db-genre-wrap">
+                    <div class="db-genre-chart"><canvas id="db-genreChart"></canvas></div>
+                    <div class="db-genre-legend" id="db-genreLegend"></div>
+                </div>
+            </div>
+            <div class="db-card">
+                <div class="db-card-title">독서 목표</div>
+                <div class="db-goal-section">
+                    <div class="db-goal-item">
+                        <div class="db-goal-header"><span class="db-goal-label">주간 목표</span><span class="db-goal-val" id="db-weeklyVal">0 / 0권</span></div>
+                        <div class="db-progress-bar"><div class="db-progress-fill" id="db-weeklyBar"></div></div>
+                        <div class="db-goal-input-row">
+                            <input class="db-goal-input" type="number" id="db-weeklyGoalInput" placeholder="주간 목표 권수" min="1" max="30">
+                            <button class="db-goal-btn" onclick="dbSetGoal('weekly')">설정</button>
+                        </div>
+                    </div>
+                    <div class="db-goal-item">
+                        <div class="db-goal-header"><span class="db-goal-label">월간 목표</span><span class="db-goal-val" id="db-monthlyVal">0 / 0권</span></div>
+                        <div class="db-progress-bar"><div class="db-progress-fill" id="db-monthlyBar"></div></div>
+                        <div class="db-goal-input-row">
+                            <input class="db-goal-input" type="number" id="db-monthlyGoalInput" placeholder="월간 목표 권수" min="1" max="100">
+                            <button class="db-goal-btn" onclick="dbSetGoal('monthly')">설정</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="db-card">
+                <div class="db-card-title">최근 독서</div>
+                <div class="db-book-list" id="db-bookList"></div>
+            </div>
+        </div>
+        <div id="db-tooltip" class="db-tooltip"></div>
+    </div>
+
+    <!-- ── 탭 3: 독후감 기록 ── -->
     <div id="reviews-tab" class="tab-content">
         <h2 class="page-title">📖 내 독후감 기록</h2>
 
@@ -275,17 +404,143 @@
 
 <script>
     /** 탭 전환. event.target 대신 탭 인덱스로 버튼을 찾아 active 처리한다 */
-    const TAB_NAMES = ['profile', 'reviews', 'password'];
+    const TAB_NAMES = ['profile', 'reviews', 'dashboard', 'password'];
 
     function showTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.getElementById(tabName + '-tab').classList.add('active');
 
-        // 탭 버튼을 인덱스로 찾아 active 처리 (event.target 미사용 → 함수 직접 호출 가능)
         const idx = TAB_NAMES.indexOf(tabName);
         document.querySelectorAll('.tab-btn').forEach((btn, i) => {
             btn.classList.toggle('active', i === idx);
         });
+
+        if (tabName === 'dashboard') dbLoad();
+    }
+
+    // ── 독서 대시보드 ──────────────────────────────────────────────────────────
+    let dbLoaded = false, DB_BOOKS = [], dbReadDates = new Set();
+    let dbGoals = { weekly: 3, monthly: 10 };
+    let dbMonthChart = null, dbGenreChart = null;
+
+    function dbLoad() {
+        if (dbLoaded) return;
+        dbLoaded = true;
+        fetch('/user/dashboard/stats')
+            .then(res => res.json())
+            .then(data => {
+                DB_BOOKS = (data.books || []).map(b => ({ ...b, genre: dbGuessGenre(b.title), emoji: dbEmoji(b.title) }));
+                dbReadDates = new Set(DB_BOOKS.map(b => b.date).filter(Boolean));
+                dbUpdateStats(); dbBuildGrass(); dbBuildMonthChart(); dbBuildGenreChart(); dbBuildBookList(); dbUpdateGoals();
+            })
+            .catch(err => console.error('대시보드 로딩 실패', err));
+    }
+
+    function dbGuessGenre(t) {
+        if (!t) return '기타';
+        if (/역사|조선|왕|전쟁/.test(t)) return '역사';
+        if (/과학|우주|물리|뇌/.test(t))  return '과학';
+        if (/철학|논어|인생|존재/.test(t)) return '철학';
+        if (/경제|투자|주식|돈/.test(t))   return '경제';
+        if (/심리|마음|감정|관계/.test(t)) return '심리';
+        return '소설';
+    }
+    function dbEmoji(t) {
+        if (!t) return '📚';
+        if (/사랑/.test(t)) return '📖'; if (/채식/.test(t)) return '🌿';
+        if (/코스모스/.test(t)) return '🌌'; if (/데미안/.test(t)) return '🦋';
+        return '📚';
+    }
+
+    function dbUpdateStats() {
+        const now = new Date();
+        const monthBooks = DB_BOOKS.filter(b => { if (!b.date) return false; const d = new Date(b.date); return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth(); }).length;
+        const yearBooks  = DB_BOOKS.filter(b => b.date && new Date(b.date).getFullYear()===now.getFullYear()).length;
+        document.getElementById('db-totalBooks').textContent  = DB_BOOKS.length;
+        document.getElementById('db-streak').textContent      = dbCalcStreak();
+        document.getElementById('db-thisMonth').textContent   = monthBooks;
+        document.getElementById('db-avgPerMonth').textContent = (yearBooks / Math.max(now.getMonth()+1,1)).toFixed(1);
+    }
+    function dbCalcStreak() {
+        const today = new Date(); let streak = 0;
+        for (let i = 0; i < 365; i++) {
+            const d = new Date(today); d.setDate(d.getDate()-i);
+            if (dbReadDates.has(d.toISOString().split('T')[0])) streak++;
+            else if (i > 0) break;
+        }
+        return streak;
+    }
+
+    function dbBuildGrass() {
+        const today = new Date(), startDate = new Date(today);
+        startDate.setDate(startDate.getDate()-364);
+        startDate.setDate(startDate.getDate()-startDate.getDay());
+        const cols = document.getElementById('db-grassCols');
+        const monthsEl = document.getElementById('db-grassMonths');
+        const dayLabels = document.getElementById('db-grassDayLabels');
+        const tooltip = document.getElementById('db-tooltip');
+        cols.innerHTML=''; monthsEl.innerHTML=''; dayLabels.innerHTML='';
+        ['','월','','수','','금',''].forEach(d => { const el=document.createElement('div'); el.className='db-grass-day-label'; el.textContent=d; dayLabels.appendChild(el); });
+        const monthNames=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+        let lastMonth=-1; const cur=new Date(startDate);
+        while (cur<=today) {
+            const col=document.createElement('div'); col.className='db-grass-col';
+            for (let dow=0;dow<7;dow++) {
+                const cell=document.createElement('div'); cell.className='db-grass-cell';
+                const dateKey=cur.toISOString().split('T')[0]; const month=cur.getMonth();
+                if (cur>today) { cell.classList.add('l0'); cell.style.opacity='0'; }
+                else {
+                    const booksOnDate=DB_BOOKS.filter(b=>b.date===dateKey); const count=booksOnDate.length;
+                    cell.classList.add('l'+Math.min(count,4));
+                    cell.addEventListener('mouseenter',e=>{ tooltip.style.display='block'; tooltip.innerHTML=count>0?dateKey+'<br>'+booksOnDate.map(b=>b.title).join(', '):dateKey+'<br>기록 없음'; });
+                    cell.addEventListener('mousemove',e=>{ tooltip.style.left=(e.clientX+12)+'px'; tooltip.style.top=(e.clientY-36)+'px'; });
+                    cell.addEventListener('mouseleave',()=>{ tooltip.style.display='none'; });
+                }
+                col.appendChild(cell);
+                if (dow===0&&month!==lastMonth) { const mLabel=document.createElement('div'); mLabel.className='db-grass-month-label'; mLabel.textContent=monthNames[month]; mLabel.style.width='52px'; monthsEl.appendChild(mLabel); lastMonth=month; }
+                cur.setDate(cur.getDate()+1);
+            }
+            cols.appendChild(col);
+        }
+    }
+
+    function dbBuildMonthChart() {
+        const now=new Date(); const monthData=Array(12).fill(0);
+        DB_BOOKS.forEach(b=>{ if(!b.date)return; const d=new Date(b.date); if(d.getFullYear()===now.getFullYear())monthData[d.getMonth()]++; });
+        if(dbMonthChart)dbMonthChart.destroy();
+        dbMonthChart=new Chart(document.getElementById('db-monthChart'),{ type:'bar', data:{ labels:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'], datasets:[{ data:monthData, backgroundColor:monthData.map((_,i)=>i===now.getMonth()?'rgba(91,124,248,0.85)':'rgba(91,124,248,0.25)'), borderColor:monthData.map((_,i)=>i===now.getMonth()?'rgba(91,124,248,1)':'rgba(91,124,248,0.4)'), borderWidth:1, borderRadius:6 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'#f0f2f8'},ticks:{color:'#adb5c9',font:{size:11}}}, y:{grid:{color:'#f0f2f8'},ticks:{color:'#adb5c9',font:{size:11},stepSize:1},beginAtZero:true} } } });
+    }
+
+    function dbBuildGenreChart() {
+        const genreCount={};
+        DB_BOOKS.forEach(b=>{ genreCount[b.genre]=(genreCount[b.genre]||0)+1; });
+        const labels=Object.keys(genreCount), data=Object.values(genreCount);
+        if(labels.length===0){ document.getElementById('db-genreLegend').innerHTML='<p style="color:#adb5c9;font-size:13px;">등록된 책이 없습니다.</p>'; return; }
+        const colors=['#5b7cf8','#7c9cff','#34d399','#f59e0b','#f472b6','#60a5fa'];
+        if(dbGenreChart)dbGenreChart.destroy();
+        dbGenreChart=new Chart(document.getElementById('db-genreChart'),{ type:'doughnut', data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0,hoverOffset:6}]}, options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}} });
+        const legend=document.getElementById('db-genreLegend'); legend.innerHTML='';
+        const total=data.reduce((a,b)=>a+b,0);
+        labels.forEach((l,i)=>{ const item=document.createElement('div'); item.className='db-genre-item'; item.innerHTML=`<div class="db-genre-dot" style="background:${colors[i%colors.length]}"></div><span class="db-genre-name">${l}</span><span class="db-genre-pct">${Math.round(data[i]/total*100)}%</span>`; legend.appendChild(item); });
+    }
+
+    function dbBuildBookList() {
+        const list=document.getElementById('db-bookList'); list.innerHTML='';
+        if(DB_BOOKS.length===0){ list.innerHTML='<div class="db-empty">등록된 책이 없습니다.<br>책을 등록하고 독서 기록을 시작해보세요!</div>'; return; }
+        DB_BOOKS.slice(0,5).forEach(b=>{ const item=document.createElement('div'); item.className='db-book-item'; item.innerHTML=`<div class="db-book-cover">${b.emoji}</div><div class="db-book-info"><div class="db-book-title">${b.title}</div><div class="db-book-author">${b.author}</div></div><div class="db-book-date">${b.date||''}</div>`; list.appendChild(item); });
+    }
+
+    function dbSetGoal(type) {
+        const input=document.getElementById('db-'+type+'GoalInput'); const val=parseInt(input.value);
+        if(!val||val<1)return; dbGoals[type]=val; input.value=''; dbUpdateGoals();
+    }
+    function dbUpdateGoals() {
+        const now=new Date(); const weekStart=new Date(now); weekStart.setDate(now.getDate()-now.getDay());
+        const weeklyRead=DB_BOOKS.filter(b=>b.date&&new Date(b.date)>=weekStart).length;
+        const monthlyRead=DB_BOOKS.filter(b=>{ if(!b.date)return false; const d=new Date(b.date); return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth(); }).length;
+        document.getElementById('db-weeklyVal').textContent=weeklyRead+' / '+dbGoals.weekly+'권';
+        document.getElementById('db-monthlyVal').textContent=monthlyRead+' / '+dbGoals.monthly+'권';
+        setTimeout(()=>{ document.getElementById('db-weeklyBar').style.width=Math.min(weeklyRead/dbGoals.weekly*100,100)+'%'; document.getElementById('db-monthlyBar').style.width=Math.min(monthlyRead/dbGoals.monthly*100,100)+'%'; },300);
     }
 
     function showDeleteModal() { document.getElementById('deleteModal').classList.add('show'); }
