@@ -7,7 +7,7 @@
 <link rel="stylesheet" th:href="@{/css/common.css}">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Jua&family=Hi+Melody&family=Gaegu:wght@400;700&display=swap');
 
   :root {
     --accent: #5b7cf8; --accent2: #7c9cff; --accent-light: #eef1fe;
@@ -18,7 +18,7 @@
     --radius: 14px; --shadow: 0 2px 12px rgba(91,124,248,0.08);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100vh; }
+  body { background: var(--bg); color: var(--text); font-family: 'Jua', sans-serif; min-height: 100vh; }
 
   .content { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 
@@ -33,7 +33,7 @@
     animation: fadeUp 0.4s ease both;
   }
   .card-full { grid-column: 1 / -1; }
-  .card-title { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text3); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 18px; }
+  .card-title { font-size: 12px; font-family: 'Jua', sans-serif; color: var(--text3); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 18px; }
 
   .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; grid-column: 1 / -1; }
   .stat-item { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; box-shadow: var(--shadow); animation: fadeUp 0.4s ease both; }
@@ -41,15 +41,15 @@
   .stat-item:nth-child(2) { animation-delay: 0.1s; }
   .stat-item:nth-child(3) { animation-delay: 0.15s; }
   .stat-item:nth-child(4) { animation-delay: 0.2s; }
-  .stat-item .num { font-size: 32px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--accent); line-height: 1; margin-bottom: 8px; }
+  .stat-item .num { font-size: 32px; font-weight: 700; font-family: 'Jua', sans-serif; color: var(--accent); line-height: 1; margin-bottom: 8px; }
   .stat-item .label { font-size: 12px; color: var(--text2); }
 
   .grass-wrap { overflow-x: auto; padding-bottom: 4px; }
   .grass-months { display: flex; margin-bottom: 6px; padding-left: 28px; }
-  .grass-month-label { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .grass-month-label { font-size: 11px; color: var(--text3); font-family: 'Jua', sans-serif; }
   .grass-body { display: flex; gap: 4px; align-items: flex-start; }
   .grass-days { display: flex; flex-direction: column; gap: 3px; margin-right: 4px; }
-  .grass-day-label { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; height: 13px; line-height: 13px; width: 24px; text-align: right; }
+  .grass-day-label { font-size: 10px; color: var(--text3); font-family: 'Jua', sans-serif; height: 13px; line-height: 13px; width: 24px; text-align: right; }
   .grass-cols { display: flex; gap: 3px; }
   .grass-col { display: flex; flex-direction: column; gap: 3px; }
   .grass-cell { width: 13px; height: 13px; border-radius: 3px; cursor: pointer; transition: transform 0.15s; }
@@ -60,10 +60,10 @@
   .grass-cell.l3 { background: var(--green3); }
   .grass-cell.l4 { background: var(--green4); }
   .grass-legend { display: flex; align-items: center; gap: 4px; margin-top: 12px; justify-content: flex-end; }
-  .grass-legend span { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .grass-legend span { font-size: 11px; color: var(--text3); font-family: 'Jua', sans-serif; }
   .legend-cell { width: 13px; height: 13px; border-radius: 3px; }
 
-  .tooltip { position: fixed; background: #1a1d2e; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: white; font-family: 'DM Mono', monospace; pointer-events: none; z-index: 999; display: none; white-space: nowrap; }
+  .tooltip { position: fixed; background: #1a1d2e; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: white; font-family: 'Jua', sans-serif; pointer-events: none; z-index: 999; display: none; white-space: nowrap; }
 
   .chart-container { position: relative; height: 210px; }
 
@@ -74,19 +74,19 @@
   .book-info { flex: 1; min-width: 0; }
   .book-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
   .book-author { font-size: 12px; color: var(--text2); }
-  .book-date { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+  .book-date { font-size: 11px; color: var(--text3); font-family: 'Jua', sans-serif; flex-shrink: 0; }
 
   .goal-section { display: flex; flex-direction: column; gap: 18px; }
   .goal-item { display: flex; flex-direction: column; gap: 8px; }
   .goal-header { display: flex; justify-content: space-between; align-items: center; }
   .goal-label { font-size: 13px; color: var(--text2); font-weight: 500; }
-  .goal-val { font-size: 13px; font-family: 'DM Mono', monospace; color: var(--accent); }
+  .goal-val { font-size: 13px; font-family: 'Jua', sans-serif; color: var(--accent); }
   .progress-bar { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; border: 1px solid var(--border); }
   .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 1s cubic-bezier(0.4,0,0.2,1); width: 0%; }
   .goal-input-row { display: flex; gap: 8px; margin-top: 4px; }
-  .goal-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; }
+  .goal-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); font-family: 'Jua', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; }
   .goal-input:focus { border-color: var(--accent); }
-  .goal-btn { background: var(--accent); border: none; border-radius: 8px; padding: 8px 16px; color: white; font-size: 13px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; transition: background 0.2s; }
+  .goal-btn { background: var(--accent); border: none; border-radius: 8px; padding: 8px 16px; color: white; font-size: 13px; cursor: pointer; font-family: 'Jua', sans-serif; transition: background 0.2s; }
   .goal-btn:hover { background: #4a6be0; }
 
   .genre-wrap { display: flex; align-items: center; gap: 20px; }
@@ -95,7 +95,7 @@
   .genre-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
   .genre-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .genre-name { flex: 1; color: var(--text2); }
-  .genre-pct { font-family: 'DM Mono', monospace; color: var(--text3); font-size: 12px; }
+  .genre-pct { font-family: 'Jua', sans-serif; color: var(--text3); font-size: 12px; }
 
   .empty-books { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; }
 
@@ -374,8 +374,8 @@ function buildMonthChart() {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { color: '#f0f2f8' }, ticks: { color: '#adb5c9', font: { family: 'DM Mono', size: 11 } } },
-                y: { grid: { color: '#f0f2f8' }, ticks: { color: '#adb5c9', font: { family: 'DM Mono', size: 11 }, stepSize: 1 }, beginAtZero: true }
+                x: { grid: { color: '#f0f2f8' }, ticks: { color: '#adb5c9', font: { family: 'Jua', size: 11 } } },
+                y: { grid: { color: '#f0f2f8' }, ticks: { color: '#adb5c9', font: { family: 'Jua', size: 11 }, stepSize: 1 }, beginAtZero: true }
             }
         }
     });

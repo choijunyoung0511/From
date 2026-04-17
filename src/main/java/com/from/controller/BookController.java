@@ -194,7 +194,6 @@ public class BookController {
     public Map<String, Object> registerBook(@RequestParam String title,
                                             @RequestParam String author,
                                             @RequestParam(required = false) String cover,
-                                            @RequestParam(required = false) String isbn,
                                             HttpSession session) {
         log.info("{}.registerBook Start!", this.getClass().getName());
 

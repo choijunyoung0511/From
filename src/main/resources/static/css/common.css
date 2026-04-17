@@ -1,22 +1,25 @@
 /* ===================================
    FROM - 공통 CSS
 =================================== */
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Nanum+Gothic:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jua&family=Hi+Melody&family=Gaegu:wght@400;700&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    font-family: 'Nanum Gothic', sans-serif;
+    font-family: 'Jua', sans-serif;
     background: #F4EFEA;
     min-height: 100vh;
     color: #333;
 }
 
-/* 회원가입/로그인 페이지 전용 중앙정렬 */
+/* 회원가입/로그인 페이지 전용 중앙정렬 + 배경 */
 body.auth-page {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    background: url('/images/library.png') center/cover no-repeat;
+    min-height: 100vh;
 }
 
 /* ===================================
@@ -37,7 +40,7 @@ body.auth-page {
 }
 .nav-logo a { display: flex; align-items: center; text-decoration: none; }
 .nav-logo img { height: 80px; }
-.logo-text { font-family: 'Nanum Myeongjo', serif; font-size: 28px; color: #6071E3; font-style: italic; font-weight: 700; }
+.logo-text { font-family: 'Hi Melody', cursive; font-size: 28px; color: #6071E3; font-style: italic; font-weight: 700; }
 .nav-menu { display: flex; list-style: none; gap: 70px; }
 .nav-menu a { text-decoration: none; color: #555; font-size: 20px; font-weight: 500; transition: color 0.2s; }
 .nav-menu a:hover, .nav-menu a.active { color: #6071E3; font-weight: 700; }
@@ -53,7 +56,7 @@ body.auth-page {
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 500;
-    font-family: 'Nanum Gothic', sans-serif;
+    font-family: 'Jua', sans-serif;
 }
 .btn-primary { background: #6071E3; color: white; }
 .btn-primary:hover { background: #4f5fd4; }
@@ -80,7 +83,7 @@ body.auth-page {
     color: #6071E3;
     text-align: center;
     margin-bottom: 40px;
-    font-family: 'Nanum Myeongjo', serif;
+    font-family: 'Hi Melody', cursive;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -106,7 +109,7 @@ body.auth-page {
     background: #FAFAFA;
     transition: border-color 0.2s;
     outline: none;
-    font-family: 'Nanum Gothic', sans-serif;
+    font-family: 'Jua', sans-serif;
 }
 .form-control:focus { border-color: #6071E3; background: white; }
 .form-row { display: flex; gap: 8px; align-items: flex-start; }
@@ -146,7 +149,7 @@ body.auth-page {
    페이지 공통
 =================================== */
 .page-container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
-.page-header { font-size: 24px; font-weight: 700; color: #6071E3; margin-bottom: 24px; font-family: 'Nanum Myeongjo', serif; }
+.page-header { font-size: 24px; font-weight: 700; color: #6071E3; margin-bottom: 24px; font-family: 'Hi Melody', cursive; }
 .main-header {
     display: flex;
     justify-content: space-between;

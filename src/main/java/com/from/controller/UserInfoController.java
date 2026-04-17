@@ -8,7 +8,9 @@ import com.from.repository.entity.BookEntity;
 import com.from.service.IBookService;
 import com.from.service.IUserInfoService;
 import com.from.util.CmmUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -208,22 +210,24 @@ public class UserInfoController {
 
 
 
-    // 서비스 시작
+    // 서비스 시작 (인증은 LoginInterceptor 가 처리)
     @GetMapping("/service")
-    public String service(HttpSession session) {
-        if (session.getAttribute("SS_USER_ID") == null) {
-            return "redirect:/user/login";
-        }
+    public String service() {
         return "user/service";
     }
 
     // 로그아웃
     @PostMapping("/logout")
-    public String logout(HttpSession session) {
+    public String logout(HttpSession session, HttpServletResponse response) {
         log.info("{}.logout Start!", this.getClass().getName());
         session.invalidate();
+        // 브라우저의 JSESSIONID 쿠키를 명시적으로 만료시켜 세션 완전 삭제
+        Cookie sessionCookie = new Cookie("JSESSIONID", null);
+        sessionCookie.setMaxAge(0);
+        sessionCookie.setPath("/");
+        response.addCookie(sessionCookie);
         log.info("{}.logout End!", this.getClass().getName());
-        return "redirect:/"; // ← /main/index → /
+        return "redirect:/";
     }
 
     // 아이디 찾기 화면

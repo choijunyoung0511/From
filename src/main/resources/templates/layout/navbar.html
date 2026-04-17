@@ -1,7 +1,7 @@
 <th:block th:fragment="navbar">
 
 <header class="main-header">
-    <a href="/" class="main-logo">
+    <a th:href="${session.SS_USER_ID != null} ? @{/user/service} : @{/}" class="main-logo">
         <img th:src="@{/images/logo.png}" alt="from">
     </a>
     <div style="display:flex; align-items:center; gap:70px;">

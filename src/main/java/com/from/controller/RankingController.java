@@ -1,8 +1,7 @@
 package com.from.controller;
 
 import com.from.dto.RankingDto;
-import com.from.repository.WeeklyRankingRepository;
-import jakarta.servlet.http.HttpSession;
+import com.from.service.IRankingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -23,15 +22,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RankingController {
 
-    private final WeeklyRankingRepository weeklyRankingRepository;
+    private final IRankingService rankingService;
 
     @GetMapping("/ranking")
-    public String ranking(HttpSession session, Model model) {
+    public String ranking(Model model) {
         log.info("{}.ranking Start!", this.getClass().getName());
 
-        if (session.getAttribute("SS_USER_ID") == null) return "redirect:/user/login";
-
-        List<RankingDto> rankings = weeklyRankingRepository.findAllAsRankingDto();
+        List<RankingDto> rankings = rankingService.getWeeklyRankings();
 
         LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
         LocalDate sunday = monday.plusDays(6);

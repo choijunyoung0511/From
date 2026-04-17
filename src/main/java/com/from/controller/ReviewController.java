@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -204,11 +205,12 @@ public class ReviewController {
      */
     @GetMapping("/books")
     @ResponseBody
-    public List<Map<String, Object>> getUserBooks(HttpSession session) {
+    public ResponseEntity<List<Map<String, Object>>> getUserBooks(HttpSession session) {
         log.info("{}.getUserBooks Start!", this.getClass().getName());
 
         String userId = (String) session.getAttribute("SS_USER_ID");
-        if (userId == null) return new ArrayList<>();
+        if (userId == null) return ResponseEntity.status(401).build();
+
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (BookEntity book : bookService.findByUserId(userId)) {
@@ -220,7 +222,7 @@ public class ReviewController {
         }
 
         log.info("{}.getUserBooks End!", this.getClass().getName());
-        return result;
+        return ResponseEntity.ok(result);
     }
 
     private String getEmojiForBook(String title) {

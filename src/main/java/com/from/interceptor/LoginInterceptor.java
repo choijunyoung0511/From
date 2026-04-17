@@ -18,17 +18,22 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         HttpSession session = request.getSession();
 
-        if (session.getAttribute("SS_USER_ID") == null) { // ← 수정
+        if (session.getAttribute("SS_USER_ID") == null) {
             if ("POST".equalsIgnoreCase(request.getMethod())) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"result\":0,\"msg\":\"로그인이 필요합니다.\"}"); // ← MsgDTO 형식으로 수정
+                response.getWriter().write("{\"result\":0,\"msg\":\"로그인이 필요합니다.\"}");
             } else {
                 session.setAttribute("loginRequired", true);
                 response.sendRedirect("/");
             }
             return false;
         }
+
+        // 로그아웃 후 back 버튼으로 보호 페이지가 캐시에서 복원되지 않도록 방지
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
 
         return true;
     }

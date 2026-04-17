@@ -20,7 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/user/mypage/**",    // 마이페이지 하위 (독후감 이력, 통계 등)
                         "/user/dashboard",    // 독서 대시보드
                         "/user/dashboard/**", // 대시보드 통계 API
-                        "/service"            // 서비스 시작 화면
+                        "/user/service"       // 서비스 시작 화면
                 )
                 .excludePathPatterns(
                         "/",
