@@ -358,8 +358,9 @@
   let BOOKS = {};
   let selectedBook = null, selectedStyle = null, uploadedFile = null;
 
-  // 페이지 로드 시 등록된 책 목록 불러오기
+  // 페이지 로드 시 등록된 책 목록 + 히스토리 불러오기
   window.addEventListener('DOMContentLoaded', async () => {
+    loadHistory();
     try {
       const response = await fetch('/review/books');
       const books = await response.json();
@@ -441,8 +442,10 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  let generatedImageUrl = null;
+
   async function startGeneration() {
-    const data = BOOKS[selectedBook];
+    const data = BOOKS[selectedBook] || { author: '', emoji: '📚' };
     document.getElementById('resultBookName').textContent = selectedBook;
     document.getElementById('resultBookAuthor').textContent = data.author;
     document.getElementById('resultStyleName').textContent = selectedStyle + ' 스타일';
@@ -452,67 +455,82 @@
     const imgArea = document.getElementById('resultImgArea');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    loading.style.display = 'flex'; imgArea.style.display = 'none'; downloadBtn.disabled = true;
+    loading.style.display = 'flex'; imgArea.style.display = 'none';
+    downloadBtn.disabled = true; generatedImageUrl = null;
 
-    // 백엔드 API 호출
     try {
       const formData = new FormData();
-      formData.append('image', uploadedFile);
+      formData.append('photo', uploadedFile);
       formData.append('bookTitle', selectedBook);
       formData.append('style', selectedStyle);
 
-      const response = await fetch('/review/image/generate', {
-        method: 'POST',
-        body: formData
-      });
-
+      const response = await fetch('/image/generate-direct', { method: 'POST', body: formData });
       const result = await response.json();
 
+      loading.style.display = 'none';
+
       if (result.success) {
-        loading.style.display = 'none';
-        imgArea.style.display = 'flex'; imgArea.textContent = data.emoji;
+        generatedImageUrl = result.imageUrl;
+
+        if (result.imageUrl && result.imageUrl.startsWith('data:')) {
+          const img = document.createElement('img');
+          img.src = result.imageUrl;
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+          imgArea.innerHTML = ''; imgArea.appendChild(img);
+        } else {
+          imgArea.textContent = data.emoji;
+        }
+        imgArea.style.display = 'flex';
         downloadBtn.disabled = false;
-        document.getElementById('resultDesc').textContent = result.description;
+        document.getElementById('resultDesc').textContent =
+            result.bookTitle + ' · ' + result.style + ' 스타일로 생성되었습니다.';
 
         downloadBtn.onclick = () => {
-          const previewSrc = document.getElementById('previewImg').src;
-          const canvas = document.createElement('canvas');
-          canvas.width = 512; canvas.height = 680;
-          const ctx = canvas.getContext('2d');
-          const grad = ctx.createLinearGradient(0,0,512,680);
-          grad.addColorStop(0,'#eef0fe'); grad.addColorStop(1,'#cdd3f8');
-          ctx.fillStyle = grad; ctx.fillRect(0,0,512,680);
-          if (previewSrc && previewSrc.startsWith('data:')) {
-            const img = new Image();
-            img.onload = () => {
-              ctx.drawImage(img,0,0,512,680);
-              ctx.fillStyle='rgba(91,110,245,0.2)'; ctx.fillRect(0,0,512,680);
-              ctx.font='60px serif'; ctx.textAlign='center'; ctx.fillText(data.emoji,256,80);
-              ctx.font='bold 22px sans-serif'; ctx.fillStyle='white';
-              ctx.fillText(selectedBook+' · '+selectedStyle,256,660);
-              const a = document.createElement('a');
-              a.href = canvas.toDataURL('image/png');
-              a.download = `from_${selectedBook}_${selectedStyle}.png`; a.click();
-            };
-            img.src = previewSrc;
-          } else {
-            ctx.font='140px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-            ctx.fillText(data.emoji,256,300);
-            ctx.font='bold 26px sans-serif'; ctx.fillStyle='#5b6ef5'; ctx.fillText(selectedBook,256,560);
-            ctx.font='18px sans-serif'; ctx.fillStyle='#6b7280'; ctx.fillText(selectedStyle+' 스타일',256,610);
+          if (generatedImageUrl && generatedImageUrl.startsWith('data:')) {
             const a = document.createElement('a');
-            a.href = canvas.toDataURL('image/png');
-            a.download = `from_${selectedBook}_${selectedStyle}.png`; a.click();
+            a.href = generatedImageUrl;
+            a.download = `from_${selectedBook}_${selectedStyle}.png`;
+            a.click();
           }
         };
+
+        loadHistory();
       } else {
-        loading.style.display = 'none';
-        alert(result.message || '이미지 생성에 실패했습니다.');
+        alert(result.errorMessage || '이미지 생성에 실패했습니다.');
       }
     } catch (error) {
       console.error('이미지 생성 오류', error);
       loading.style.display = 'none';
       alert('이미지 생성 중 오류가 발생했습니다.');
+    }
+  }
+
+  async function loadHistory() {
+    try {
+      const res = await fetch('/image/my');
+      if (!res.ok) return;
+      const list = await res.json();
+      if (!list || list.length === 0) return;
+
+      const grid = document.querySelector('.history-grid');
+      grid.innerHTML = '';
+      list.slice(0, 4).forEach(img => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        const dateStr = img.createAt ? img.createAt.substring(0, 10).replaceAll('-', '.') : '';
+        div.innerHTML = `
+          <div class="history-img" style="background:none;overflow:hidden;">
+            ${img.imageUrl ? `<img src="${img.imageUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.textContent='🖼️'">` : '🖼️'}
+          </div>
+          <div class="history-meta">
+            <div class="history-book">책 #${img.bookId}</div>
+            <div class="history-style">${img.style || ''} 스타일</div>
+            <div class="history-date">${dateStr}</div>
+          </div>`;
+        grid.appendChild(div);
+      });
+    } catch (e) {
+      console.error('히스토리 로드 실패', e);
     }
   }
 </script>

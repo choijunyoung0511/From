@@ -202,9 +202,6 @@ public class ImageController {
 
     /**
      * 현재 유저의 이미지 생성 히스토리를 JSON 으로 반환한다.
-     *
-     * @param session 로그인 세션
-     * @return 이미지 결과 목록 또는 401
      */
     @GetMapping("/my")
     @ResponseBody
@@ -217,5 +214,42 @@ public class ImageController {
         ResponseEntity<?> response = ResponseEntity.ok(imageService.getUserImages(userId));
         log.info("{}.myImages End!", this.getClass().getName());
         return response;
+    }
+
+    /**
+     * SPA용 단일 요청 이미지 생성 API.
+     * 사진·책·스타일을 한 번에 받아 Gemini API 를 호출하고 결과를 반환한다.
+     * review/image.html 의 클라이언트 사이드 3단계 플로우에서 사용한다.
+     */
+    @PostMapping("/generate-direct")
+    @ResponseBody
+    public ResponseEntity<ImageDto.GenerateResponse> generateDirect(
+            @RequestParam("photo") MultipartFile photo,
+            @RequestParam("bookTitle") String bookTitle,
+            @RequestParam("style") String style,
+            @RequestParam(value = "bookId", required = false, defaultValue = "0") Long bookId,
+            HttpSession session) {
+
+        log.info("{}.generateDirect Start! - bookTitle:{}, style:{}", this.getClass().getName(), bookTitle, style);
+
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return ResponseEntity.status(401).build();
+
+        if (photo.isEmpty()) return ResponseEntity.badRequest().build();
+
+        try {
+            String scene = "책 '" + bookTitle + "'의 주인공으로 등장하는 장면";
+            ImageDto.GenerateRequest request = new ImageDto.GenerateRequest(bookId, bookTitle, scene, style);
+            ImageDto.GenerateResponse response =
+                    imageService.generateAndSave(photo.getBytes(), photo.getContentType(), request, userId);
+            log.info("{}.generateDirect End!", this.getClass().getName());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("이미지 직접 생성 오류", e);
+            return ResponseEntity.ok(ImageDto.GenerateResponse.builder()
+                    .success(false)
+                    .errorMessage("이미지 생성 중 오류가 발생했습니다.")
+                    .build());
+        }
     }
 }
