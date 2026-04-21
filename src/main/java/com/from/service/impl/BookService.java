@@ -52,6 +52,11 @@ public class BookService implements IBookService {
     }
 
     @Override
+    public Optional<BookEntity> findById(Long bookId) {
+        return bookRepository.findById(bookId);
+    }
+
+    @Override
     public List<BookEntity> findByUserId(String userId) {
         return bookRepository.findByUserId(userId);
     }

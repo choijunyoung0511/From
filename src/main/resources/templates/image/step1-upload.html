@@ -76,19 +76,7 @@
 </head>
 <body>
 
-<!-- 네비게이션 -->
-<header class="main-header">
-    <a class="main-logo" th:href="@{/}">
-        <img th:src="@{/images/logo.png}" alt="FROM">
-    </a>
-    <nav class="main-nav">
-        <a th:href="@{/book/register}">책 등록</a>
-        <a th:href="@{/ranking}">랭킹</a>
-        <a th:href="@{/review}" class="active">독후감</a>
-        <a th:href="@{/mypage}">마이페이지</a>
-        <a th:href="@{/user/logout}" class="header-logout-btn">로그아웃</a>
-    </nav>
-</header>
+<div th:replace="~{layout/navbar :: navbar}"></div>
 
 <!-- 스텝 바 -->
 <div class="step-bar">

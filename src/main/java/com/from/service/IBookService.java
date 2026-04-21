@@ -16,6 +16,9 @@ public interface IBookService {
     // 유저-책 연결 (이미 연결된 경우 false 반환)
     boolean saveUserBook(String userId, Long bookId);
 
+    // ID로 책 단건 조회
+    Optional<BookEntity> findById(Long bookId);
+
     // 유저가 등록한 책 목록 조회 (최신순)
     List<BookEntity> findByUserId(String userId);
 }

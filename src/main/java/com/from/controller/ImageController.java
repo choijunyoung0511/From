@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -189,11 +190,16 @@ public class ImageController {
         log.info("{}.getDetail Start! - imageId:{}", this.getClass().getName(), imageId);
 
         ResponseEntity<?> response = imageResultRepository.findById(imageId)
-                .map(img -> ResponseEntity.ok((Object) Map.of(
-                        "imageUrl", img.getImageUrl(),
-                        "style",    img.getStyle(),
-                        "bookId",   img.getBookId()
-                )))
+                .map(img -> {
+                    String bookTitle = bookService.findById(img.getBookId())
+                            .map(BookEntity::getTitle).orElse("-");
+                    Map<String, Object> body = new HashMap<>();
+                    body.put("imageUrl",  img.getImageUrl());
+                    body.put("style",     img.getStyle());
+                    body.put("bookId",    img.getBookId());
+                    body.put("bookTitle", bookTitle);
+                    return ResponseEntity.ok((Object) body);
+                })
                 .orElse(ResponseEntity.notFound().build());
 
         log.info("{}.getDetail End!", this.getClass().getName());
