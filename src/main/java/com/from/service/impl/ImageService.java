@@ -1,7 +1,9 @@
 package com.from.service.impl;
 
 import com.from.domain.ImageResult;
-import com.from.dto.ImageDto;
+import com.from.dto.ImageRequestDto;
+import com.from.dto.ImageResponseDto;
+import com.from.dto.ImageStyleOptionDto;
 import com.from.repository.ImageResultRepository;
 import com.from.service.IImageService;
 import com.from.service.INanobanaService;
@@ -37,10 +39,10 @@ public class ImageService implements IImageService {
      */
     @Override
     @Transactional
-    public ImageDto.GenerateResponse generateAndSave(byte[] photoBytes,
-                                                     String photoType,
-                                                     ImageDto.GenerateRequest request,
-                                                     String userId) {
+    public ImageResponseDto generateAndSave(byte[] photoBytes,
+                                            String photoType,
+                                            ImageRequestDto request,
+                                            String userId) {
         log.info("{}.generateAndSave Start! - userId:{}, bookId:{}, style:{}",
                 this.getClass().getName(), userId, request.bookId(), request.style());
         try {
@@ -61,7 +63,7 @@ public class ImageService implements IImageService {
 
             log.info("{}.generateAndSave End! - imageId:{}", this.getClass().getName(), saved.getImageId());
 
-            return ImageDto.GenerateResponse.builder()
+            return ImageResponseDto.builder()
                     .imageId(saved.getImageId())
                     .imageUrl(imageUrl)
                     .style(request.style())
@@ -71,7 +73,7 @@ public class ImageService implements IImageService {
 
         } catch (Exception e) {
             log.error("이미지 생성 실패: {}", e.getMessage());
-            return ImageDto.GenerateResponse.builder()
+            return ImageResponseDto.builder()
                     .success(false)
                     .errorMessage(e.getMessage())
                     .build();
@@ -95,14 +97,14 @@ public class ImageService implements IImageService {
      * @return 스타일 옵션 리스트
      */
     @Override
-    public List<ImageDto.StyleOption> getStyleOptions() {
+    public List<ImageStyleOptionDto> getStyleOptions() {
         return Arrays.asList(
-                new ImageDto.StyleOption("watercolor",   "수채화",         "부드럽고 몽환적인 수채화 스타일"),
-                new ImageDto.StyleOption("cartoon",      "만화/애니메이션", "생동감 있는 애니메이션 스타일"),
-                new ImageDto.StyleOption("realistic",    "사실적",         "실제 사진처럼 정교한 스타일"),
-                new ImageDto.StyleOption("oil_painting", "유화",           "고전 명화 같은 유화 스타일"),
-                new ImageDto.StyleOption("sketch",       "스케치",         "연필 드로잉 스타일"),
-                new ImageDto.StyleOption("fantasy",      "판타지",         "동화 속 환상적인 스타일")
+                new ImageStyleOptionDto("watercolor",   "수채화",         "부드럽고 몽환적인 수채화 스타일"),
+                new ImageStyleOptionDto("cartoon",      "만화/애니메이션", "생동감 있는 애니메이션 스타일"),
+                new ImageStyleOptionDto("realistic",    "사실적",         "실제 사진처럼 정교한 스타일"),
+                new ImageStyleOptionDto("oil_painting", "유화",           "고전 명화 같은 유화 스타일"),
+                new ImageStyleOptionDto("sketch",       "스케치",         "연필 드로잉 스타일"),
+                new ImageStyleOptionDto("fantasy",      "판타지",         "동화 속 환상적인 스타일")
         );
     }
 }

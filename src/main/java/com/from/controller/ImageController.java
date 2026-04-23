@@ -1,6 +1,8 @@
 package com.from.controller;
 
-import com.from.dto.ImageDto;
+import com.from.dto.ImageRequestDto;
+import com.from.dto.ImageResponseDto;
+import com.from.dto.MsgDTO;
 import com.from.repository.ImageResultRepository;
 import com.from.repository.entity.BookEntity;
 import com.from.service.IBookService;
@@ -88,8 +90,8 @@ public class ImageController {
             // 세션에 byte[] 로 저장 (MultipartFile 은 세션 직렬화 불가)
             session.setAttribute("uploadedPhoto",     photo.getBytes());
             session.setAttribute("uploadedPhotoType", photo.getContentType());
-            session.setAttribute("bookId",            bookId);
-            session.setAttribute("bookTitle",         bookTitle);
+            session.setAttribute("imageBookId",       bookId);
+            session.setAttribute("imageBookTitle",    bookTitle);
         } catch (Exception e) {
             log.error("사진 업로드 실패: {}", e.getMessage());
             model.addAttribute("error", "사진 업로드에 실패했습니다.");
@@ -116,7 +118,7 @@ public class ImageController {
         if (session.getAttribute("SS_USER_ID") == null)     return "redirect:/user/login";
         if (session.getAttribute("uploadedPhoto") == null) return "redirect:/image/create";
 
-        model.addAttribute("bookTitle",    session.getAttribute("bookTitle"));
+        model.addAttribute("bookTitle",    session.getAttribute("imageBookTitle"));
         model.addAttribute("styleOptions", imageService.getStyleOptions());
 
         log.info("{}.stylePage End!", this.getClass().getName());
@@ -135,7 +137,7 @@ public class ImageController {
      */
     @PostMapping("/generate")
     @ResponseBody
-    public ResponseEntity<ImageDto.GenerateResponse> generate(
+    public ResponseEntity<?> generate(
             @RequestParam("scene") String scene,
             @RequestParam("style") String style,
             HttpSession session) {
@@ -143,20 +145,20 @@ public class ImageController {
         log.info("{}.generate Start!", this.getClass().getName());
 
         String userId = (String) session.getAttribute("SS_USER_ID");
-        if (userId == null) return ResponseEntity.status(401).build();
+        if (userId == null) return ResponseEntity.status(401).body(MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build());
 
         // 세션에서 Step 1 에서 저장한 사진·책 정보 꺼내기
         byte[] photoBytes = (byte[]) session.getAttribute("uploadedPhoto");
         String photoType  = (String) session.getAttribute("uploadedPhotoType");
-        Long   bookId     = (Long)   session.getAttribute("bookId");
-        String bookTitle  = (String) session.getAttribute("bookTitle");
+        Long   bookId     = (Long)   session.getAttribute("imageBookId");
+        String bookTitle  = (String) session.getAttribute("imageBookTitle");
 
-        if (photoBytes == null) return ResponseEntity.badRequest().build();
+        if (photoBytes == null) return ResponseEntity.badRequest().body(MsgDTO.builder().result(0).msg("사진을 먼저 업로드해주세요.").build());
 
         // 이미지 생성 요청 DTO 구성
-        ImageDto.GenerateRequest request = new ImageDto.GenerateRequest(bookId, bookTitle, scene, style);
+        ImageRequestDto request = new ImageRequestDto(bookId, bookTitle, scene, style);
 
-        ImageDto.GenerateResponse response =
+        ImageResponseDto response =
                 imageService.generateAndSave(photoBytes, photoType, request, userId);
 
         log.info("{}.generate End!", this.getClass().getName());
@@ -215,7 +217,7 @@ public class ImageController {
         log.info("{}.myImages Start!", this.getClass().getName());
 
         String userId = (String) session.getAttribute("SS_USER_ID");
-        if (userId == null) return ResponseEntity.status(401).build();
+        if (userId == null) return ResponseEntity.status(401).body(MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build());
 
         ResponseEntity<?> response = ResponseEntity.ok(imageService.getUserImages(userId));
         log.info("{}.myImages End!", this.getClass().getName());
@@ -229,7 +231,7 @@ public class ImageController {
      */
     @PostMapping("/generate-direct")
     @ResponseBody
-    public ResponseEntity<ImageDto.GenerateResponse> generateDirect(
+    public ResponseEntity<?> generateDirect(
             @RequestParam("photo") MultipartFile photo,
             @RequestParam("bookTitle") String bookTitle,
             @RequestParam("style") String style,
@@ -239,20 +241,20 @@ public class ImageController {
         log.info("{}.generateDirect Start! - bookTitle:{}, style:{}", this.getClass().getName(), bookTitle, style);
 
         String userId = (String) session.getAttribute("SS_USER_ID");
-        if (userId == null) return ResponseEntity.status(401).build();
+        if (userId == null) return ResponseEntity.status(401).body(MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build());
 
-        if (photo.isEmpty()) return ResponseEntity.badRequest().build();
+        if (photo.isEmpty()) return ResponseEntity.badRequest().body(MsgDTO.builder().result(0).msg("사진을 선택해주세요.").build());
 
         try {
             String scene = "책 '" + bookTitle + "'의 주인공으로 등장하는 장면";
-            ImageDto.GenerateRequest request = new ImageDto.GenerateRequest(bookId, bookTitle, scene, style);
-            ImageDto.GenerateResponse response =
+            ImageRequestDto request = new ImageRequestDto(bookId, bookTitle, scene, style);
+            ImageResponseDto response =
                     imageService.generateAndSave(photo.getBytes(), photo.getContentType(), request, userId);
             log.info("{}.generateDirect End!", this.getClass().getName());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("이미지 직접 생성 오류", e);
-            return ResponseEntity.ok(ImageDto.GenerateResponse.builder()
+            return ResponseEntity.ok(ImageResponseDto.builder()
                     .success(false)
                     .errorMessage("이미지 생성 중 오류가 발생했습니다.")
                     .build());

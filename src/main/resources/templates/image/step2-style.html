@@ -28,6 +28,18 @@
 
         .btn-row { display: flex; gap: 12px; margin-top: 28px; }
         .btn-back { flex: 0 0 120px; }
+
+        .loading-spinner {
+            width: 56px; height: 56px;
+            border: 5px solid #E0D5CC;
+            border-top-color: #6071E3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-title { font-size: 17px; font-weight: 700; color: #333; margin-bottom: 8px; }
+        .loading-sub   { font-size: 13px; color: #999; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -82,9 +94,10 @@
 
 <!-- 로딩 모달 -->
 <div class="modal-overlay" id="loadingModal">
-    <div class="modal-box">
-        <p style="font-size:32px; margin-bottom:12px;">⏳</p>
-        <p>이미지를 생성하고 있어요<br>2~3분 정도 소요됩니다.</p>
+    <div class="modal-box" style="padding: 40px 48px;">
+        <div class="loading-spinner"></div>
+        <p class="loading-title">이미지를 생성하고 있어요</p>
+        <p class="loading-sub">AI가 열심히 그리는 중입니다.<br>2~3분 정도 소요됩니다.</p>
     </div>
 </div>
 

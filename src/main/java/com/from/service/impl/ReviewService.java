@@ -21,11 +21,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * AI 독후감 생성 서비스 구현체.
+ * OpenAI GPT API를 호출하여 독후감을 생성하고 MongoDB에 저장한다.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewService implements IReviewService {
 
+    /** application.properties의 openai.api.key 값 주입 */
     @Value("${openai.api.key}")
     private String openaiApiKey;
 
@@ -34,16 +39,22 @@ public class ReviewService implements IReviewService {
     private final BookReviewMongoRepository bookReviewMongoRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * GPT에게 독후감 작성을 요청하고 결과를 MongoDB(aireviews 컬렉션)에 저장한다.
+     * 저장된 독후감은 ReviewScheduler가 지정 날짜·시각에 이메일로 발송한다.
+     */
     @Override
     public ReviewResult generateAndSave(String userId, Long bookId, String emphasis, String tone,
                                          LocalDate deliveryDate, LocalTime deliveryTime, int paperId) {
         log.info("{}.generateAndSave Start! - userId:{}, bookId:{}", this.getClass().getName(), userId, bookId);
 
+        // 유저가 등록한 책 목록에서 해당 bookId의 책 정보를 찾는다
         BookEntity book = bookService.findByUserId(userId).stream()
                 .filter(b -> b.getBookId().equals(bookId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("책 정보를 찾을 수 없습니다."));
 
+        // 영문 tone 코드를 GPT 프롬프트에 쓸 한국어로 변환
         String toneKr = switch (tone) {
             case "FORMAL"     -> "격식체";
             case "CASUAL"     -> "친근하게";
@@ -52,6 +63,7 @@ public class ReviewService implements IReviewService {
             default           -> "자연스럽게";
         };
 
+        // GPT에게 전달할 독후감 작성 프롬프트 구성
         String prompt = """
                 다음 책에 대한 독후감을 작성해주세요.
 
@@ -67,8 +79,10 @@ public class ReviewService implements IReviewService {
                 - 독후감만 반환하고 다른 말은 하지 마세요.
                 """.formatted(book.getTitle(), book.getAuthor(), emphasis, toneKr);
 
+        // GPT API 호출 (최대 1500 토큰)
         String content = callGpt(prompt, 1500);
 
+        // 생성된 독후감을 MongoDB에 저장 (이메일 예약 발송 대기 상태)
         BookReviewDocument doc = new BookReviewDocument();
         doc.setUserId(userId);
         doc.setBookId(bookId);
@@ -79,7 +93,7 @@ public class ReviewService implements IReviewService {
         doc.setDeliveryTime(deliveryTime);
         doc.setAiContent(content);
         doc.setGenerationStatus("COMPLETED");
-        doc.setIsSent(0);
+        doc.setIsSent(0); // 0 = 미발송 (ReviewScheduler가 예약 시각에 1로 변경)
         doc.setBookTitle(book.getTitle());
         doc.setBookAuthor(book.getAuthor());
         bookReviewMongoRepository.save(doc);
@@ -88,6 +102,10 @@ public class ReviewService implements IReviewService {
         return new ReviewResult(content, book.getTitle(), book.getAuthor());
     }
 
+    /**
+     * 유저의 독서 이력(읽은 책 목록)을 GPT에게 제공하여 책 5권을 추천받는다.
+     * GPT 응답을 JSON으로 파싱하고, 각 추천 책의 표지 이미지를 알라딘 API로 추가한다.
+     */
     @Override
     public List<Map<String, String>> getAiRecommendations(String userId) {
         log.info("{}.getAiRecommendations Start! - userId:{}", this.getClass().getName(), userId);
@@ -95,10 +113,12 @@ public class ReviewService implements IReviewService {
         List<BookEntity> userBooks = bookService.findByUserId(userId);
         if (userBooks == null || userBooks.isEmpty()) return List.of();
 
+        // 유저가 읽은 책 목록을 "제목 - 저자" 형태로 변환
         String bookList = userBooks.stream()
                 .map(b -> b.getTitle() + " - " + b.getAuthor())
                 .collect(Collectors.joining("\n"));
 
+        // GPT에게 JSON 배열 형식으로만 응답하도록 명시적으로 지시
         String prompt = """
                 사용자가 읽은 책 목록:
                 %s
@@ -110,6 +130,7 @@ public class ReviewService implements IReviewService {
 
         try {
             String raw = callGpt(prompt, 1000);
+            // GPT가 ```json ... ``` 코드 블록으로 감싸서 반환하는 경우 제거
             raw = raw.replaceAll("```json", "").replaceAll("```", "").trim();
 
             List<Map<String, String>> result = objectMapper.readValue(
@@ -117,6 +138,7 @@ public class ReviewService implements IReviewService {
                     objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class)
             );
 
+            // 각 추천 책의 표지 이미지를 알라딘 API로 조회하여 cover 필드에 추가
             for (Map<String, String> rec : result) {
                 rec.put("cover", aladinService.searchCover(rec.get("title")));
             }
@@ -130,10 +152,18 @@ public class ReviewService implements IReviewService {
         }
     }
 
+    /**
+     * OpenAI GPT API를 호출하여 텍스트 응답을 받는다.
+     * WebClient를 사용하여 비동기 HTTP 요청을 동기적으로 처리한다(block()).
+     *
+     * @param prompt    GPT에게 전달할 프롬프트
+     * @param maxTokens 최대 응답 토큰 수 (1토큰 ≈ 한글 0.5자)
+     * @return GPT의 텍스트 응답
+     */
     private String callGpt(String prompt, int maxTokens) {
         try {
             Map<String, Object> body = new HashMap<>();
-            body.put("model", "gpt-4o-mini");
+            body.put("model", "gpt-4o-mini"); // 비용 효율적인 GPT 모델
             body.put("max_tokens", maxTokens);
             body.put("messages", List.of(Map.of("role", "user", "content", prompt)));
 
@@ -145,8 +175,9 @@ public class ReviewService implements IReviewService {
                     .bodyValue(body)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .block();
+                    .block(); // 비동기 결과를 동기적으로 기다림
 
+            // JSON 응답에서 choices[0].message.content 값을 추출
             JsonNode root = objectMapper.readTree(response);
             return root.path("choices").get(0).path("message").path("content").asText();
 

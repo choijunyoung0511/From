@@ -593,7 +593,7 @@
       const res = await fetch('/book/register', { method: 'POST', body: formData });
       const data = await res.json();
 
-      if (data.success) {
+      if (data.result === 1) {
         registered.add(idx);
         btn.textContent = '♥ 등록됨';
         btn.classList.add('saved');
@@ -607,7 +607,7 @@
       } else {
         btn.disabled = false;
         btn.textContent = '♡ 등록하기';
-        showToast('❌ ' + (data.message || '등록에 실패했어요.'));
+        showToast('❌ ' + (data.msg || '등록에 실패했어요.'));
       }
     } catch (e) {
       btn.disabled = false;

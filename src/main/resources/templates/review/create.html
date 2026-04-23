@@ -395,9 +395,9 @@
         })
             .then(res => res.json())
             .then(data => {
-                if (data.success) { window.location.href = `/review/${data.reviewId}`; }
+                if (data.result === 1) { window.location.href = '/review/result'; }
                 else {
-                    showModal(data.message || '독후감 생성에 실패했습니다.');
+                    showModal(data.msg || '독후감 생성에 실패했습니다.');
                     document.getElementById('panel-loading').classList.remove('active');
                     document.getElementById('panel4').classList.add('active');
                 }

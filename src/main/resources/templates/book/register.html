@@ -407,7 +407,7 @@
         })
         .then(res => res.json())
         .then(data => {
-            document.getElementById('modal-msg').textContent = data.message || '등록되었습니다.';
+            document.getElementById('modal-msg').textContent = data.msg || '등록되었습니다.';
             document.getElementById('modal').classList.add('show');
         });
     }

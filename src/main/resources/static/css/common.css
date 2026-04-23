@@ -52,13 +52,13 @@ body.auth-page {
     padding: 14px 32px;
     border: none;
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.2s;
     font-weight: 500;
     font-family: 'Jua', sans-serif;
 }
-.btn-primary { background: #6071E3; color: white; }
+.btn-primary { background: #6071E3; color: white; font-weight: 700; }
 .btn-primary:hover { background: #4f5fd4; }
 .btn-block { width: 100%; }
 .btn-outline { background: white; color: #6071E3; border: 1.5px solid #6071E3; }
@@ -102,10 +102,10 @@ body.auth-page {
 .form-group label { display: block; font-size: 16px; color: #666; margin-bottom: 8px; }
 .form-control {
     width: 100%;
-    padding: 16px 18px;
+    padding: 14px 18px;
     border: 1.5px solid #E0D5CC;
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 16px;
     background: #FAFAFA;
     transition: border-color 0.2s;
     outline: none;

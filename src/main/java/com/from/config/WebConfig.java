@@ -5,6 +5,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Spring MVC 설정 클래스.
+ * LoginInterceptor를 등록하여 로그인이 필요한 경로를 보호한다.
+ *
+ * 인터셉터: Controller 실행 전에 공통 처리를 수행하는 필터 역할이다.
+ * addPathPatterns:    인터셉터를 적용할 경로 (로그인 필요 페이지)
+ * excludePathPatterns: 인터셉터를 제외할 경로 (로그인·회원가입 등 공개 경로)
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
@@ -23,6 +31,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/user/service"       // 서비스 시작 화면
                 )
                 .excludePathPatterns(
+                        // 비로그인 사용자도 접근 가능한 공개 경로
                         "/",
                         "/user/login",
                         "/user/signup",
