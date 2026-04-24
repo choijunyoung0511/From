@@ -10,4 +10,8 @@ package com.from.dto;
  * scene:     사용자가 입력한 책 속 장면 설명
  * style:     선택한 아트 스타일 (watercolor, cartoon, realistic 등)
  */
-public record ImageRequestDto(Long bookId, String bookTitle, String scene, String style) {}
+public record ImageRequestDto(
+        Long bookId,
+        String bookTitle,
+        String scene,
+        String style) {}
