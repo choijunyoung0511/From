@@ -23,7 +23,7 @@ public record UserInfoDTO(
         String username,         // 닉네임
         String password,         // 비밀번호 (평문, 서비스 계층에서 SHA-256으로 암호화)
         String name,             // 실명
-        String email,            // 이메일 (DB에는 AES-256 암호화 저장, DTO에서는 평문)
+        String email,            // 이메일 (DB에는 AES-128-CBC 암호화 저장, DTO에서는 평문)
         String existsYn,         // 중복 여부: "Y" = 존재, "N" = 미존재
         LocalDateTime createdAt, // 가입 일시
         LocalDateTime updatedAt, // 최근 수정 일시

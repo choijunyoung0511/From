@@ -11,7 +11,7 @@ import java.util.Base64;
  * 암호화 유틸리티 클래스.
  *
  * SHA-256 (단방향): 비밀번호 저장에 사용. 솔트(FROM_SALT_2025)를 붙여 레인보우 테이블 공격을 방어한다.
- * AES-256-CBC (양방향): 이메일 저장에 사용. DB에는 암호화된 값을 저장하고, 화면 표시 시 복호화한다.
+ * AES-128-CBC (양방향): 이메일 저장에 사용. 키 길이 16바이트(=128bit). DB에는 암호화된 값을 저장하고, 화면 표시 시 복호화한다.
  */
 public class EncryptUtil {
 
@@ -21,7 +21,7 @@ public class EncryptUtil {
     /** AES-CBC 초기화 벡터 (16바이트 고정) */
     private static final String IV = "1234567890123456";
 
-    /** AES-256 비밀키 (16바이트 = 128bit, 프로젝트 고정값) */
+    /** AES-128 비밀키 (16바이트 = 128bit, 프로젝트 고정값) */
     private static final String KEY = "FromProjectKey16";
 
     /**
@@ -50,7 +50,7 @@ public class EncryptUtil {
     }
 
     /**
-     * AES-256-CBC 방식으로 문자열을 암호화한다.
+     * AES-128-CBC 방식으로 문자열을 암호화한다.
      * 이메일처럼 나중에 복호화가 필요한 값에 사용한다.
      *
      * @param str 암호화할 평문 (예: "user@email.com")
@@ -70,7 +70,7 @@ public class EncryptUtil {
     }
 
     /**
-     * AES-256-CBC 방식으로 암호문을 복호화한다.
+     * AES-128-CBC 방식으로 암호문을 복호화한다.
      * DB에서 꺼낸 암호화된 이메일을 화면 표시용 평문으로 되돌릴 때 사용한다.
      *
      * @param str Base64 인코딩된 암호문

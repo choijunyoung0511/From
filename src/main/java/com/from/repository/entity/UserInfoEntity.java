@@ -40,7 +40,7 @@ public class UserInfoEntity {
     @Column(name = "name", length = 50)
     private String name;
 
-    /** AES-256-CBC로 암호화된 이메일. DB에는 암호문으로 저장되고, 화면에는 복호화하여 표시한다. */
+    /** AES-128-CBC로 암호화된 이메일. DB에는 암호문으로 저장되고, 화면에는 복호화하여 표시한다. */
     @Column(name = "email", length = 100)
     private String email;
 
