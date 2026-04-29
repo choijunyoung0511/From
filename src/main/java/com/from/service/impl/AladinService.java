@@ -1,5 +1,6 @@
 package com.from.service.impl;
 
+import com.from.dto.BookSearchDTO;
 import com.from.service.IAladinService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,13 +15,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 알라딘 오픈 API 서비스 구현체.
- * 알라딘 API는 XML 형식으로 응답하므로 DOM 파서로 파싱하여 Map으로 변환한다.
+ * 알라딘 API는 XML 형식으로 응답하므로 DOM 파서로 파싱하여 BookSearchDTO로 변환한다.
  */
 @Slf4j
 @Service
@@ -36,12 +35,12 @@ public class AladinService implements IAladinService {
      *
      * @param query 검색어
      * @param type  검색 유형 (Title / Author / Keyword)
-     * @return [{title, author, cover, isbn}] 형태의 검색 결과 (최대 10건)
+     * @return 검색 결과 (최대 10건)
      */
     @Override
-    public List<Map<String, String>> searchBooks(String query, String type) {
+    public List<BookSearchDTO> searchBooks(String query, String type) {
         log.info("{}.searchBooks Start! - query:{}, type:{}", this.getClass().getName(), query, type);
-        List<Map<String, String>> result = new ArrayList<>();
+        List<BookSearchDTO> result = new ArrayList<>();
         try {
             // 프론트에서 받은 type을 알라딘 API 파라미터 값으로 변환
             String queryType = switch (type) {
@@ -63,16 +62,16 @@ public class AladinService implements IAladinService {
                             .build())
                     .retrieve().bodyToMono(String.class).block();
 
-            // XML 응답에서 <item> 태그를 파싱하여 Map으로 변환
+            // XML 응답에서 <item> 태그를 파싱하여 BookSearchDTO로 변환
             NodeList items = parseXml(xml).getElementsByTagName("item");
             for (int i = 0; i < items.getLength(); i++) {
                 Element item = (Element) items.item(i);
-                Map<String, String> book = new HashMap<>();
-                book.put("title",  getTagValue("title",  item));
-                book.put("author", getTagValue("author", item));
-                book.put("cover",  getTagValue("cover",  item));
-                book.put("isbn",   getTagValue("isbn13", item));
-                result.add(book);
+                result.add(BookSearchDTO.builder()
+                        .title(getTagValue("title",  item))
+                        .author(getTagValue("author", item))
+                        .cover(getTagValue("cover",  item))
+                        .isbn(getTagValue("isbn13", item))
+                        .build());
             }
         } catch (Exception e) {
             log.error("알라딘 검색 오류", e);
@@ -84,12 +83,12 @@ public class AladinService implements IAladinService {
     /**
      * 알라딘 베스트셀러 API(ItemList)를 호출하여 Top 10을 반환한다.
      *
-     * @return [{title, author, cover, isbn}] 형태의 베스트셀러 목록 (최대 10건)
+     * @return 베스트셀러 목록 (최대 10건)
      */
     @Override
-    public List<Map<String, String>> getBestseller() {
+    public List<BookSearchDTO> getBestseller() {
         log.info("{}.getBestseller Start!", this.getClass().getName());
-        List<Map<String, String>> result = new ArrayList<>();
+        List<BookSearchDTO> result = new ArrayList<>();
         try {
             String xml = WebClient.create("https://www.aladin.co.kr").get()
                     .uri(b -> b.path("/ttb/api/ItemList.aspx")
@@ -105,12 +104,12 @@ public class AladinService implements IAladinService {
             NodeList items = parseXml(xml).getElementsByTagName("item");
             for (int i = 0; i < items.getLength(); i++) {
                 Element item = (Element) items.item(i);
-                Map<String, String> book = new HashMap<>();
-                book.put("title",  getTagValue("title",  item));
-                book.put("author", getTagValue("author", item));
-                book.put("cover",  getTagValue("cover",  item));
-                book.put("isbn",   getTagValue("isbn13", item));
-                result.add(book);
+                result.add(BookSearchDTO.builder()
+                        .title(getTagValue("title",  item))
+                        .author(getTagValue("author", item))
+                        .cover(getTagValue("cover",  item))
+                        .isbn(getTagValue("isbn13", item))
+                        .build());
             }
         } catch (Exception e) {
             log.error("베스트셀러 API 오류", e);

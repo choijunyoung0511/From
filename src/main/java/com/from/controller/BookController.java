@@ -1,10 +1,10 @@
 package com.from.controller;
 
+import com.from.dto.BookSearchDTO;
 import com.from.dto.MsgDTO;
 import com.from.service.IAladinService;
 import com.from.service.IBookService;
 import com.from.service.IReviewService;
-import com.from.repository.entity.BookEntity;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,10 +91,10 @@ public class BookController {
      */
     @GetMapping("/search")
     @ResponseBody
-    public List<Map<String, String>> searchBooks(@RequestParam String query,
-                                                  @RequestParam(defaultValue = "Keyword") String type) {
+    public List<BookSearchDTO> searchBooks(@RequestParam String query,
+                                           @RequestParam(defaultValue = "Keyword") String type) {
         log.info("{}.searchBooks Start! - query:{}, type:{}", this.getClass().getName(), query, type);
-        List<Map<String, String>> result = aladinService.searchBooks(query, type);
+        List<BookSearchDTO> result = aladinService.searchBooks(query, type);
         log.info("{}.searchBooks End! - {}건", this.getClass().getName(), result.size());
         return result;
     }
@@ -103,13 +103,13 @@ public class BookController {
      * 알라딘 베스트셀러 Top 10을 JSON으로 반환한다. (비동기 AJAX)
      * 책 등록 화면에서 "베스트셀러" 탭을 눌렀을 때 호출된다.
      *
-     * @return [{title, author, cover, isbn}] 형태의 베스트셀러 목록
+     * @return 베스트셀러 목록
      */
     @GetMapping("/bestseller")
     @ResponseBody
-    public List<Map<String, String>> getBestseller() {
+    public List<BookSearchDTO> getBestseller() {
         log.info("{}.getBestseller Start!", this.getClass().getName());
-        List<Map<String, String>> result = aladinService.getBestseller();
+        List<BookSearchDTO> result = aladinService.getBestseller();
         log.info("{}.getBestseller End!", this.getClass().getName());
         return result;
     }
@@ -138,17 +138,11 @@ public class BookController {
         MsgDTO dto;
         try {
             // DB에 같은 책이 있으면 재사용, 없으면 새로 저장
-            Optional<BookEntity> existing = bookService.findByTitleAndAuthor(title, author);
-            BookEntity book = existing.orElseGet(() ->
-                    bookService.save(BookEntity.builder()
-                            .title(title)
-                            .author(author)
-                            .coverImage(cover)
-                            .build())
-            );
+            Optional<BookSearchDTO> existing = bookService.findByTitleAndAuthor(title, author);
+            BookSearchDTO book = existing.orElseGet(() -> bookService.save(title, author, cover));
 
             // 유저-책 연결 저장 (이미 등록된 경우 false 반환)
-            boolean registered = bookService.saveUserBook(userId, book.getBookId());
+            boolean registered = bookService.saveUserBook(userId, book.bookId());
             dto = registered
                     ? MsgDTO.builder().result(1).msg("등록되었습니다.").build()
                     : MsgDTO.builder().result(0).msg("이미 등록된 책입니다.").build();
