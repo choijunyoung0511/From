@@ -3,8 +3,7 @@ package com.from.controller;
 import com.from.dto.ImageRequestDto;
 import com.from.dto.ImageResponseDto;
 import com.from.dto.MsgDTO;
-import com.from.repository.ImageResultRepository;
-import com.from.repository.entity.BookEntity;
+import com.from.dto.BookSearchDTO;
 import com.from.service.IBookService;
 import com.from.service.IImageService;
 import jakarta.servlet.http.HttpSession;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +35,6 @@ import java.util.Map;
 public class ImageController {
 
     private final IImageService imageService;
-    private final ImageResultRepository imageResultRepository;
     private final IBookService bookService;
 
     /**
@@ -56,7 +53,7 @@ public class ImageController {
         if (userId == null) return "redirect:/user/login";
 
         // 책 선택 드롭다운에 표시할 유저의 등록 책 목록
-        List<BookEntity> userBooks = bookService.findByUserId(userId);
+        List<BookSearchDTO> userBooks = bookService.findByUserId(userId);
         model.addAttribute("userBooks", userBooks);
 
         log.info("{}.uploadPage End!", this.getClass().getName());
@@ -191,21 +188,12 @@ public class ImageController {
     public ResponseEntity<?> getDetail(@PathVariable Long imageId) {
         log.info("{}.getDetail Start! - imageId:{}", this.getClass().getName(), imageId);
 
-        ResponseEntity<?> response = imageResultRepository.findById(imageId)
-                .map(img -> {
-                    String bookTitle = bookService.findById(img.getBookId())
-                            .map(BookEntity::getTitle).orElse("-");
-                    Map<String, Object> body = new HashMap<>();
-                    body.put("imageUrl",  img.getImageUrl());
-                    body.put("style",     img.getStyle());
-                    body.put("bookId",    img.getBookId());
-                    body.put("bookTitle", bookTitle);
-                    return ResponseEntity.ok((Object) body);
-                })
-                .orElse(ResponseEntity.notFound().build());
+        Map<String, Object> detail = imageService.getImageDetail(imageId);
 
         log.info("{}.getDetail End!", this.getClass().getName());
-        return response;
+        return detail != null
+                ? ResponseEntity.ok(detail)
+                : ResponseEntity.notFound().build();
     }
 
     /**

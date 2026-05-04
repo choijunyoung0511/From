@@ -3,8 +3,8 @@ package com.from.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.from.domain.BookReviewDocument;
+import com.from.dto.BookSearchDTO;
 import com.from.repository.BookReviewMongoRepository;
-import com.from.repository.entity.BookEntity;
 import com.from.service.IAladinService;
 import com.from.service.IBookService;
 import com.from.service.IReviewService;
@@ -49,8 +49,8 @@ public class ReviewService implements IReviewService {
         log.info("{}.generateAndSave Start! - userId:{}, bookId:{}", this.getClass().getName(), userId, bookId);
 
         // 유저가 등록한 책 목록에서 해당 bookId의 책 정보를 찾는다
-        BookEntity book = bookService.findByUserId(userId).stream()
-                .filter(b -> b.getBookId().equals(bookId))
+        BookSearchDTO book = bookService.findByUserId(userId).stream()
+                .filter(b -> b.bookId().equals(bookId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("책 정보를 찾을 수 없습니다."));
 
@@ -77,7 +77,7 @@ public class ReviewService implements IReviewService {
                 - 700~1000자 분량으로 작성해주세요.
                 - 책의 핵심 메시지와 강조할 내용을 잘 녹여주세요.
                 - 독후감만 반환하고 다른 말은 하지 마세요.
-                """.formatted(book.getTitle(), book.getAuthor(), emphasis, toneKr);
+                """.formatted(book.title(), book.author(), emphasis, toneKr);
 
         // GPT API 호출 (최대 1500 토큰)
         String content = callGpt(prompt, 1500);
@@ -94,12 +94,12 @@ public class ReviewService implements IReviewService {
         doc.setAiContent(content);
         doc.setGenerationStatus("COMPLETED");
         doc.setIsSent(0); // 0 = 미발송 (ReviewScheduler가 예약 시각에 1로 변경)
-        doc.setBookTitle(book.getTitle());
-        doc.setBookAuthor(book.getAuthor());
+        doc.setBookTitle(book.title());
+        doc.setBookAuthor(book.author());
         bookReviewMongoRepository.save(doc);
 
         log.info("{}.generateAndSave End!", this.getClass().getName());
-        return new ReviewResult(content, book.getTitle(), book.getAuthor());
+        return new ReviewResult(content, book.title(), book.author());
     }
 
     /**
@@ -110,12 +110,12 @@ public class ReviewService implements IReviewService {
     public List<Map<String, String>> getAiRecommendations(String userId) {
         log.info("{}.getAiRecommendations Start! - userId:{}", this.getClass().getName(), userId);
 
-        List<BookEntity> userBooks = bookService.findByUserId(userId);
+        List<BookSearchDTO> userBooks = bookService.findByUserId(userId);
         if (userBooks == null || userBooks.isEmpty()) return List.of();
 
         // 유저가 읽은 책 목록을 "제목 - 저자" 형태로 변환
         String bookList = userBooks.stream()
-                .map(b -> b.getTitle() + " - " + b.getAuthor())
+                .map(b -> b.title() + " - " + b.author())
                 .collect(Collectors.joining("\n"));
 
         // GPT에게 JSON 배열 형식으로만 응답하도록 명시적으로 지시
@@ -150,6 +150,17 @@ public class ReviewService implements IReviewService {
             log.error("AI 추천 파싱 오류", e);
             throw new RuntimeException("추천 생성 중 오류가 발생했습니다.", e);
         }
+    }
+
+    /**
+     * 유저의 독후감 이력을 MongoDB에서 조회한다.
+     */
+    @Override
+    public List<BookReviewDocument> getReviewsByUserId(String userId) {
+        log.info("{}.getReviewsByUserId Start! - userId:{}", this.getClass().getName(), userId);
+        List<BookReviewDocument> result = bookReviewMongoRepository.findByUserId(userId);
+        log.info("{}.getReviewsByUserId End! - {}건", this.getClass().getName(), result.size());
+        return result;
     }
 
     /**

@@ -1,7 +1,8 @@
 package com.from.service;
 
+import com.from.dto.BookSearchDTO;
+
 import java.util.List;
-import java.util.Map;
 
 /**
  * 알라딘 오픈 API 호출 서비스 인터페이스.
@@ -15,17 +16,17 @@ public interface IAladinService {
      *
      * @param query 검색어 (책 제목, 저자명, 키워드 등)
      * @param type  검색 유형 (Title / Author / Keyword)
-     * @return [{title, author, cover, isbn}] 형태의 검색 결과 목록 (최대 10건)
+     * @return 검색 결과 목록 (최대 10건)
      */
-    List<Map<String, String>> searchBooks(String query, String type);
+    List<BookSearchDTO> searchBooks(String query, String type);
 
     /**
      * 알라딘 베스트셀러 Top 10을 조회한다.
      * 책 등록 화면의 "베스트셀러" 탭에 표시된다.
      *
-     * @return [{title, author, cover, isbn}] 형태의 베스트셀러 목록 (최대 10건)
+     * @return 베스트셀러 목록 (최대 10건)
      */
-    List<Map<String, String>> getBestseller();
+    List<BookSearchDTO> getBestseller();
 
     /**
      * 책 제목으로 알라딘에서 표지 이미지 URL을 1건 조회한다.

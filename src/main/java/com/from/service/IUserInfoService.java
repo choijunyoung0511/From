@@ -2,6 +2,8 @@ package com.from.service;
 
 import com.from.dto.UserInfoDTO;
 
+import java.util.Optional;
+
 public interface IUserInfoService {
 
     // 아이디 중복 체크
@@ -13,7 +15,7 @@ public interface IUserInfoService {
     // 회원가입
     boolean signup(UserInfoDTO pDTO) throws Exception;
 
-    // 로그인
+    // 로그인 (아이디·비밀번호 불일치 시 null)
     UserInfoDTO login(String username, String password) throws Exception;
 
     // 비밀번호 변경 (마이페이지)
@@ -28,12 +30,12 @@ public interface IUserInfoService {
     // 아이디 찾기 - 인증번호 발송
     String findIdSendCode(String name, String email) throws Exception;
 
-    // 아이디 찾기 - 아이디 반환
-    String findUsername(String name, String email) throws Exception;
+    // 아이디 찾기 - 아이디 반환 (유저 없으면 empty)
+    Optional<String> findUsername(String name, String email) throws Exception;
 
     // 비밀번호 찾기 - 인증번호 발송
     String findPasswordSendCode(String username, String email) throws Exception;
 
-    // 유저 정보 조회 (마이페이지·대시보드용)
-    UserInfoDTO getUserInfo(String userId) throws Exception;
+    // 유저 정보 조회 (마이페이지·대시보드용, 유저 없으면 empty)
+    Optional<UserInfoDTO> getUserInfo(String userId) throws Exception;
 }

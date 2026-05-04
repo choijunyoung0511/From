@@ -5,6 +5,7 @@ import com.from.dto.ImageRequestDto;
 import com.from.dto.ImageResponseDto;
 import com.from.dto.ImageStyleOptionDto;
 import com.from.repository.ImageResultRepository;
+import com.from.service.IBookService;
 import com.from.service.IImageService;
 import com.from.service.INanobanaService;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 이미지 생성 비즈니스 로직 서비스.
@@ -27,15 +30,10 @@ public class ImageService implements IImageService {
 
     private final INanobanaService nanobanaService;
     private final ImageResultRepository imageResultRepository;
+    private final IBookService bookService;
 
     /**
      * 사용자 사진을 Gemini API 로 변환하여 DB에 저장한 뒤 결과를 반환한다.
-     *
-     * @param photoBytes 업로드한 사진 byte[]
-     * @param photoType  사진 MIME 타입
-     * @param request    생성 요청 파라미터 (bookId, bookTitle, scene, style)
-     * @param userId     요청 유저의 로그인 ID
-     * @return 생성 결과 DTO (성공 시 imageId·imageUrl 포함, 실패 시 errorMessage 포함)
      */
     @Override
     @Transactional
@@ -82,19 +80,50 @@ public class ImageService implements IImageService {
 
     /**
      * 특정 유저의 이미지 생성 히스토리를 조회한다.
-     *
-     * @param userId 로그인 ID
-     * @return 이미지 결과 목록 (최신순)
+     * Entity → DTO 변환하여 반환한다.
      */
     @Override
-    public List<ImageResult> getUserImages(String userId) {
-        return imageResultRepository.findByUserIdOrderByCreateAtDesc(userId);
+    public List<ImageResponseDto> getUserImages(String userId) {
+        log.info("{}.getUserImages Start! - userId:{}", this.getClass().getName(), userId);
+        List<ImageResponseDto> result = imageResultRepository
+                .findByUserIdOrderByCreateAtDesc(userId)
+                .stream()
+                .map(img -> ImageResponseDto.builder()
+                        .imageId(img.getImageId())
+                        .imageUrl(img.getImageUrl())
+                        .style(img.getStyle())
+                        .success(true)
+                        .build())
+                .toList();
+        log.info("{}.getUserImages End! - {}건", this.getClass().getName(), result.size());
+        return result;
+    }
+
+    /**
+     * 이미지 상세 정보를 조회한다.
+     * Controller의 Repository 직접 접근을 서비스로 이동.
+     */
+    @Override
+    public Map<String, Object> getImageDetail(Long imageId) {
+        log.info("{}.getImageDetail Start! - imageId:{}", this.getClass().getName(), imageId);
+
+        return imageResultRepository.findById(imageId)
+                .map(img -> {
+                    String bookTitle = bookService.findById(img.getBookId())
+                            .map(b -> b.title()).orElse("-");
+                    Map<String, Object> body = new HashMap<>();
+                    body.put("imageUrl",  img.getImageUrl());
+                    body.put("style",     img.getStyle());
+                    body.put("bookId",    img.getBookId());
+                    body.put("bookTitle", bookTitle);
+                    log.info("{}.getImageDetail End!", this.getClass().getName());
+                    return body;
+                })
+                .orElse(null);
     }
 
     /**
      * 스타일 선택 화면에 표시할 옵션 목록을 반환한다.
-     *
-     * @return 스타일 옵션 리스트
      */
     @Override
     public List<ImageStyleOptionDto> getStyleOptions() {

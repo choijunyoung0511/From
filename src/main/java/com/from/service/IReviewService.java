@@ -1,5 +1,7 @@
 package com.from.service;
 
+import com.from.domain.BookReviewDocument;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -44,4 +46,12 @@ public interface IReviewService {
      * @return [{title, author, reason, cover}] 형태의 추천 책 목록
      */
     List<Map<String, String>> getAiRecommendations(String userId);
+
+    /**
+     * 유저의 독후감 이력을 조회한다 (마이페이지용).
+     *
+     * @param userId 요청 사용자의 로그인 ID
+     * @return MongoDB aireviews 컬렉션의 독후감 목록
+     */
+    List<BookReviewDocument> getReviewsByUserId(String userId);
 }

@@ -1,17 +1,11 @@
 package com.from.service.impl;
 
 import com.from.service.INanobanaService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Base64;
 import java.util.HashMap;
@@ -25,13 +19,10 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class NanobanaService implements INanobanaService {
 
     @Value("${nanobana.api.key}")
     private String apiKey;
-
-    private final RestTemplate restTemplate;
 
     /** Gemini 이미지 생성 API 엔드포인트 (이미지 출력 지원 모델) */
     private static final String GEMINI_URL =
@@ -53,9 +44,6 @@ public class NanobanaService implements INanobanaService {
                                 String scene, String style, String bookTitle) {
         log.info("{}.generateImage Start!", this.getClass().getName());
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
             // part 1: 텍스트 프롬프트
             Map<String, Object> textPart = new HashMap<>();
             textPart.put("text", buildPrompt(scene, style, bookTitle));
@@ -79,18 +67,19 @@ public class NanobanaService implements INanobanaService {
             body.put("contents", List.of(content));
             body.put("generationConfig", genConfig);
 
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            String url = GEMINI_URL + "?key=" + apiKey;
+            Map<?, ?> response = WebClient.create(GEMINI_URL)
+                    .post()
+                    .uri(b -> b.queryParam("key", apiKey).build())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(body)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .block();
 
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    url, HttpMethod.POST, request, Map.class);
+            if (response == null) throw new RuntimeException("Gemini API 응답이 비어있습니다.");
 
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                log.info("{}.generateImage End!", this.getClass().getName());
-                return extractImageUrl(response.getBody());
-            }
-
-            throw new RuntimeException("Gemini API 응답 오류: " + response.getStatusCode());
+            log.info("{}.generateImage End!", this.getClass().getName());
+            return extractImageUrl(response);
 
         } catch (Exception e) {
             log.error("Gemini API 호출 실패: {}", e.getMessage());
@@ -102,7 +91,7 @@ public class NanobanaService implements INanobanaService {
      * Gemini API 응답 본문에서 base64 이미지 Data URL 을 추출한다.
      */
     @SuppressWarnings("unchecked")
-    private String extractImageUrl(Map<String, Object> responseBody) {
+    private String extractImageUrl(Map<?, ?> responseBody) {
         log.info("Gemini 응답 전체: {}", responseBody);
 
         try {
@@ -125,9 +114,9 @@ public class NanobanaService implements INanobanaService {
             for (Map<String, Object> part : parts) {
                 log.info("part 키 목록: {}", part.keySet());
                 if (part.containsKey("inlineData")) {
-                    Map<String, Object> inlineData = (Map<String, Object>) part.get("inlineData");
-                    String mime   = (String) inlineData.get("mimeType");
-                    String base64 = (String) inlineData.get("data");
+                    Map<String, Object> inline = (Map<String, Object>) part.get("inlineData");
+                    String mime   = (String) inline.get("mimeType");
+                    String base64 = (String) inline.get("data");
                     return "data:" + mime + ";base64," + base64;
                 }
             }

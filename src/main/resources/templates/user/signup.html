@@ -5,69 +5,242 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회원가입 - FROM</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        body {
+            flex-direction: row;
+            align-items: flex-start;
+            overflow-y: auto;
+        }
+
+        .page-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .float-shape {
+            position: absolute;
+            border-radius: 34px;
+            background: linear-gradient(145deg, #5cbcff, #2463ff);
+            box-shadow: inset 0 2px 10px rgba(255,255,255,0.3), 0 30px 60px rgba(37,99,235,0.20);
+            opacity: 0.88;
+        }
+        .shape-1 { width: 420px; height: 420px; top: 110px; left: -120px; transform: rotate(-24deg); }
+        .shape-2 { width: 600px; height: 300px; top: -40px; right: -80px; transform: rotate(-16deg); }
+        .shape-3 { width: 280px; height: 200px; bottom: 60px; right: 180px; transform: rotate(-20deg); }
+
+        .auth-wrap {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 80px;
+            width: min(1080px, calc(100% - 48px));
+            min-height: 100vh;
+            padding: 60px 0;
+            margin: 0 auto;
+        }
+
+        .auth-left {
+            flex: 1;
+            position: sticky;
+            top: 60px;
+        }
+        .auth-left .logo-link {
+            display: inline-block;
+            margin-bottom: 40px;
+        }
+        .auth-left .logo-link img { height: 56px; }
+        .auth-kicker {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #2563eb;
+            margin-bottom: 14px;
+        }
+        .auth-left h1 {
+            margin: 0 0 20px;
+            font-size: clamp(28px, 3.6vw, 46px);
+            line-height: 1.22;
+            letter-spacing: -0.05em;
+            color: #0f172a;
+        }
+        .auth-left p {
+            margin: 0;
+            color: #4b5563;
+            font-size: 17px;
+            line-height: 1.85;
+        }
+
+        .auth-card {
+            width: 440px;
+            flex-shrink: 0;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.75);
+            border-radius: 28px;
+            padding: 44px 40px;
+            box-shadow: 0 32px 80px rgba(37,99,235,0.16), 0 8px 24px rgba(0,0,0,0.06);
+        }
+        .auth-card-kicker {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #2563eb;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .auth-card-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1e3a5f;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .auth-card-desc {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .form-group { margin-bottom: 14px; }
+        .form-control {
+            border-color: rgba(37,99,235,0.18);
+            background: rgba(255,255,255,0.90);
+        }
+        .form-control:focus { border-color: #2563eb; }
+
+        .btn-outline {
+            border-color: #2563eb;
+            color: #2563eb;
+            white-space: nowrap;
+        }
+        .btn-outline:hover { background: #eff6ff; }
+
+        .btn-auth {
+            width: 100%;
+            height: 52px;
+            margin-top: 6px;
+            border: none;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #5da8ff, #2563eb);
+            color: #fff;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 12px 30px rgba(37,99,235,0.25);
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: 'Jua', sans-serif;
+        }
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 40px rgba(37,99,235,0.32);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #888;
+        }
+        .auth-footer a { color: #2563eb; text-decoration: none; font-weight: 600; }
+        .auth-footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 820px) {
+            .auth-left { display: none; }
+            body { align-items: center; }
+            .auth-wrap { justify-content: center; }
+            .auth-card { width: min(440px, 100%); }
+        }
+    </style>
 </head>
 <body class="auth-page">
-<div class="form-container">
-    <div class="form-title">
-        <a th:href="@{/}">
-            <img th:src="@{/images/logo.png}" alt="FROM 로고" class="form-logo">
+
+<div class="page-bg">
+    <div class="float-shape shape-1"></div>
+    <div class="float-shape shape-2"></div>
+    <div class="float-shape shape-3"></div>
+</div>
+
+<div class="auth-wrap">
+    <div class="auth-left">
+        <a th:href="@{/}" class="logo-link">
+            <img th:src="@{/images/logo.png}" alt="FROM 로고">
         </a>
+        <p class="auth-kicker">Sign up</p>
+        <h1>나만의 독서 기록을<br>시작하세요</h1>
+        <p>감상 기록, AI 분석, 미래 편지까지<br>한 번에 이어지는 독서 플랫폼.</p>
     </div>
 
-    <!-- 이름 -->
-    <div class="form-group">
-        <input type="text" id="name" class="form-control" placeholder="이름을 입력해주세요.">
-        <span class="error-msg" id="name-error"></span>
-    </div>
+    <div class="auth-card">
+        <p class="auth-card-kicker">SIGN UP</p>
+        <p class="auth-card-title">FROM 시작하기</p>
+        <p class="auth-card-desc">독서 기록을 남기고 AI 편지를 받아보세요.</p>
 
-    <!-- 아이디 + 중복확인 -->
-    <div class="form-group">
-        <div class="form-row">
-            <input type="text" id="username" class="form-control" placeholder="아이디는 6~20자 이내로 입력해주세요.">
-            <button class="btn btn-outline btn-sm" onclick="checkUsername()">중복 확인</button>
+        <form autocomplete="off" onsubmit="return false;">
+            <!-- 이름 -->
+            <div class="form-group">
+                <input type="text" id="name" class="form-control" placeholder="이름을 입력해주세요.">
+                <span class="error-msg" id="name-error"></span>
+            </div>
+
+            <!-- 아이디 + 중복확인 -->
+            <div class="form-group">
+                <div class="form-row">
+                    <input type="text" id="username" class="form-control" placeholder="아이디 6~20자">
+                    <button class="btn btn-outline btn-sm" onclick="checkUsername()">중복 확인</button>
+                </div>
+                <span class="error-msg" id="username-error"></span>
+                <span class="success-msg" id="username-success"></span>
+            </div>
+
+            <!-- 비밀번호 -->
+            <div class="form-group">
+                <input type="password" id="password" class="form-control"
+                       placeholder="비밀번호 (문자+숫자+특수문자 8~20자)"
+                       oninput="checkPasswordStrength(); checkPasswordMatch();">
+                <span class="error-msg" id="password-error"></span>
+                <span class="success-msg" id="password-success"></span>
+            </div>
+
+            <!-- 비밀번호 확인 -->
+            <div class="form-group">
+                <input type="password" id="password-confirm" class="form-control"
+                       placeholder="비밀번호를 다시 입력해주세요." oninput="checkPasswordMatch()">
+                <span class="error-msg" id="password-confirm-error"></span>
+                <span class="success-msg" id="password-confirm-success"></span>
+            </div>
+
+            <!-- 이메일 + 인증메일 받기 -->
+            <div class="form-group">
+                <div class="form-row">
+                    <input type="email" id="email" class="form-control" placeholder="이메일 주소를 입력해주세요.">
+                    <button class="btn btn-outline btn-sm" onclick="sendEmailCode()">인증메일 받기</button>
+                </div>
+                <span class="error-msg" id="email-error"></span>
+            </div>
+
+            <!-- 인증번호 입력 -->
+            <div class="form-group" id="email-code-group" style="display:none;">
+                <div class="form-row">
+                    <input type="text" id="email-code" class="form-control" placeholder="인증번호 6자리">
+                    <button class="btn btn-outline btn-sm" onclick="verifyEmailCode()">인증 확인</button>
+                </div>
+                <span class="error-msg" id="email-code-error"></span>
+                <span class="success-msg" id="email-code-success"></span>
+            </div>
+
+            <button class="btn-auth" onclick="doSignup()">회원가입</button>
+        </form>
+
+        <div class="auth-footer">
+            이미 계정이 있으신가요? <a th:href="@{/user/login}">로그인</a>
         </div>
-        <span class="error-msg" id="username-error"></span>
-        <span class="success-msg" id="username-success"></span>
-    </div>
-
-    <!-- 비밀번호 -->
-    <div class="form-group">
-        <input type="password" id="password" class="form-control"
-               placeholder="비밀번호는 문자, 숫자, 특수문자 포함 8~20자 이내로 입력해주세요."
-               oninput="checkPasswordStrength()">
-        <span class="error-msg" id="password-error"></span>
-        <span class="success-msg" id="password-success"></span>
-    </div>
-
-    <!-- 비밀번호 확인 -->
-    <div class="form-group">
-        <input type="password" id="password-confirm" class="form-control" placeholder="비밀번호를 다시 입력해주세요.">
-        <span class="error-msg" id="password-confirm-error"></span>
-    </div>
-
-    <!-- 이메일 + 인증메일 받기 -->
-    <div class="form-group">
-        <div class="form-row">
-            <input type="email" id="email" class="form-control" placeholder="이메일 주소를 입력해주세요.">
-            <button class="btn btn-outline btn-sm" onclick="sendEmailCode()">인증메일 받기</button>
-        </div>
-        <span class="error-msg" id="email-error"></span>
-    </div>
-
-    <!-- 인증번호 입력 -->
-    <div class="form-group" id="email-code-group" style="display:none;">
-        <div class="form-row">
-            <input type="text" id="email-code" class="form-control" placeholder="이메일주소로 온 인증번호를 입력해주세요.">
-            <button class="btn btn-outline btn-sm" onclick="verifyEmailCode()">인증 확인</button>
-        </div>
-        <span class="error-msg" id="email-code-error"></span>
-        <span class="success-msg" id="email-code-success"></span>
-    </div>
-
-    <button class="btn btn-primary btn-block" style="margin-top:8px;" onclick="doSignup()">회원가입</button>
-
-    <div class="form-footer">
-        <a th:href="@{/}">홈으로 돌아가기</a>
     </div>
 </div>
 
@@ -83,16 +256,13 @@
     let usernameChecked = false;
     let emailVerified = false;
 
-    // 아이디 중복 확인
     function checkUsername() {
         const username = document.getElementById('username').value.trim();
         const error = document.getElementById('username-error');
         const success = document.getElementById('username-success');
         error.textContent = ''; success.textContent = '';
-
         if (!username) { error.textContent = '아이디를 입력해주세요.'; return; }
         if (username.length < 6 || username.length > 20) { error.textContent = '아이디는 6~20자 이내로 입력해주세요.'; return; }
-
         fetch('/user/checkUsername', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -110,13 +280,25 @@
             });
     }
 
-    // 비밀번호 강도 체크
+    function checkPasswordMatch() {
+        const pw = document.getElementById('password').value;
+        const confirm = document.getElementById('password-confirm').value;
+        const error = document.getElementById('password-confirm-error');
+        const success = document.getElementById('password-confirm-success');
+        error.textContent = ''; success.textContent = '';
+        if (!confirm) return;
+        if (pw === confirm) {
+            success.textContent = '일치합니다.';
+        } else {
+            error.textContent = '일치하지 않습니다.';
+        }
+    }
+
     function checkPasswordStrength() {
         const pw = document.getElementById('password').value;
         const error = document.getElementById('password-error');
         const success = document.getElementById('password-success');
         error.textContent = ''; success.textContent = '';
-
         if (!pw) return;
         const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
         if (!regex.test(pw)) {
@@ -126,14 +308,11 @@
         }
     }
 
-    // 이메일 인증메일 발송
     function sendEmailCode() {
         const email = document.getElementById('email').value.trim();
         const error = document.getElementById('email-error');
         error.textContent = '';
-
         if (!email) { error.textContent = '이메일을 입력해주세요.'; return; }
-
         fetch('/user/checkEmail', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -150,15 +329,12 @@
             });
     }
 
-    // 이메일 인증번호 확인
     function verifyEmailCode() {
         const code = document.getElementById('email-code').value.trim();
         const error = document.getElementById('email-code-error');
         const success = document.getElementById('email-code-success');
         error.textContent = ''; success.textContent = '';
-
         if (!code) { error.textContent = '인증번호를 입력해주세요.'; return; }
-
         fetch('/user/verifyEmailCode', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -166,7 +342,7 @@
         })
             .then(res => res.json())
             .then(data => {
-                if (data.result === 1) { // ← 수정
+                if (data.result === 1) {
                     success.textContent = '인증되었습니다.';
                     emailVerified = true;
                 } else {
@@ -175,7 +351,6 @@
             });
     }
 
-    // 회원가입
     function doSignup() {
         const name = document.getElementById('name').value.trim();
         const username = document.getElementById('username').value.trim();
@@ -195,17 +370,16 @@
         fetch('/user/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            // ← userId 추가, username도 함께 전송
             body: `userId=${encodeURIComponent(username)}&username=${encodeURIComponent(username)}&name=${encodeURIComponent(name)}&password=${encodeURIComponent(password)}&email=${encodeURIComponent(email)}`
         })
             .then(res => res.json())
             .then(data => {
-                if (data.result === 1) { // ← 수정
+                if (data.result === 1) {
                     document.getElementById('modal-msg').textContent = '회원가입 되셨습니다.';
                     document.getElementById('modal-btn').onclick = () => window.location.href = '/user/login';
                     document.getElementById('modal').classList.add('show');
                 } else {
-                    showModal(data.msg || '회원가입에 실패했습니다.'); // ← 수정
+                    showModal(data.msg || '회원가입에 실패했습니다.');
                 }
             });
     }

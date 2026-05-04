@@ -1,7 +1,7 @@
 package com.from.controller;
 
+import com.from.dto.BookSearchDTO;
 import com.from.dto.MsgDTO;
-import com.from.repository.entity.BookEntity;
 import com.from.service.IBookService;
 import com.from.service.IReviewService;
 import jakarta.servlet.http.HttpSession;
@@ -166,12 +166,12 @@ public class ReviewController {
                 (MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build());
 
         List<Map<String, Object>> result = new ArrayList<>();
-        for (BookEntity book : bookService.findByUserId(userId)) {
+        for (BookSearchDTO book : bookService.findByUserId(userId)) {
             Map<String, Object> bookData = new HashMap<>();
-            bookData.put("title",  book.getTitle());
-            bookData.put("author", book.getAuthor());
+            bookData.put("title",  book.title());
+            bookData.put("author", book.author());
             // 책 제목에 따라 이모지를 매핑 (일치하지 않으면 기본 📚)
-            bookData.put("emoji",  getEmojiForBook(book.getTitle()));
+            bookData.put("emoji",  getEmojiForBook(book.title()));
             result.add(bookData);
         }
 

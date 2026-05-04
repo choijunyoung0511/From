@@ -3,9 +3,9 @@ package com.from.controller;
 import com.from.domain.BookReviewDocument;
 import com.from.dto.MsgDTO;
 import com.from.dto.UserInfoDTO;
-import com.from.repository.BookReviewMongoRepository;
-import com.from.repository.entity.BookEntity;
+import com.from.dto.BookSearchDTO;
 import com.from.service.IBookService;
+import com.from.service.IReviewService;
 import com.from.service.IUserInfoService;
 import com.from.util.CmmUtil;
 import jakarta.servlet.http.Cookie;
@@ -19,10 +19,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 사용자 인증·계정·마이페이지·대시보드를 처리하는 컨트롤러.
@@ -40,7 +42,7 @@ import java.util.Map;
 public class UserInfoController {
 
     private final IUserInfoService userInfoService;
-    private final BookReviewMongoRepository bookReviewMongoRepository;
+    private final IReviewService reviewService;
     private final IBookService bookService;
 
     /**
@@ -101,9 +103,10 @@ public class UserInfoController {
             // 중복 이메일: 이미 사용 중임을 알림
             rDTO = UserInfoDTO.builder().existsYn("Y").build();
         } else {
-            // 인증번호 발송 성공: 세션에 인증번호와 대상 이메일 저장
-            session.setAttribute("emailCode",   code);   // 인증번호
-            session.setAttribute("emailTarget", email);  // 대상 이메일
+            // 인증번호 발송 성공: 세션에 인증번호, 발송 시각, 대상 이메일 저장
+            session.setAttribute("emailCode",     code);
+            session.setAttribute("emailCodeTime", LocalDateTime.now());
+            session.setAttribute("emailTarget",   email);
             rDTO = UserInfoDTO.builder().existsYn("N").build();
         }
 
@@ -123,11 +126,14 @@ public class UserInfoController {
 
         String code        = CmmUtil.nvl(request.getParameter("code"));
         String sessionCode = (String) session.getAttribute("emailCode");
+        LocalDateTime sentTime = (LocalDateTime) session.getAttribute("emailCodeTime");
 
         int res;
         String msg;
-        if (sessionCode != null && sessionCode.equals(code)) {
-            // 인증 성공: 이후 회원가입 요청 시 인증 여부를 확인하기 위한 플래그 저장
+        if (sentTime == null || LocalDateTime.now().isAfter(sentTime.plusMinutes(5))) {
+            res = 0;
+            msg = "인증번호가 만료되었습니다. 다시 요청해주세요.";
+        } else if (sessionCode != null && sessionCode.equals(code)) {
             session.setAttribute("emailVerified", true);
             res = 1;
             msg = "인증되었습니다.";
@@ -307,10 +313,10 @@ public class UserInfoController {
             res = 0;
             msg = "아이디 혹은 이메일을 찾을수 없습니다.";
         } else {
-            // 인증번호를 세션에 저장 (find-id.html의 STEP 2에서 검증)
-            session.setAttribute("findIdCode",  code);
-            session.setAttribute("findIdName",  name);
-            session.setAttribute("findIdEmail", email);
+            session.setAttribute("findIdCode",     code);
+            session.setAttribute("findIdCodeTime", LocalDateTime.now());
+            session.setAttribute("findIdName",     name);
+            session.setAttribute("findIdEmail",    email);
             res = 1;
             msg = "인증번호가 발송되었습니다.";
         }
@@ -332,14 +338,17 @@ public class UserInfoController {
 
         String code        = CmmUtil.nvl(request.getParameter("code"));
         String sessionCode = (String) session.getAttribute("findIdCode");
+        LocalDateTime sentTime = (LocalDateTime) session.getAttribute("findIdCodeTime");
         String name        = (String) session.getAttribute("findIdName");
         String email       = (String) session.getAttribute("findIdEmail");
 
         UserInfoDTO rDTO;
-        if (sessionCode != null && sessionCode.equals(code)) {
-            // 인증 성공: 아이디 조회 후 세션 데이터 초기화
-            String username = userInfoService.findUsername(name, email);
+        if (sentTime == null || LocalDateTime.now().isAfter(sentTime.plusMinutes(5))) {
+            rDTO = UserInfoDTO.builder().existsYn("EXPIRED").build();
+        } else if (sessionCode != null && sessionCode.equals(code)) {
+            String username = userInfoService.findUsername(name, email).orElse("");
             session.removeAttribute("findIdCode");
+            session.removeAttribute("findIdCodeTime");
             rDTO = UserInfoDTO.builder()
                     .userId(username)
                     .existsYn("Y")
@@ -387,9 +396,9 @@ public class UserInfoController {
             res = 0;
             msg = "아이디 혹은 이메일을 찾을수 없습니다.";
         } else {
-            // 인증번호와 대상 userId를 세션에 저장 (비밀번호 변경 시 사용)
-            session.setAttribute("findPwCode",   code);
-            session.setAttribute("findPwUserId", userId);
+            session.setAttribute("findPwCode",     code);
+            session.setAttribute("findPwCodeTime", LocalDateTime.now());
+            session.setAttribute("findPwUserId",   userId);
             res = 1;
             msg = "인증번호가 발송되었습니다.";
         }
@@ -411,10 +420,14 @@ public class UserInfoController {
 
         String code        = CmmUtil.nvl(request.getParameter("code"));
         String sessionCode = (String) session.getAttribute("findPwCode");
+        LocalDateTime sentTime = (LocalDateTime) session.getAttribute("findPwCodeTime");
 
         int res;
         String msg;
-        if (sessionCode != null && sessionCode.equals(code)) {
+        if (sentTime == null || LocalDateTime.now().isAfter(sentTime.plusMinutes(5))) {
+            res = 0;
+            msg = "인증번호가 만료되었습니다. 다시 요청해주세요.";
+        } else if (sessionCode != null && sessionCode.equals(code)) {
             session.setAttribute("findPwVerified", true);
             res = 1;
             msg = "인증되었습니다.";
@@ -476,11 +489,11 @@ public class UserInfoController {
         if (userId == null) return "redirect:/user/login";
 
         // 유저 기본 정보 조회 (이메일 AES 복호화 포함)
-        UserInfoDTO userInfo = userInfoService.getUserInfo(userId);
+        UserInfoDTO userInfo = userInfoService.getUserInfo(userId).orElse(null);
         model.addAttribute("user", userInfo);
 
         // 독후감 이력 조회 (MongoDB aireviews 컬렉션)
-        List<BookReviewDocument> reviews = bookReviewMongoRepository.findByUserId(userId);
+        List<BookReviewDocument> reviews = reviewService.getReviewsByUserId(userId);
         model.addAttribute("reviews", reviews);
 
         log.info("{}.user/mypage End!", this.getClass().getName());
@@ -520,16 +533,16 @@ public class UserInfoController {
         if (userId == null) return ResponseEntity.status(401).body(MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build());
 
         // 유저가 등록한 책 목록 조회 (createdAt = 등록 날짜, 대시보드의 날짜별 독서 기록으로 활용)
-        List<BookEntity> books = bookService.findByUserId(userId);
+        List<BookSearchDTO> books = bookService.findByUserId(userId);
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         List<Map<String, String>> bookList = books.stream()
                 .map(b -> {
                     Map<String, String> m = new HashMap<>();
-                    m.put("title",  b.getTitle());
-                    m.put("author", b.getAuthor());
-                    m.put("date",   b.getCreatedAt() != null
-                            ? b.getCreatedAt().format(fmt) : "");
+                    m.put("title",  b.title());
+                    m.put("author", b.author());
+                    m.put("date",   b.createdAt() != null
+                            ? b.createdAt().format(fmt) : "");
                     return m;
                 })
                 .toList();
@@ -553,7 +566,7 @@ public class UserInfoController {
         String userId = (String) session.getAttribute("SS_USER_ID");
 
         // MongoDB에서 유저의 독후감 이력 조회
-        List<BookReviewDocument> reviews = bookReviewMongoRepository.findByUserId(userId);
+        List<BookReviewDocument> reviews = reviewService.getReviewsByUserId(userId);
         model.addAttribute("reviews", reviews);
 
         log.info("{}.mypageReviews End!", this.getClass().getName());
