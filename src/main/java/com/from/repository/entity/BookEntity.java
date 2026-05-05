@@ -36,6 +36,14 @@ public class BookEntity {
     @Column(name = "cover_image")
     private String coverImage;
 
+    /** 알라딘 API가 제공하는 책 줄거리/소개 */
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    /** 알라딘 API가 제공하는 카테고리 경로 (예: 국내도서>소설/시/희곡>한국소설) */
+    @Column(name = "category")
+    private String category;
+
     /** 최초 등록 일시. updatable=false로 변경되지 않는다. 대시보드의 독서 날짜로 사용된다. */
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

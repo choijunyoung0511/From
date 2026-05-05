@@ -1,171 +1,245 @@
 package com.from.service.impl;
 
+// JSON 파싱을 위한 Jackson 라이브러리
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.from.dto.BookSearchDTO;
 import com.from.service.IAladinService;
+
 import lombok.extern.slf4j.Slf4j;
+
+// Spring Bean 등록
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
+// 외부 API 호출용 HTTP 클라이언트
+import org.springframework.web.reactive.function.client.WebClient;
+
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 알라딘 오픈 API 서비스 구현체.
- * 알라딘 API는 XML 형식으로 응답하므로 DOM 파서로 파싱하여 BookSearchDTO로 변환한다.
- */
+//책검색,베스트셀러,표지이미지 조회
 @Slf4j
 @Service
 public class AladinService implements IAladinService {
 
-    /** application.properties의 aladin.api.key 값 주입 */
     @Value("${aladin.api.key}")
     private String apiKey;
 
-    /**
-     * 알라딘 책 검색 API(ItemSearch)를 호출하여 검색 결과를 반환한다.
-     * 검색 유형(Title/Author/Keyword)에 따라 QueryType 파라미터를 변환한다.
-     *
-     * @param query 검색어
-     * @param type  검색 유형 (Title / Author / Keyword)
-     * @return 검색 결과 (최대 10건)
-     */
+   //jackson
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+
+     // 알라딘 책 검색 API 호출
+     //Controller → AladinService.searchBooks()
+     //알라딘 API 호출
+     //JSON 결과 수신
+     //DTO로 변환
     @Override
     public List<BookSearchDTO> searchBooks(String query, String type) {
+
         log.info("{}.searchBooks Start! - query:{}, type:{}", this.getClass().getName(), query, type);
+
+       //제목,저자,키워드
+        String queryType = switch (type) {
+            case "Title"  -> "Title";
+            case "Author" -> "Author";
+            default       -> "Keyword";
+        };
+
         List<BookSearchDTO> result = new ArrayList<>();
+
         try {
-            // 프론트에서 받은 type을 알라딘 API 파라미터 값으로 변환
-            String queryType = switch (type) {
-                case "Title"  -> "Title";
-                case "Author" -> "Author";
-                default       -> "Keyword";
-            };
 
-            // 알라딘 ItemSearch API 호출 (WebClient: 비동기 HTTP 클라이언트)
-            String xml = WebClient.create("https://www.aladin.co.kr").get()
+           //웹 클라이언트로 api 호출
+            String json = WebClient.create("https://www.aladin.co.kr").get()
+
+                    // API 경로
                     .uri(b -> b.path("/ttb/api/ItemSearch.aspx")
-                            .queryParam("TTBKey",      apiKey)
-                            .queryParam("Query",       query)
-                            .queryParam("QueryType",   queryType)
-                            .queryParam("MaxResults",  10)
-                            .queryParam("SearchTarget","Book")
-                            .queryParam("output",      "xml")
-                            .queryParam("Version",     "20131101")
-                            .build())
-                    .retrieve().bodyToMono(String.class).block();
 
-            // XML 응답에서 <item> 태그를 파싱하여 BookSearchDTO로 변환
-            NodeList items = parseXml(xml).getElementsByTagName("item");
-            for (int i = 0; i < items.getLength(); i++) {
-                Element item = (Element) items.item(i);
-                result.add(BookSearchDTO.builder()
-                        .title(getTagValue("title",  item))
-                        .author(getTagValue("author", item))
-                        .cover(getTagValue("cover",  item))
-                        .isbn(getTagValue("isbn13", item))
-                        .build());
-            }
+                            // API 인증 키
+                            .queryParam("TTBKey", apiKey)
+
+                            // 검색어
+                            .queryParam("Query", query)
+
+                            // 검색 타입
+                            .queryParam("QueryType", queryType)
+
+                            // 최대 결과 수
+                            .queryParam("MaxResults", 10)
+
+                            // 검색 대상
+                            .queryParam("SearchTarget", "Book")
+
+                            // JSON 응답
+                            .queryParam("output", "JS")
+
+                            // API 버전
+                            .queryParam("Version", "20131101")
+
+                            .build())
+
+                    // API 요청 실행
+                    .retrieve()
+
+                    // 응답을 String(JSON)으로 받음
+                    .bodyToMono(String.class)
+
+                    // 비동기 → 동기 처리
+                    .block();
+
+          //json -> dto
+            result = parseItems(json);
+
         } catch (Exception e) {
+
+            // API 호출 실패 로그
             log.error("알라딘 검색 오류", e);
         }
+
         log.info("{}.searchBooks End! - {}건", this.getClass().getName(), result.size());
+
         return result;
     }
 
-    /**
-     * 알라딘 베스트셀러 API(ItemList)를 호출하여 Top 10을 반환한다.
-     *
-     * @return 베스트셀러 목록 (최대 10건)
-     */
+    //베스트 셀러
     @Override
     public List<BookSearchDTO> getBestseller() {
-        log.info("{}.getBestseller Start!", this.getClass().getName());
-        List<BookSearchDTO> result = new ArrayList<>();
-        try {
-            String xml = WebClient.create("https://www.aladin.co.kr").get()
-                    .uri(b -> b.path("/ttb/api/ItemList.aspx")
-                            .queryParam("TTBKey",      apiKey)
-                            .queryParam("QueryType",   "Bestseller")
-                            .queryParam("MaxResults",  10)
-                            .queryParam("SearchTarget","Book")
-                            .queryParam("output",      "xml")
-                            .queryParam("Version",     "20131101")
-                            .build())
-                    .retrieve().bodyToMono(String.class).block();
 
-            NodeList items = parseXml(xml).getElementsByTagName("item");
-            for (int i = 0; i < items.getLength(); i++) {
-                Element item = (Element) items.item(i);
-                result.add(BookSearchDTO.builder()
-                        .title(getTagValue("title",  item))
-                        .author(getTagValue("author", item))
-                        .cover(getTagValue("cover",  item))
-                        .isbn(getTagValue("isbn13", item))
-                        .build());
-            }
+        log.info("{}.getBestseller Start!", this.getClass().getName());
+
+        List<BookSearchDTO> result = new ArrayList<>();
+
+        try {
+
+           //알라딘 api 호출
+            String json = WebClient.create("https://www.aladin.co.kr").get()
+
+                    .uri(b -> b.path("/ttb/api/ItemList.aspx")
+
+                            .queryParam("TTBKey", apiKey)
+
+                            // 베스트셀러 조회
+                            .queryParam("QueryType", "Bestseller")
+
+                            .queryParam("MaxResults", 10)
+
+                            .queryParam("SearchTarget", "Book")
+
+                            .queryParam("output", "JS")
+
+                            .queryParam("Version", "20131101")
+
+                            .build())
+
+                    .retrieve()
+
+                    .bodyToMono(String.class)
+
+                    .block();
+
+            //json -> dto
+            result = parseItems(json);
+
         } catch (Exception e) {
+
             log.error("베스트셀러 API 오류", e);
         }
+
         log.info("{}.getBestseller End! - {}건", this.getClass().getName(), result.size());
+
         return result;
     }
 
-    /**
-     * 책 제목으로 표지 이미지 URL을 1건 조회한다.
-     * AI 추천 결과에 표지를 붙일 때 사용하며, 없으면 빈 문자열을 반환한다.
-     */
+    //제목으로 표지 이미지 조회
     @Override
     public String searchCover(String title) {
-        try {
-            String xml = WebClient.create("https://www.aladin.co.kr").get()
-                    .uri(b -> b.path("/ttb/api/ItemSearch.aspx")
-                            .queryParam("TTBKey",      apiKey)
-                            .queryParam("Query",       title)
-                            .queryParam("QueryType",   "Title")
-                            .queryParam("MaxResults",  1)
-                            .queryParam("SearchTarget","Book")
-                            .queryParam("output",      "xml")
-                            .queryParam("Version",     "20131101")
-                            .build())
-                    .retrieve().bodyToMono(String.class).block();
 
-            NodeList items = parseXml(xml).getElementsByTagName("item");
-            if (items.getLength() > 0) return getTagValue("cover", (Element) items.item(0));
+        try {
+
+            String json = WebClient.create("https://www.aladin.co.kr").get()
+
+                    .uri(b -> b.path("/ttb/api/ItemSearch.aspx")
+
+                            .queryParam("TTBKey", apiKey)
+
+                            // 제목 검색
+                            .queryParam("Query", title)
+
+                            .queryParam("QueryType", "Title")
+
+                            // 결과 1개만
+                            .queryParam("MaxResults", 1)
+
+                            .queryParam("SearchTarget", "Book")
+
+                            .queryParam("output", "JS")
+
+                            .queryParam("Version", "20131101")
+
+                            .build())
+
+                    .retrieve()
+
+                    .bodyToMono(String.class)
+
+                    .block();
+
+            //json -> dto반환
+            List<BookSearchDTO> items = parseItems(json);
+
+            //첫번째 표지
+            if (!items.isEmpty())
+                return items.get(0).cover();
+
         } catch (Exception e) {
+
             log.error("알라딘 표지 검색 오류: {}", title, e);
         }
+
         return "";
     }
 
-    /**
-     * XML 문자열을 DOM Document로 파싱한다.
-     */
-    private Document parseXml(String xml) throws Exception {
-        DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        return builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
-    }
+    //JSON 데이터를 BookSearchDTO 리스트로 변환하는 메서드
+    // {
+    //            "title":"책 제목",
+    //            "author":"저자",
+    //            "cover":"이미지 URL",
+    //            "isbn13":"ISBN국제번호"
+    //         }
+    private List<BookSearchDTO> parseItems(String json) throws Exception {
 
-    /**
-     * XML Element에서 특정 태그의 텍스트 값을 추출한다.
-     * 태그가 없거나 텍스트가 없으면 빈 문자열을 반환한다.
-     *
-     * @param tag     추출할 태그명 (예: "title", "author", "cover")
-     * @param element 검색 대상 XML 엘리먼트
-     * @return 태그 텍스트 값 또는 빈 문자열
-     */
-    private String getTagValue(String tag, Element element) {
-        NodeList list = element.getElementsByTagName(tag);
-        if (list.getLength() > 0 && list.item(0).getChildNodes().getLength() > 0) {
-            return list.item(0).getChildNodes().item(0).getNodeValue();
+        List<BookSearchDTO> result = new ArrayList<>();
+
+        // JSON 문자열 → JSON 트리 구조 변환
+        JsonNode root = objectMapper.readTree(json);
+
+        // item 배열 가져오기
+        JsonNode items = root.path("item");
+
+        // 각 책 데이터 반복
+        for (JsonNode item : items) {
+
+            // DTO 생성
+            result.add(BookSearchDTO.builder()
+
+                    .title(item.path("title").asText(""))
+
+                    .author(item.path("author").asText(""))
+
+                    .cover(item.path("cover").asText(""))
+
+                    .isbn(item.path("isbn13").asText(""))
+
+                    .description(item.path("description").asText(""))
+
+                    .category(item.path("categoryName").asText(""))
+
+                    .build());
         }
-        return "";
+
+        return result;
     }
 }

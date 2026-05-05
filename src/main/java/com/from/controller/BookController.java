@@ -2,9 +2,11 @@ package com.from.controller;
 
 import com.from.dto.BookSearchDTO;
 import com.from.dto.MsgDTO;
+import com.from.dto.RecommendSectionDTO;
 import com.from.service.IAladinService;
 import com.from.service.IBookService;
 import com.from.service.IReviewService;
+import com.from.service.impl.RankingRedisService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,14 +18,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
-/**
- * 책 검색·등록·AI 추천을 처리하는 컨트롤러.
- * /book/** 경로는 LoginInterceptor가 인증을 검사한다.
- */
 @Slf4j
 @Controller
 @RequestMapping("/book")
@@ -33,11 +37,8 @@ public class BookController {
     private final IBookService bookService;
     private final IAladinService aladinService;
     private final IReviewService reviewService;
+    private final RankingRedisService rankingRedisService;
 
-    /**
-     * 책 등록 화면을 반환한다.
-     * 알라딘 API로 책을 검색하고 내 서재에 등록하는 페이지이다.
-     */
     @GetMapping("/register")
     public String register(HttpSession session) {
         log.info("{}.register Start!", this.getClass().getName());
@@ -46,10 +47,6 @@ public class BookController {
         return "book/register";
     }
 
-    /**
-     * AI 책 추천 화면을 반환한다.
-     * 유저의 독서 이력을 GPT에 전달하여 5권을 추천받는 페이지이다.
-     */
     @GetMapping("/recommend")
     public String recommendPage(HttpSession session) {
         log.info("{}.recommendPage Start!", this.getClass().getName());
@@ -59,11 +56,100 @@ public class BookController {
     }
 
     /**
-     * GPT 기반 AI 책 추천 결과를 JSON으로 반환한다. (비동기 AJAX)
-     * 유저의 독서 이력을 GPT에 전달하여 [{title, author, reason, cover}] 형태로 반환한다.
-     *
-     * @return 추천 책 목록 또는 오류 MsgDTO
+     * 섹션형 맞춤 추천 (작가의 다른 책 + 카테고리 기반)
+     * 알라딘 API를 병렬로 4회 호출하여 List<RecommendSectionDTO>를 반환한다.
      */
+    @GetMapping("/section-recommend")
+    @ResponseBody
+    public ResponseEntity<?> getSectionRecommend(HttpSession session) {
+        log.info("{}.getSectionRecommend Start!", this.getClass().getName());
+
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) {
+            return ResponseEntity.status(401).body(List.of());
+        }
+
+        List<BookSearchDTO> readBooks = bookService.findByUserId(userId);
+        if (readBooks.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        // 이미 읽은 책 제목 집합 (소문자 정규화, 중복 제거용)
+        Set<String> readTitles = readBooks.stream()
+                .map(b -> b.title().toLowerCase().trim())
+                .collect(Collectors.toSet());
+
+        // 최근 등록 순 작가 상위 2명
+        List<String> topAuthors = readBooks.stream()
+                .sorted(Comparator.comparing(BookSearchDTO::createdAt,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .map(b -> cleanAuthor(b.author()))
+                .filter(a -> !a.isBlank())
+                .distinct()
+                .limit(2)
+                .toList();
+
+        // 카테고리 빈도 상위 2개
+        List<String> topCategories = readBooks.stream()
+                .map(b -> extractLeafCategory(b.category()))
+                .filter(c -> !c.isBlank())
+                .collect(Collectors.groupingBy(c -> c, Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(2)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        // 알라딘 API 병렬 호출
+        List<CompletableFuture<RecommendSectionDTO>> futures = new ArrayList<>();
+
+        for (String author : topAuthors) {
+            futures.add(CompletableFuture.supplyAsync(() -> {
+                List<BookSearchDTO> results = aladinService.searchBooks(author, "Author");
+                List<BookSearchDTO> filtered = results.stream()
+                        .filter(b -> !readTitles.contains(b.title().toLowerCase().trim()))
+                        .limit(6)
+                        .toList();
+                return RecommendSectionDTO.builder()
+                        .type("author")
+                        .label(author + " 작가의 다른 책")
+                        .icon("✍️")
+                        .books(filtered)
+                        .build();
+            }));
+        }
+
+        for (String category : topCategories) {
+            futures.add(CompletableFuture.supplyAsync(() -> {
+                List<BookSearchDTO> results = aladinService.searchBooks(category, "Keyword");
+                List<BookSearchDTO> filtered = results.stream()
+                        .filter(b -> !readTitles.contains(b.title().toLowerCase().trim()))
+                        .limit(6)
+                        .toList();
+                return RecommendSectionDTO.builder()
+                        .type("category")
+                        .label(category + " 추천")
+                        .icon("📚")
+                        .books(filtered)
+                        .build();
+            }));
+        }
+
+        List<RecommendSectionDTO> sections = futures.stream()
+                .map(f -> {
+                    try { return f.get(30, TimeUnit.SECONDS); }
+                    catch (Exception e) {
+                        log.error("섹션 추천 조회 오류", e);
+                        return null;
+                    }
+                })
+                .filter(s -> s != null && !s.books().isEmpty())
+                .toList();
+
+        log.info("{}.getSectionRecommend End! - {}섹션", this.getClass().getName(), sections.size());
+        return ResponseEntity.ok(sections);
+    }
+
     @GetMapping("/ai-recommend")
     @ResponseBody
     public ResponseEntity<?> getAiRecommend(HttpSession session) {
@@ -82,13 +168,6 @@ public class BookController {
         }
     }
 
-    /**
-     * 알라딘 API로 책을 검색하여 결과를 JSON으로 반환한다. (비동기 AJAX)
-     *
-     * @param query 검색어
-     * @param type  검색 유형 (Keyword, Title, Author)
-     * @return [{title, author, cover, isbn}] 형태의 검색 결과 목록
-     */
     @GetMapping("/search")
     @ResponseBody
     public List<BookSearchDTO> searchBooks(@RequestParam String query,
@@ -99,12 +178,6 @@ public class BookController {
         return result;
     }
 
-    /**
-     * 알라딘 베스트셀러 Top 10을 JSON으로 반환한다. (비동기 AJAX)
-     * 책 등록 화면에서 "베스트셀러" 탭을 눌렀을 때 호출된다.
-     *
-     * @return 베스트셀러 목록
-     */
     @GetMapping("/bestseller")
     @ResponseBody
     public List<BookSearchDTO> getBestseller() {
@@ -114,21 +187,13 @@ public class BookController {
         return result;
     }
 
-    /**
-     * 책을 내 서재에 등록한다. (비동기 AJAX, POST)
-     * DB에 같은 제목+저자의 책이 없으면 새로 저장하고, 있으면 기존 책에 연결한다.
-     * 이미 등록된 책이면 MsgDTO(result=0)를 반환한다.
-     *
-     * @param title  책 제목
-     * @param author 저자명
-     * @param cover  표지 이미지 URL (선택)
-     * @return {result:1, msg:"등록되었습니다."} 또는 오류 MsgDTO
-     */
     @PostMapping("/register")
     @ResponseBody
     public MsgDTO registerBook(@RequestParam String title,
                                @RequestParam String author,
-                               @RequestParam(required = false) String cover,
+                               @RequestParam(required = false, defaultValue = "") String cover,
+                               @RequestParam(required = false, defaultValue = "") String description,
+                               @RequestParam(required = false, defaultValue = "") String category,
                                HttpSession session) {
         log.info("{}.registerBook Start!", this.getClass().getName());
 
@@ -137,15 +202,17 @@ public class BookController {
 
         MsgDTO dto;
         try {
-            // DB에 같은 책이 있으면 재사용, 없으면 새로 저장
             Optional<BookSearchDTO> existing = bookService.findByTitleAndAuthor(title, author);
-            BookSearchDTO book = existing.orElseGet(() -> bookService.save(title, author, cover));
+            BookSearchDTO book = existing.orElseGet(() -> bookService.save(title, author, cover, description, category));
 
-            // 유저-책 연결 저장 (이미 등록된 경우 false 반환)
             boolean registered = bookService.saveUserBook(userId, book.bookId());
-            dto = registered
-                    ? MsgDTO.builder().result(1).msg("등록되었습니다.").build()
-                    : MsgDTO.builder().result(0).msg("이미 등록된 책입니다.").build();
+
+            if (registered) {
+                rankingRedisService.incrementBookCount(userId);
+                dto = MsgDTO.builder().result(1).msg("등록되었습니다.").build();
+            } else {
+                dto = MsgDTO.builder().result(0).msg("이미 등록된 책입니다.").build();
+            }
 
         } catch (Exception e) {
             log.error("책 등록 오류", e);
@@ -154,5 +221,21 @@ public class BookController {
 
         log.info("{}.registerBook End!", this.getClass().getName());
         return dto;
+    }
+
+    /** "김훈 (지은이)" → "김훈", 여러 저자면 첫 번째만 */
+    private String cleanAuthor(String raw) {
+        if (raw == null || raw.isBlank()) return "";
+        int parenIdx = raw.indexOf('(');
+        String name = (parenIdx > 0 ? raw.substring(0, parenIdx) : raw).trim();
+        int commaIdx = name.indexOf(',');
+        return (commaIdx > 0 ? name.substring(0, commaIdx) : name).trim();
+    }
+
+    /** "국내도서>소설/시/희곡>한국소설" → "한국소설" */
+    private String extractLeafCategory(String categoryName) {
+        if (categoryName == null || categoryName.isBlank()) return "";
+        String[] parts = categoryName.split(">");
+        return parts[parts.length - 1].trim();
     }
 }

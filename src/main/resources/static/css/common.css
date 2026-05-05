@@ -18,7 +18,10 @@ body.auth-page {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: url('/images/library.png') center/cover no-repeat;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(59,130,246,0.20), transparent 22%),
+        radial-gradient(circle at 85% 10%, rgba(96,165,250,0.24), transparent 20%),
+        linear-gradient(180deg, #edf3ff 0%, #f8fbff 45%, #ffffff 100%);
     min-height: 100vh;
 }
 

@@ -379,7 +379,9 @@
                     list.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">검색 결과가 없습니다.</p>';
                     return;
                 }
-                list.innerHTML = books.map(book => `
+                // description은 onclick 인라인 문자열에 넣으면 따옴표/개행으로 깨질 수 있어
+                // data 속성에 저장하고 버튼 클릭 시 dataset으로 읽는 방식 사용
+                list.innerHTML = books.map((book, idx) => `
                     <div class="book-item">
                         ${book.cover
                             ? `<img src="${book.cover}" class="book-cover-sm" alt="표지">`
@@ -388,22 +390,29 @@
                             <div class="book-title">${book.title}</div>
                             <div class="book-author">${book.author || ''}</div>
                         </div>
-                        <button class="register-btn" onclick="registerBook(
-                            '${book.title.replace(/'/g, "\\'")}',
-                            '${(book.author||'').replace(/'/g, "\\'")}',
-                            '${(book.cover||'').replace(/'/g, "\\'")}',
-                            '${(book.isbn||'').replace(/'/g, "\\'")}'
-                        )">등록하기</button>
+                        <button class="register-btn"
+                            data-title="${(book.title||'').replace(/"/g, '&quot;')}"
+                            data-author="${(book.author||'').replace(/"/g, '&quot;')}"
+                            data-cover="${(book.cover||'').replace(/"/g, '&quot;')}"
+                            data-description="${(book.description||'').replace(/"/g, '&quot;')}"
+                            data-category="${(book.category||'').replace(/"/g, '&quot;')}"
+                            onclick="registerBook(this)">등록하기</button>
                     </div>
                 `).join('');
             });
     }
 
-    function registerBook(title, author, cover, isbn) {
+    function registerBook(btn) {
+        const title       = btn.dataset.title;
+        const author      = btn.dataset.author;
+        const cover       = btn.dataset.cover;
+        const description = btn.dataset.description;
+        const category    = btn.dataset.category;
+
         fetch('/book/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&cover=${encodeURIComponent(cover)}&isbn=${encodeURIComponent(isbn)}`
+            body: `title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&cover=${encodeURIComponent(cover)}&description=${encodeURIComponent(description)}&category=${encodeURIComponent(category)}`
         })
         .then(res => res.json())
         .then(data => {

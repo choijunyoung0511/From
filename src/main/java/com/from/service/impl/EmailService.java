@@ -1,76 +1,219 @@
 package com.from.service.impl;
 
+// 이메일 발송 서비스 인터페이스
 import com.from.service.IEmailService;
+
+// Java Mail 라이브러리 (이메일 메시지 객체)
 import jakarta.mail.internet.MimeMessage;
+
+// Lombok (생성자 자동 생성)
 import lombok.RequiredArgsConstructor;
+
+// Lombok (로그 객체 자동 생성)
 import lombok.extern.slf4j.Slf4j;
+
+// application.properties 값 주입
 import org.springframework.beans.factory.annotation.Value;
+
+// Spring Boot 이메일 발송 객체
 import org.springframework.mail.javamail.JavaMailSender;
+
+// 이메일 설정을 쉽게 해주는 헬퍼 클래스
 import org.springframework.mail.javamail.MimeMessageHelper;
+
+// Service Bean 등록
 import org.springframework.stereotype.Service;
 
+
 /**
- * 이메일 발송 서비스
- * - 회원가입 인증번호 발송
- * - 아이디 찾기 인증번호 발송
- * - 비밀번호 찾기 인증번호 발송
+ * EmailService
+ *
+ * 위치
+ * Service 계층
+ *
+ * Controller → Service → SMTP 서버
+ *
+ * 역할
+ * 이메일 인증번호를 실제로 발송하는 서비스
+ *
+ * 사용되는 곳
+ * - 회원가입 이메일 인증
+ * - 아이디 찾기 인증
+ * - 비밀번호 찾기 인증
+ *
+ * 전체 흐름
+ *
+ * Controller
+ *      ↓
+ * EmailService.sendVerificationCode()
+ *      ↓
+ * JavaMailSender
+ *      ↓
+ * SMTP 서버
+ *      ↓
+ * 사용자 이메일
  */
-@Slf4j
-@Service
-@RequiredArgsConstructor
+
+@Slf4j // 로그 객체 생성 (log.info(), log.error())
+@Service // Spring Bean 등록 → Controller에서 주입 가능
+@RequiredArgsConstructor // final 필드 생성자 자동 생성
 public class EmailService implements IEmailService {
 
+
+    /**
+     * JavaMailSender
+     *
+     * Spring Boot Mail 라이브러리가 제공하는 이메일 발송 객체
+     *
+     * 역할
+     * SMTP 서버를 통해 실제 이메일을 보내는 기능 수행
+     *
+     * 예
+     *
+     * JavaMailSender
+     *      ↓
+     * Gmail SMTP
+     *      ↓
+     * 사용자 이메일
+     */
     private final JavaMailSender mailSender;
 
+
+    /**
+     * application.properties 또는 application.yml에서
+     * 발신 이메일 주소를 가져온다
+     *
+     * 예
+     *
+     * spring.mail.username=noreply@from.com
+     *
+     * 이 값이 이메일 발신자(from)가 된다
+     */
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+
     /**
-     * 인증번호 이메일 발송
-     * @param toEmail  수신 이메일
-     * @param code     6자리 인증번호
-     * @param purpose  목적 (SIGNUP / FIND_ID / FIND_PASSWORD)
+     * 이메일 인증번호 발송 메서드
+     *
+     * Controller에서 호출되는 메서드
+     *
+     * 예
+     *
+     * UserController
+     *      ↓
+     * emailService.sendVerificationCode()
+     *      ↓
+     * EmailService
+     *      ↓
+     * JavaMailSender
+     *      ↓
+     * SMTP 서버
+     *      ↓
+     * 사용자 이메일
+     *
+     * @param toEmail  받는 이메일 주소
+     * @param code     인증번호
+     * @param purpose  이메일 목적
+     *
+     * purpose 값
+     *
+     * SIGNUP        → 회원가입 인증
+     * FIND_ID       → 아이디 찾기
+     * FIND_PASSWORD → 비밀번호 찾기
      */
     @Override
     public void sendVerificationCode(String toEmail, String code, String purpose) {
+
         try {
+
+            // 이메일 제목 생성
             String subject = getSubject(purpose);
+
+            // HTML 이메일 내용 생성
             String content = getContent(code, purpose);
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
+            MimeMessage message = mailSender.createMimeMessage();
+
+
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true, "UTF-8");
+
+
+            // 발신 이메일 설정
             helper.setFrom(fromEmail);
+
+            // 수신 이메일 설정
             helper.setTo(toEmail);
+
+            // 이메일 제목 설정
             helper.setSubject(subject);
+
+            // 이메일 내용 설정
+            // true → HTML 이메일
             helper.setText(content, true);
 
+
             mailSender.send(message);
-            log.info("이메일 발송 성공 - from: {}, to: {}, purpose: {}", fromEmail, toEmail, purpose);
+
+
+            // 이메일 발송 성공 로그
+            log.info("이메일 발송 성공 - from: {}, to: {}, purpose: {}",
+                    fromEmail, toEmail, purpose);
 
         } catch (Exception e) {
-            log.error("이메일 발송 실패 - from: {}, to: {}, error: {}", fromEmail, toEmail, e.getMessage());
+
+            // 이메일 발송 실패 로그
+            log.error("이메일 발송 실패 - from: {}, to: {}, error: {}",
+                    fromEmail, toEmail, e.getMessage());
+
+            // Service 계층 예외 발생
             throw new RuntimeException("이메일 발송에 실패했습니다.", e);
         }
     }
 
-    // 목적별 이메일 제목
+
     private String getSubject(String purpose) {
+
         return switch (purpose) {
-            case "SIGNUP"          -> "[FROM] 회원가입 이메일 인증번호";
-            case "FIND_ID"         -> "[FROM] 아이디 찾기 인증번호";
-            case "FIND_PASSWORD"   -> "[FROM] 비밀번호 찾기 인증번호";
-            default                -> "[FROM] 인증번호";
+
+            // 회원가입 인증 메일
+            case "SIGNUP" ->
+                    "[FROM] 회원가입 이메일 인증번호";
+
+            // 아이디 찾기 인증 메일
+            case "FIND_ID" ->
+                    "[FROM] 아이디 찾기 인증번호";
+
+            // 비밀번호 찾기 인증 메일
+            case "FIND_PASSWORD" ->
+                    "[FROM] 비밀번호 찾기 인증번호";
+
+            // 기본값
+            default ->
+                    "[FROM] 인증번호";
         };
     }
 
-    // 목적별 이메일 본문 (HTML)
+
     private String getContent(String code, String purpose) {
+
+
+        // 이메일 목적에 따라 제목 문구 변경
         String title = switch (purpose) {
-            case "SIGNUP"          -> "회원가입 이메일 인증";
-            case "FIND_ID"         -> "아이디 찾기 인증";
-            case "FIND_PASSWORD"   -> "비밀번호 찾기 인증";
-            default                -> "이메일 인증";
+
+            case "SIGNUP" ->
+                    "회원가입 이메일 인증";
+
+            case "FIND_ID" ->
+                    "아이디 찾기 인증";
+
+            case "FIND_PASSWORD" ->
+                    "비밀번호 찾기 인증";
+
+            default ->
+                    "이메일 인증";
         };
 
         return """

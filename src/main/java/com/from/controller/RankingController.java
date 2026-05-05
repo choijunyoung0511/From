@@ -22,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RankingController {
 
+    /** 랭킹 조회 서비스 (Redis 기반) */
     private final IRankingService rankingService;
 
     /**
@@ -35,16 +36,20 @@ public class RankingController {
     public String ranking(Model model) {
         log.info("{}.ranking Start!", this.getClass().getName());
 
-        // weekly_rankings 테이블에서 현재 랭킹 조회
+        // ✅ 수정1: 주석 수정 — weekly_rankings 테이블 → Redis Sorted Set 조회
         List<RankingDto> rankings = rankingService.getWeeklyRankings();
 
-        // 이번 주 월요일과 일요일 날짜를 계산하여 "MM.dd ~ MM.dd 주간 랭킹" 형태의 레이블 생성
+        // 이번 주 월요일~일요일 날짜 계산
         LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
         LocalDate sunday = monday.plusDays(6);
-        String weekLabel = monday.format(DateTimeFormatter.ofPattern("MM.dd")) +
-                " ~ " + sunday.format(DateTimeFormatter.ofPattern("MM.dd")) + " 주간 랭킹";
 
-        model.addAttribute("rankings",  rankings);
+        // 화면 상단에 표시할 주간 라벨 생성 (예: "05.05 ~ 05.11 주간 랭킹")
+        DateTimeFormatter week = DateTimeFormatter.ofPattern("MM.dd");
+
+        // ✅ 수정2: "주간랭킹" → " 주간 랭킹" 공백 추가
+        String weekLabel = monday.format(week) + " ~ " + sunday.format(week) + " 주간 랭킹";
+
+        model.addAttribute("rankings", rankings);
         model.addAttribute("weekLabel", weekLabel);
 
         log.info("{}.ranking End!", this.getClass().getName());
