@@ -165,40 +165,85 @@
             margin-bottom: 40px;
         }
 
-        .sub-cards {
+        /* 섹션 레이블 */
+        .studio-section { margin-bottom: 18px; }
+        .studio-section-label {
             display: flex;
-            gap: 24px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 32px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
         }
+        .studio-section-bar {
+            display: inline-block;
+            width: 3px; height: 13px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .studio-section-bar.blue  { background: #6071E3; }
+        .studio-section-bar.amber { background: #f59e0b; }
+        .studio-section-text {
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+        }
+        .studio-section-badge {
+            font-size: 10px;
+            border-radius: 99px;
+            padding: 2px 9px;
+            font-weight: 700;
+        }
+        .studio-section-badge.blue  { background: #eef1fe; color: #6071E3; }
+        .studio-section-badge.amber { background: #fff7ed; color: #d97706; }
+
+        /* AI 카드 그리드 */
+        .ai-cards { display: flex; gap: 14px; }
 
         .sub-card {
+            flex: 1;
             background: #f8f9ff;
-            border: 2px solid #e4e7f0;
-            border-radius: 20px;
-            padding: 36px 28px;
-            width: 180px;
+            border: 1.5px solid #e4e7f0;
+            border-radius: 18px;
+            padding: 26px 20px;
             text-align: center;
             cursor: pointer;
             text-decoration: none;
-            transition: all 0.25s;
+            transition: all .22s ease;
         }
         .sub-card:hover {
             border-color: #6071E3;
             background: #eef1fe;
             transform: translateY(-6px);
-            box-shadow: 0 10px 28px rgba(96,113,227,0.2);
+            box-shadow: 0 12px 32px rgba(96,113,227,.2);
         }
 
-        .sub-card-icon { font-size: 48px; margin-bottom: 14px; }
+        .sub-card-icon  { font-size: 40px; margin-bottom: 12px; }
+        .sub-card-title { font-size: 15px; font-weight: 700; color: #1a1d2e; margin-bottom: 6px; }
+        .sub-card-desc  { font-size: 12px; color: #9ca3af; line-height: 1.6; }
 
-        .sub-card-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #333;
-            line-height: 1.4;
+        /* 맞춤 추천 카드 (가로형) */
+        .recommend-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #fffbf5;
+            border: 1.5px solid #fde68a;
+            border-radius: 18px;
+            padding: 18px 24px;
+            text-decoration: none;
+            transition: all .22s ease;
         }
+        .recommend-card:hover {
+            border-color: #f59e0b;
+            background: #fff7ed;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 28px rgba(245,158,11,.15);
+        }
+        .recommend-card-icon  { font-size: 28px; flex-shrink: 0; }
+        .recommend-card-title { font-size: 15px; font-weight: 700; color: #1a1d2e; margin-bottom: 4px; }
+        .recommend-card-desc  { font-size: 12px; color: #9ca3af; line-height: 1.6; }
+        .recommend-card-arrow { margin-left: auto; font-size: 22px; color: #d97706; font-weight: 300; }
 
         .modal-close-btn {
             background: none;
@@ -247,7 +292,7 @@
         <nav class="main-nav">
             <a th:href="@{/book/register}">책 등록</a>
             <a th:href="@{/ranking}">랭킹</a>
-            <a href="javascript:void(0)" onclick="openAiModal()">AI독서</a>
+            <a href="javascript:void(0)" onclick="openAiModal()">독서 스튜디오</a>
             <a th:href="@{/user/mypage}">마이페이지</a>
         </nav>
         <form th:action="@{/user/logout}" method="post" style="display:inline;">
@@ -271,35 +316,60 @@
             <img th:src="@{/images/image 11.png}" alt="랭킹 보기">
             <div class="service-card-title">랭킹 보기</div>
         </a>
-        <!-- AI 독서 → 클릭 시 모달 오픈 -->
+        <!-- 독서 스튜디오 → 클릭 시 모달 오픈 -->
         <div class="service-card" onclick="openAiModal()">
-            <img th:src="@{/images/image 10.png}" alt="AI 독서">
-            <div class="service-card-title">AI 독서</div>
+            <img th:src="@{/images/image 10.png}" alt="독서 스튜디오">
+            <div class="service-card-title">독서 스튜디오</div>
         </div>
     </div>
 
-    <p class="subtitle">책을 등록하여 ai독후감을 생성해보세요!</p>
+    <p class="subtitle">책과 함께하는 새로운 독서 경험</p>
     <a href="javascript:history.back()" class="back-btn">뒤로 가기</a>
 </div>
 
 <!-- AI 독서 서브메뉴 모달 -->
 <div class="modal-bg" id="aiModal" onclick="closeAiModal(event)">
     <div class="modal">
-        <div class="modal-title">AI 독서</div>
-        <div class="modal-desc">이용할 서비스를 선택해주세요</div>
+        <div style="font-size:11px; font-weight:700; color:#6071E3; letter-spacing:.1em;
+                    text-transform:uppercase; margin-bottom:8px;">FROM READING</div>
+        <div class="modal-title">독서 스튜디오</div>
+        <div class="modal-desc">원하는 독서 경험을 선택해보세요</div>
 
-        <div class="sub-cards">
-            <a th:href="@{/review/create}" class="sub-card">
-                <div class="sub-card-icon">📝</div>
-                <div class="sub-card-title">AI 독후감</div>
-            </a>
-            <a th:href="@{/image/create}" class="sub-card">
-                <div class="sub-card-icon">🎨</div>
-                <div class="sub-card-title">책 속 주인공</div>
-            </a>
-            <a th:href="@{/book/recommend}" class="sub-card">
-                <div class="sub-card-icon">🤖</div>
-                <div class="sub-card-title">책 추천</div>
+        <!-- AI 기능 섹션 -->
+        <div class="studio-section">
+            <div class="studio-section-label">
+                <span class="studio-section-bar blue"></span>
+                <span class="studio-section-text">AI 기능</span>
+                <span class="studio-section-badge blue">OpenAI · Gemini</span>
+            </div>
+            <div class="ai-cards">
+                <a th:href="@{/review/create}" class="sub-card">
+                    <div class="sub-card-icon">✍️</div>
+                    <div class="sub-card-title">AI 독후감</div>
+                    <div class="sub-card-desc">OpenAI 기반<br>감성 독후감 생성</div>
+                </a>
+                <a th:href="@{/image/create}" class="sub-card">
+                    <div class="sub-card-icon">🎭</div>
+                    <div class="sub-card-title">AI 이미지 생성</div>
+                    <div class="sub-card-desc">Gemini 기반<br>책 속 주인공 변환</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- 도서 추천 섹션 -->
+        <div class="studio-section" style="margin-bottom:28px;">
+            <div class="studio-section-label">
+                <span class="studio-section-bar amber"></span>
+                <span class="studio-section-text">도서 추천</span>
+                <span class="studio-section-badge amber">알라딘 API</span>
+            </div>
+            <a th:href="@{/book/recommend}" class="recommend-card">
+                <div class="recommend-card-icon">📚</div>
+                <div>
+                    <div class="recommend-card-title">맞춤 도서 추천</div>
+                    <div class="recommend-card-desc">작가 · 장르 기반 큐레이션 · 알라딘 베스트셀러</div>
+                </div>
+                <div class="recommend-card-arrow">›</div>
             </a>
         </div>
 

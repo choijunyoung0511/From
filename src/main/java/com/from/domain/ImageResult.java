@@ -46,7 +46,11 @@ public class ImageResult {
     @Column(nullable = false, length = 20)
     private String userId;
 
-    /** Gemini API 가 반환한 base64 Data URL */
+    /** 사용자가 업로드한 원본 사진 S3 URL (inputs/ 폴더) */
+    @Column(columnDefinition = "TEXT")
+    private String inputImageUrl;
+
+    /** Gemini API 가 생성한 결과 이미지 S3 URL (outputs/ 폴더) */
     @Column(columnDefinition = "LONGTEXT")
     private String imageUrl;
 

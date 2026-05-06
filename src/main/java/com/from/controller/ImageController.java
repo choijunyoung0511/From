@@ -72,31 +72,31 @@ public class ImageController {
      * @return Step 2 화면으로 리다이렉트
      */
     @PostMapping("/create")
-    public String uploadPhoto(@RequestParam("photo")     MultipartFile photo,
-                              @RequestParam("bookId")    Long bookId,
-                              @RequestParam("bookTitle") String bookTitle,
-                              HttpSession session, Model model) {
+    @ResponseBody
+    public ResponseEntity<?> uploadPhoto(@RequestParam("photo")     MultipartFile photo,
+                                         @RequestParam("bookId")    Long bookId,
+                                         @RequestParam("bookTitle") String bookTitle,
+                                         HttpSession session) {
         log.info("{}.uploadPhoto Start!", this.getClass().getName());
 
         if (photo.isEmpty()) {
-            model.addAttribute("error", "사진을 선택해주세요.");
-            return "image/step1-upload";
+            return ResponseEntity.badRequest()
+                    .body(MsgDTO.builder().result(0).msg("사진을 선택해주세요.").build());
         }
 
         try {
-            // 세션에 byte[] 로 저장 (MultipartFile 은 세션 직렬화 불가)
             session.setAttribute("uploadedPhoto",     photo.getBytes());
             session.setAttribute("uploadedPhotoType", photo.getContentType());
             session.setAttribute("imageBookId",       bookId);
             session.setAttribute("imageBookTitle",    bookTitle);
         } catch (Exception e) {
             log.error("사진 업로드 실패: {}", e.getMessage());
-            model.addAttribute("error", "사진 업로드에 실패했습니다.");
-            return "image/step1-upload";
+            return ResponseEntity.internalServerError()
+                    .body(MsgDTO.builder().result(0).msg("사진 업로드에 실패했습니다.").build());
         }
 
         log.info("{}.uploadPhoto End!", this.getClass().getName());
-        return "redirect:/image/style";
+        return ResponseEntity.ok(MsgDTO.builder().result(1).msg("ok").build());
     }
 
     /**

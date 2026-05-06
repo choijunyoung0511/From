@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Base64;
@@ -61,15 +62,22 @@ public class NanobanaService implements INanobanaService {
             content.put("parts", List.of(textPart, imagePart));
 
             Map<String, Object> genConfig = new HashMap<>();
-            genConfig.put("responseModalities", List.of("IMAGE", "TEXT"));
+            genConfig.put("responseModalities", List.of("Text", "Image"));
 
             Map<String, Object> body = new HashMap<>();
             body.put("contents", List.of(content));
             body.put("generationConfig", genConfig);
 
-            Map<?, ?> response = WebClient.create(GEMINI_URL)
+            // Gemini 이미지 응답은 base64 인코딩으로 수십 MB가 될 수 있어 버퍼를 20MB로 확장
+            ExchangeStrategies strategies = ExchangeStrategies.builder()
+                    .codecs(cfg -> cfg.defaultCodecs().maxInMemorySize(20 * 1024 * 1024))
+                    .build();
+
+            Map<?, ?> response = WebClient.builder()
+                    .exchangeStrategies(strategies)
+                    .build()
                     .post()
-                    .uri(b -> b.queryParam("key", apiKey).build())
+                    .uri(GEMINI_URL + "?key=" + apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(body)
                     .retrieve()

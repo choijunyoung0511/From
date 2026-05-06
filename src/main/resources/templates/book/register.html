@@ -6,182 +6,398 @@
     <title>책 등록 - FROM</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
-        /* ── 검색 래퍼 ── */
-        .search-wrap { max-width: 640px; margin: 40px auto 0; position: relative; }
-
-        /* ── 검색바 ── */
-        .search-bar {
-            display: flex; align-items: center;
-            border: 2px solid #6071E3; border-radius: 30px;
-            overflow: hidden; background: white;
-            transition: box-shadow 0.2s;
+        /* ════════════════════════════════════
+           BASE — 크림 그라디언트 배경
+        ════════════════════════════════════ */
+        body {
+            background: linear-gradient(to bottom, #f8f5ef, #f3eee6 65%, #ede8de) !important;
+            min-height: 100vh;
         }
-        .search-bar:focus-within { box-shadow: 0 0 0 3px rgba(96,113,227,0.15); }
+        /* page-container 레이아웃 재정의 */
+        .page-container { max-width: none; padding: 0; margin: 0; }
+
+        /* ════════════════════════════════════
+           [1] 히어로 감성 문구
+        ════════════════════════════════════ */
+        .page-hero {
+            text-align: center;
+            padding: 52px 24px 36px;
+        }
+        .hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(96,113,227,.08);
+            color: #6071E3;
+            border: 1px solid rgba(96,113,227,.2);
+            border-radius: 99px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            margin-bottom: 20px;
+        }
+        .hero-title {
+            font-family: 'Hi Melody', cursive;
+            font-size: 34px;
+            color: #2d2926;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .hero-sub {
+            font-size: 15px;
+            color: #9d8f82;
+            line-height: 1.7;
+        }
+
+        /* ════════════════════════════════════
+           검색 영역
+        ════════════════════════════════════ */
+        .search-zone {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 0 20px 8px;
+        }
+        .search-wrap { position: relative; }
+
+        /* 검색바 */
+        .search-bar {
+            display: flex;
+            align-items: center;
+            border: 2px solid #ddd5c8;
+            border-radius: 30px;
+            background: #fff;
+            box-shadow: 0 4px 22px rgba(0,0,0,.07);
+            overflow: hidden;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .search-bar:focus-within {
+            border-color: #6071E3;
+            box-shadow: 0 4px 24px rgba(96,113,227,.18);
+        }
         .search-type {
-            padding: 0 4px 0 16px; border: none; outline: none;
-            font-size: 13px; color: #555; background: transparent;
-            cursor: pointer; font-family: 'Jua', sans-serif;
+            padding: 0 4px 0 18px;
+            border: none; outline: none;
+            font-size: 13px; color: #7d7168;
+            background: transparent;
+            cursor: pointer;
+            font-family: 'Jua', sans-serif;
             white-space: nowrap;
         }
-        .search-divider { width: 1px; height: 20px; background: #ddd; margin: 0 4px; flex-shrink: 0; }
+        .search-divider { width: 1px; height: 18px; background: #ddd5c8; margin: 0 6px; flex-shrink: 0; }
         .search-input {
-            flex: 1; padding: 14px 12px; border: none; outline: none;
+            flex: 1; padding: 16px 12px;
+            border: none; outline: none;
             font-size: 15px; font-family: 'Jua', sans-serif;
-            min-width: 0;
+            min-width: 0; background: transparent; color: #2d2926;
         }
+        .search-input::placeholder { color: #c0b5a8; }
         .search-btn {
-            padding: 0 20px; background: none; border: none;
+            padding: 0 22px;
+            background: none; border: none;
             cursor: pointer; font-size: 20px; color: #6071E3;
             flex-shrink: 0;
+            transition: transform .15s;
         }
+        .search-btn:hover { transform: scale(1.14); }
 
-        /* ── 드롭다운 팝업 ── */
+        /* ── 드롭다운 (최근검색 + 키워드만) ── */
         .search-dropdown {
             display: none;
-            position: absolute; top: calc(100% + 8px); left: 0; right: 0;
-            background: white; border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.14);
-            z-index: 1000; overflow: hidden;
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0; right: 0;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.11);
+            z-index: 1000;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,.05);
         }
         .search-dropdown.open { display: block; }
 
-        .dropdown-section { padding: 18px 20px 14px; }
-        .dropdown-section + .dropdown-section { border-top: 1px solid #f2f2f2; }
+        .dd-sec { padding: 16px 20px 14px; }
+        .dd-sec + .dd-sec { border-top: 1px solid #f3ede7; }
 
-        .section-title {
-            font-size: 12px; font-weight: 700; color: #999;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+        .dd-label {
+            font-size: 11px; font-weight: 700;
+            color: #c0b5a8; text-transform: uppercase;
+            letter-spacing: .06em; margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .section-title .clear-all {
-            font-size: 11px; color: #bbb; cursor: pointer;
-            font-weight: 400; text-transform: none; letter-spacing: 0;
-        }
-        .section-title .clear-all:hover { color: #888; }
+        .dd-clear { font-size: 11px; color: #c8bfb3; cursor: pointer; font-weight: 400; text-transform: none; letter-spacing: 0; }
+        .dd-clear:hover { color: #9d8f82; }
 
-        /* 최근 검색어 */
-        .recent-empty { font-size: 13px; color: #bbb; padding: 4px 0 8px; }
-        .recent-list { display: flex; flex-direction: column; gap: 2px; }
-        .recent-item {
+        /* [3] 최근 검색어 — 축소 */
+        .recent-empty { font-size: 13px; color: #c8bfb3; padding: 2px 0 4px; }
+        .recent-list  { display: flex; flex-direction: column; gap: 1px; }
+        .recent-item  {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 7px 8px; border-radius: 8px; cursor: pointer;
-            transition: background 0.15s;
+            padding: 6px 8px; border-radius: 8px; cursor: pointer;
+            transition: background .15s;
         }
-        .recent-item:hover { background: #f7f7f7; }
-        .recent-item-left { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #333; }
-        .recent-icon { font-size: 13px; color: #bbb; }
-        .recent-remove { font-size: 12px; color: #ccc; cursor: pointer; padding: 2px 4px; }
-        .recent-remove:hover { color: #888; }
+        .recent-item:hover { background: #f8f3ee; }
+        .recent-left  { display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4a3f36; }
+        .recent-clock { font-size: 12px; color: #c8bfb3; }
+        .recent-del   { font-size: 11px; color: #d4c9bd; cursor: pointer; padding: 2px 5px; }
+        .recent-del:hover { color: #9d8f82; }
 
-        /* 지금 베스트 */
-        .best-slider-wrap { position: relative; }
-        .best-list {
-            display: flex; gap: 14px; overflow-x: auto;
-            scroll-behavior: smooth; padding: 2px 2px 6px;
-            scrollbar-width: none;
-        }
-        .best-list::-webkit-scrollbar { display: none; }
-        .best-item {
-            display: flex; flex-direction: column; align-items: center;
-            gap: 8px; cursor: pointer; flex-shrink: 0; width: 72px;
-            transition: transform 0.15s;
-        }
-        .best-item:hover { transform: translateY(-2px); }
-        .best-rank-wrap { position: relative; width: 64px; }
-        .best-cover {
-            width: 64px; height: 90px; border-radius: 6px;
-            object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-            display: block;
-        }
-        .best-cover-placeholder {
-            width: 64px; height: 90px; border-radius: 6px;
-            background: linear-gradient(135deg, #e8e0d5, #d4c9bd);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 22px;
-        }
-        .best-rank {
-            position: absolute; top: 4px; left: 4px;
-            background: rgba(0,0,0,0.65); color: white;
-            font-size: 11px; font-weight: 700; border-radius: 4px;
-            padding: 1px 5px; line-height: 1.5;
-        }
-        .best-rank.top3 { background: #6071E3; }
-        .best-title {
-            font-size: 11px; color: #444; text-align: center;
-            line-height: 1.4; max-width: 72px;
-            display: -webkit-box; -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical; overflow: hidden;
-        }
-        .slider-btn {
-            position: absolute; top: 38px;
-            width: 28px; height: 28px; border-radius: 50%;
-            background: white; border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 13px; color: #555;
-            z-index: 2; transition: background 0.15s;
-        }
-        .slider-btn:hover { background: #f0f2ff; border-color: #6071E3; color: #6071E3; }
-        .slider-btn.prev { left: -14px; }
-        .slider-btn.next { right: -14px; }
-
-        /* 추천 키워드 */
-        .suggest-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        /* [4] 추천 키워드 — pill + 애니메이션 */
+        .suggest-tags { display: flex; flex-wrap: wrap; gap: 7px; }
         .suggest-tag {
-            padding: 5px 14px; border-radius: 20px;
-            background: #f0f2ff; color: #6071E3;
-            border: 1px solid #dde0f8; font-size: 13px;
-            cursor: pointer; transition: all 0.15s;
-        }
-        .suggest-tag:hover { background: #6071E3; color: white; border-color: #6071E3; }
-
-        /* 닫기 버튼 */
-        .dropdown-footer {
-            padding: 10px 20px 14px; text-align: right; border-top: 1px solid #f2f2f2;
-        }
-        .dropdown-close {
-            font-size: 12px; color: #bbb; cursor: pointer;
-            padding: 4px 10px; border: 1px solid #e8e8e8;
-            border-radius: 12px; background: none;
+            padding: 6px 15px; border-radius: 99px;
+            background: #f3ede7; color: #7d7168;
+            border: 1px solid #e8e0d6;
+            font-size: 13px; cursor: pointer;
             font-family: 'Jua', sans-serif;
-            transition: all 0.15s;
+            transition: all .2s cubic-bezier(.25,.46,.45,.94);
         }
-        .dropdown-close:hover { color: #666; border-color: #ccc; }
+        .suggest-tag:hover {
+            background: #6071E3; color: #fff;
+            border-color: #6071E3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(96,113,227,.28);
+        }
 
-        /* ── 검색 결과 ── */
-        .book-list { max-width: 640px; margin: 20px auto; }
+        .dd-footer { padding: 10px 20px 14px; border-top: 1px solid #f3ede7; text-align: right; }
+        .dd-close  {
+            font-size: 12px; color: #c8bfb3; cursor: pointer;
+            padding: 4px 13px; border: 1px solid #e8e0d6;
+            border-radius: 99px; background: none;
+            font-family: 'Jua', sans-serif;
+            transition: all .15s;
+        }
+        .dd-close:hover { color: #7d7168; border-color: #c0b5a8; }
+
+        /* [7] FROM 브랜드 카피 */
+        .brand-copy {
+            text-align: center;
+            margin: 22px auto 0;
+            max-width: 380px;
+            font-family: 'Hi Melody', cursive;
+            font-size: 15px;
+            color: #baafa4;
+            line-height: 2;
+        }
+
+        /* ════════════════════════════════════
+           검색 결과 영역
+        ════════════════════════════════════ */
+        .results-zone {
+            max-width: 680px;
+            margin: 24px auto 0;
+            padding: 0 20px;
+            display: none;
+        }
+        .results-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .results-label { font-size: 14px; color: #9d8f82; }
+        .results-label strong { color: #2d2926; }
+        .results-back {
+            font-size: 12px; color: #b8ad9f; cursor: pointer;
+            padding: 5px 13px; border: 1px solid #ddd5c8;
+            border-radius: 99px; background: none;
+            font-family: 'Jua', sans-serif; transition: all .15s;
+        }
+        .results-back:hover { border-color: #6071E3; color: #6071E3; }
+
+        .book-list {}
         .book-item {
-            display: flex; align-items: center; background: white;
-            border-radius: 12px; padding: 16px 20px; margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06); gap: 16px;
+            display: flex; align-items: center;
+            background: #fff; border-radius: 14px;
+            padding: 15px 20px; margin-bottom: 10px;
+            box-shadow: 0 2px 14px rgba(0,0,0,.055);
+            border: 1px solid rgba(0,0,0,.03);
+            gap: 16px;
+            transition: box-shadow .2s, transform .2s;
         }
-        .book-cover-sm { width: 50px; height: 70px; border-radius: 4px; flex-shrink: 0; object-fit: cover; }
-        .book-cover-placeholder-sm { width: 50px; height: 70px; background: #E0D5CC; border-radius: 4px; flex-shrink: 0; }
-        .book-info { flex: 1; min-width: 0; }
-        .book-title { font-size: 15px; font-weight: 700; color: #6071E3; margin-bottom: 4px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .book-author { font-size: 13px; color: #888; }
-        .register-btn {
-            padding: 8px 20px; border: 1.5px solid #6071E3; border-radius: 20px;
-            background: white; color: #6071E3; cursor: pointer; font-size: 13px;
-            white-space: nowrap; transition: all 0.2s; font-family: 'Jua', sans-serif;
+        .book-item:hover { box-shadow: 0 5px 22px rgba(0,0,0,.1); transform: translateY(-1px); }
+        .book-cover-sm {
+            width: 54px; height: 76px;
+            border-radius: 6px; object-fit: cover;
             flex-shrink: 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,.13);
         }
-        .register-btn:hover { background: #6071E3; color: white; }
+        .book-cover-placeholder-sm {
+            width: 54px; height: 76px;
+            border-radius: 6px; flex-shrink: 0;
+            background: linear-gradient(135deg,#e8e0d5,#d4c9bd);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .book-info { flex: 1; min-width: 0; }
+        .book-title {
+            font-size: 15px; font-weight: 700; color: #2d2926;
+            margin-bottom: 4px; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .book-author { font-size: 13px; color: #9d8f82; }
+        .register-btn {
+            padding: 9px 20px;
+            border: 1.5px solid #6071E3; border-radius: 99px;
+            background: #fff; color: #6071E3;
+            cursor: pointer; font-size: 13px; font-weight: 700;
+            white-space: nowrap;
+            font-family: 'Jua', sans-serif;
+            flex-shrink: 0;
+            transition: all .2s;
+        }
+        .register-btn:hover { background: #6071E3; color: #fff; box-shadow: 0 4px 14px rgba(96,113,227,.3); }
 
-        /* 반응형 */
+        /* ════════════════════════════════════
+           [2] 베스트셀러 — 넷플릭스 스타일
+        ════════════════════════════════════ */
+        .best-zone { padding: 46px 0 60px; }
+        .best-zone-inner { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+        .best-zone-header {
+            display: flex; align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 26px;
+        }
+        .best-zone-title { font-size: 20px; font-weight: 700; color: #2d2926; margin-bottom: 4px; }
+        .best-zone-sub   { font-size: 13px; color: #b8ad9f; }
+        .best-live-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #fff8e1; color: #9a6800;
+            border: 1px solid #ffe082;
+            border-radius: 99px; padding: 4px 12px;
+            font-size: 11px; font-weight: 700;
+        }
+        .live-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%; background: #f59e0b;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.75)} }
+
+        /* 스크롤 컨테이너 */
+        .best-scroll-area { position: relative; }
+        .best-scroll {
+            display: flex; gap: 16px;
+            overflow-x: auto; scroll-behavior: smooth;
+            padding: 10px 4px 24px;
+            scrollbar-width: none;
+            scroll-snap-type: x mandatory;
+        }
+        .best-scroll::-webkit-scrollbar { display: none; }
+
+        /* 슬라이더 버튼 */
+        .bslider {
+            position: absolute; top: 50%; transform: translateY(-90%);
+            width: 40px; height: 40px;
+            border-radius: 50%; background: #fff;
+            border: 1px solid #e0d8d0;
+            box-shadow: 0 4px 16px rgba(0,0,0,.12);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 18px; color: #7d7168;
+            z-index: 2; transition: all .2s;
+        }
+        .bslider:hover { background: #6071E3; color: #fff; border-color: #6071E3; box-shadow: 0 4px 16px rgba(96,113,227,.3); }
+        .bslider.prev { left: -20px; }
+        .bslider.next { right: -20px; }
+
+        /* ── 베스트 카드 ── */
+        .best-card {
+            flex-shrink: 0;
+            width: 158px;
+            cursor: pointer;
+            scroll-snap-align: start;
+            transition: transform .3s cubic-bezier(.25,.46,.45,.94);
+        }
+        .best-card:hover { transform: translateY(-8px) scale(1.025); }
+
+        .best-card-img {
+            position: relative;
+            width: 100%; height: 222px;
+            border-radius: 12px; overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,.15);
+            margin-bottom: 11px;
+            background: linear-gradient(135deg,#e8e0d5,#d4c9bd);
+        }
+        .best-card-img img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+            transition: transform .4s ease;
+        }
+        .best-card:hover .best-card-img img { transform: scale(1.08); }
+
+        /* 그라디언트 오버레이 + 랭크 숫자 */
+        .best-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 88px;
+            background: linear-gradient(to top, rgba(0,0,0,.72) 0%, transparent 100%);
+            display: flex; align-items: flex-end;
+            padding: 0 10px 8px;
+        }
+        .best-rank-num {
+            font-size: 36px; font-weight: 900;
+            color: rgba(255,255,255,.92);
+            line-height: 1;
+            text-shadow: 0 2px 12px rgba(0,0,0,.5);
+            font-family: 'Georgia', 'Times New Roman', serif;
+            letter-spacing: -1px;
+        }
+        .best-rank-num.top3 { color: #FFD98A; }
+
+        .best-card-title {
+            font-size: 13px; color: #3a332c;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .best-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 38px;
+        }
+
+        /* 로딩 */
+        .best-loading {
+            display: flex; align-items: center; gap: 10px;
+            padding: 16px 0; color: #c0b5a8; font-size: 14px;
+        }
+        .ld { width:8px; height:8px; border-radius:50%; background:#ddd5c8; animation:blink 1.2s ease-in-out infinite; }
+        .ld:nth-child(2){animation-delay:.2s} .ld:nth-child(3){animation-delay:.4s}
+        @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+        /* ════════════════════════════════════
+           반응형
+        ════════════════════════════════════ */
         @media (max-width: 680px) {
-            .search-wrap { margin: 20px 16px 0; }
-            .book-list { margin: 16px; }
-            .slider-btn.prev { left: -8px; }
-            .slider-btn.next { right: -8px; }
+            .page-hero { padding: 36px 20px 26px; }
+            .hero-title { font-size: 26px; }
+            .search-zone { padding: 0 16px 8px; }
+            .results-zone { padding: 0 16px; }
+            .best-zone-inner { padding: 0 16px; }
+            .best-card { width: 128px; }
+            .best-card-img { height: 180px; }
+            .best-rank-num { font-size: 28px; }
+            .bslider.prev { left: -10px; }
+            .bslider.next { right: -10px; }
+        }
+        @media (max-width: 400px) {
+            .hero-title { font-size: 22px; }
+            .best-card { width: 112px; }
+            .best-card-img { height: 158px; }
         }
     </style>
 </head>
 <body>
 <div th:replace="~{layout/navbar :: navbar}"></div>
 
-<div class="page-container">
+<!-- ════ [1] 히어로 감성 문구 ════ -->
+<section class="page-hero">
+    <div class="hero-kicker">📖 FROM 독서 플랫폼</div>
+    <h1 class="hero-title">오늘 어떤 이야기를<br>읽고 싶나요?</h1>
+    <p class="hero-sub">당신만의 책을 찾아, 기록하고, 나누어보세요.</p>
+</section>
+
+<!-- ════ 검색 영역 ════ -->
+<div class="search-zone">
     <div class="search-wrap" id="search-wrap">
 
         <!-- 검색바 -->
@@ -200,48 +416,76 @@
             <button class="search-btn" onclick="doSearch()">🔍</button>
         </div>
 
-        <!-- 드롭다운 팝업 -->
+        <!-- 드롭다운 (최근검색 + 추천키워드) -->
         <div class="search-dropdown" id="search-dropdown">
 
-            <!-- 최근 검색어 -->
-            <div class="dropdown-section">
-                <div class="section-title">
+            <!-- [3] 최근 검색어 — 최대 5개, 컴팩트 -->
+            <div class="dd-sec">
+                <div class="dd-label">
                     최근 검색어
-                    <span class="clear-all" onclick="clearAllRecent()">전체 삭제</span>
+                    <span class="dd-clear" onclick="clearAllRecent()">전체 삭제</span>
                 </div>
                 <div id="recent-container">
                     <div class="recent-empty">최근 검색어가 없습니다.</div>
                 </div>
             </div>
 
-            <!-- 지금 베스트 -->
-            <div class="dropdown-section">
-                <div class="section-title">지금 베스트</div>
-                <div class="best-slider-wrap">
-                    <button class="slider-btn prev" onclick="slideLeft()">&#8249;</button>
-                    <div class="best-list" id="best-list">
-                        <div style="font-size:13px; color:#bbb; padding: 20px 0;">불러오는 중...</div>
-                    </div>
-                    <button class="slider-btn next" onclick="slideRight()">&#8250;</button>
-                </div>
-            </div>
-
-            <!-- 추천 키워드 -->
-            <div class="dropdown-section">
-                <div class="section-title">추천 검색어</div>
+            <!-- [4] 추천 키워드 — pill 디자인 -->
+            <div class="dd-sec">
+                <div class="dd-label">추천 검색어</div>
                 <div class="suggest-tags" id="suggest-tags"></div>
             </div>
 
-            <!-- 닫기 -->
-            <div class="dropdown-footer">
-                <button class="dropdown-close" onclick="closeDropdown()">닫기</button>
+            <div class="dd-footer">
+                <button class="dd-close" onclick="closeDropdown()">닫기</button>
             </div>
         </div>
     </div>
 
+    <!-- [7] FROM 브랜드 카피 -->
+    <div class="brand-copy">
+        책을 읽고,<br>당신만의 이야기를 남겨보세요.
+    </div>
+</div>
+
+<!-- ════ 검색 결과 ════ -->
+<div class="results-zone" id="results-zone">
+    <div class="results-bar">
+        <div class="results-label" id="results-label">검색 결과</div>
+        <button class="results-back" onclick="showBest()">← 베스트셀러로</button>
+    </div>
     <div class="book-list" id="book-list"></div>
 </div>
 
+<!-- ════ [2] 베스트셀러 — 넷플릭스 스타일 메인 섹션 ════ -->
+<section class="best-zone" id="best-zone">
+    <div class="best-zone-inner">
+
+        <div class="best-zone-header">
+            <div>
+                <div class="best-zone-title">지금 베스트셀러</div>
+                <div class="best-zone-sub">알라딘 실시간 인기 도서 TOP 10</div>
+            </div>
+            <div class="best-live-badge">
+                <span class="live-dot"></span>실시간
+            </div>
+        </div>
+
+        <div class="best-scroll-area">
+            <button class="bslider prev" onclick="slideLeft()">&#8249;</button>
+            <div class="best-scroll" id="best-list">
+                <div class="best-loading">
+                    <div class="ld"></div><div class="ld"></div><div class="ld"></div>
+                    <span>불러오는 중...</span>
+                </div>
+            </div>
+            <button class="bslider next" onclick="slideRight()">&#8250;</button>
+        </div>
+
+    </div>
+</section>
+
+<!-- 모달 -->
 <div class="modal-overlay" id="modal">
     <div class="modal-box">
         <p id="modal-msg">등록되었습니다.</p>
@@ -251,12 +495,10 @@
 
 <script>
     const SUGGEST_KEYWORDS = ['소설', '자기계발', '에세이', '역사', '과학', '철학', '심리학', '경제경영', '판타지', '시집'];
-    const MAX_RECENT = 8;
+    const MAX_RECENT = 5;
 
     /* ── localStorage ── */
-    function getRecent() {
-        return JSON.parse(localStorage.getItem('book_recent') || '[]');
-    }
+    function getRecent() { return JSON.parse(localStorage.getItem('book_recent') || '[]'); }
     function saveRecent(keyword) {
         let list = getRecent().filter(k => k !== keyword);
         list.unshift(keyword);
@@ -277,82 +519,71 @@
 
     /* ── 렌더링 ── */
     function renderRecent() {
-        const recent = getRecent();
-        const container = document.getElementById('recent-container');
-        if (recent.length === 0) {
-            container.innerHTML = '<div class="recent-empty">최근 검색어가 없습니다.</div>';
+        const recent = getRecent().slice(0, 5);
+        const el = document.getElementById('recent-container');
+        if (!recent.length) {
+            el.innerHTML = '<div class="recent-empty">최근 검색어가 없습니다.</div>';
             return;
         }
-        container.innerHTML = `<div class="recent-list">${
-            recent.map(k => `
-                <div class="recent-item" onclick="clickKeyword('${k.replace(/'/g, "\\'")}')">
-                    <span class="recent-item-left">
-                        <span class="recent-icon">🕐</span>${k}
-                    </span>
-                    <span class="recent-remove" onclick="removeRecent('${k.replace(/'/g, "\\'")}', event)">✕</span>
-                </div>
-            `).join('')
-        }</div>`;
+        el.innerHTML = `<div class="recent-list">${recent.map(k => `
+            <div class="recent-item" onclick="clickKeyword('${k.replace(/'/g,"\\'")}')">
+                <span class="recent-left">
+                    <span class="recent-clock">🕐</span>${k}
+                </span>
+                <span class="recent-del" onclick="removeRecent('${k.replace(/'/g,"\\'")}',event)">✕</span>
+            </div>`).join('')}</div>`;
     }
 
     function renderSuggest() {
-        document.getElementById('suggest-tags').innerHTML = SUGGEST_KEYWORDS.map(k =>
-            `<span class="suggest-tag" onclick="clickKeyword('${k}')">${k}</span>`
-        ).join('');
+        document.getElementById('suggest-tags').innerHTML =
+            SUGGEST_KEYWORDS.map(k => `<span class="suggest-tag" onclick="clickKeyword('${k}')">${k}</span>`).join('');
     }
 
+    /* ── [2] 베스트셀러 렌더링 — 넷플릭스 카드 ── */
     function renderBest(books) {
         const list = document.getElementById('best-list');
-        if (!books || books.length === 0) {
-            list.innerHTML = '<div style="font-size:13px;color:#bbb;padding:20px 0;">베스트 정보를 불러올 수 없습니다.</div>';
+        if (!books || !books.length) {
+            list.innerHTML = '<div style="font-size:14px;color:#c0b5a8;padding:20px 0">베스트 정보를 불러올 수 없습니다.</div>';
             return;
         }
         list.innerHTML = books.slice(0, 10).map((book, i) => `
-            <div class="best-item" onclick="clickKeyword('${book.title.replace(/'/g, "\\'")}')">
-                <div class="best-rank-wrap">
+            <div class="best-card" onclick="clickKeyword('${book.title.replace(/'/g, "\\'")}')">
+                <div class="best-card-img">
                     ${book.cover
-                        ? `<img src="${book.cover}" class="best-cover" alt="표지" onerror="this.style.display='none'">`
-                        : `<div class="best-cover-placeholder">📚</div>`}
-                    <span class="best-rank ${i < 3 ? 'top3' : ''}">${i + 1}</span>
+                        ? `<img src="${book.cover}" alt="표지" loading="lazy"
+                             onerror="this.style.display='none';this.parentElement.querySelector('.best-overlay').insertAdjacentHTML('beforebegin','<div class=\\'best-placeholder\\'>📚</div>')">`
+                        : `<div class="best-placeholder">📚</div>`}
+                    <div class="best-overlay">
+                        <span class="best-rank-num ${i < 3 ? 'top3' : ''}">${i + 1}</span>
+                    </div>
                 </div>
-                <div class="best-title">${book.title}</div>
+                <div class="best-card-title">${book.title}</div>
             </div>
         `).join('');
     }
 
-    /* ── 베스트 로딩 ── */
-    let bestLoaded = false;
+    /* ── 베스트셀러 로드 (페이지 로드 시 즉시) ── */
     function loadBest() {
-        if (bestLoaded) return;
-        bestLoaded = true;
         fetch('/book/bestseller')
-            .then(res => res.json())
+            .then(r => r.json())
             .then(books => renderBest(books))
             .catch(() => renderBest(null));
     }
 
     /* ── 슬라이더 ── */
-    function slideLeft() {
-        document.getElementById('best-list').scrollBy({ left: -200, behavior: 'smooth' });
-    }
-    function slideRight() {
-        document.getElementById('best-list').scrollBy({ left: 200, behavior: 'smooth' });
-    }
+    function slideLeft()  { document.getElementById('best-list').scrollBy({ left: -340, behavior: 'smooth' }); }
+    function slideRight() { document.getElementById('best-list').scrollBy({ left:  340, behavior: 'smooth' }); }
 
-    /* ── 드롭다운 열기/닫기 ── */
+    /* ── 드롭다운 ── */
     function openDropdown() {
         document.getElementById('search-dropdown').classList.add('open');
         renderRecent();
-        loadBest();
     }
     function closeDropdown() {
         document.getElementById('search-dropdown').classList.remove('open');
     }
-
-    // 외부 클릭 시 닫기
-    document.addEventListener('click', function(e) {
-        const wrap = document.getElementById('search-wrap');
-        if (!wrap.contains(e.target)) closeDropdown();
+    document.addEventListener('click', e => {
+        if (!document.getElementById('search-wrap').contains(e.target)) closeDropdown();
     });
 
     /* ── 검색 ── */
@@ -368,53 +599,63 @@
 
         saveRecent(query);
         closeDropdown();
-        document.getElementById('book-list').innerHTML =
-            '<p style="text-align:center;color:#aaa;padding:30px;">검색 중...</p>';
+
+        // 결과 영역 표시, 베스트셀러 숨김
+        document.getElementById('results-zone').style.display = 'block';
+        document.getElementById('best-zone').style.display    = 'none';
+        document.getElementById('results-label').innerHTML    = `<strong>"${query}"</strong> 검색 결과`;
+        document.getElementById('book-list').innerHTML        =
+            '<p style="text-align:center;color:#c0b5a8;padding:36px 0;font-size:14px;">검색 중...</p>';
 
         fetch(`/book/search?query=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`)
-            .then(res => res.json())
+            .then(r => r.json())
             .then(books => {
                 const list = document.getElementById('book-list');
-                if (!books || books.length === 0) {
-                    list.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">검색 결과가 없습니다.</p>';
+                if (!books || !books.length) {
+                    list.innerHTML = '<p style="text-align:center;color:#c0b5a8;padding:52px 0;font-size:14px;">검색 결과가 없습니다.</p>';
                     return;
                 }
-                // description은 onclick 인라인 문자열에 넣으면 따옴표/개행으로 깨질 수 있어
-                // data 속성에 저장하고 버튼 클릭 시 dataset으로 읽는 방식 사용
-                list.innerHTML = books.map((book, idx) => `
+                list.innerHTML = books.map(book => `
                     <div class="book-item">
                         ${book.cover
                             ? `<img src="${book.cover}" class="book-cover-sm" alt="표지">`
-                            : `<div class="book-cover-placeholder-sm"></div>`}
+                            : `<div class="book-cover-placeholder-sm">📚</div>`}
                         <div class="book-info">
                             <div class="book-title">${book.title}</div>
                             <div class="book-author">${book.author || ''}</div>
                         </div>
                         <button class="register-btn"
-                            data-title="${(book.title||'').replace(/"/g, '&quot;')}"
-                            data-author="${(book.author||'').replace(/"/g, '&quot;')}"
-                            data-cover="${(book.cover||'').replace(/"/g, '&quot;')}"
-                            data-description="${(book.description||'').replace(/"/g, '&quot;')}"
-                            data-category="${(book.category||'').replace(/"/g, '&quot;')}"
+                            data-title="${(book.title||'').replace(/"/g,'&quot;')}"
+                            data-author="${(book.author||'').replace(/"/g,'&quot;')}"
+                            data-cover="${(book.cover||'').replace(/"/g,'&quot;')}"
+                            data-description="${(book.description||'').replace(/"/g,'&quot;')}"
+                            data-category="${(book.category||'').replace(/"/g,'&quot;')}"
                             onclick="registerBook(this)">등록하기</button>
                     </div>
                 `).join('');
             });
     }
 
-    function registerBook(btn) {
-        const title       = btn.dataset.title;
-        const author      = btn.dataset.author;
-        const cover       = btn.dataset.cover;
-        const description = btn.dataset.description;
-        const category    = btn.dataset.category;
+    function showBest() {
+        document.getElementById('results-zone').style.display = 'none';
+        document.getElementById('best-zone').style.display    = 'block';
+        document.getElementById('search-input').value         = '';
+    }
 
+    /* ── 책 등록 ── */
+    function registerBook(btn) {
         fetch('/book/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&cover=${encodeURIComponent(cover)}&description=${encodeURIComponent(description)}&category=${encodeURIComponent(category)}`
+            body: [
+                'title='       + encodeURIComponent(btn.dataset.title),
+                'author='      + encodeURIComponent(btn.dataset.author),
+                'cover='       + encodeURIComponent(btn.dataset.cover),
+                'description=' + encodeURIComponent(btn.dataset.description),
+                'category='    + encodeURIComponent(btn.dataset.category),
+            ].join('&')
         })
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
             document.getElementById('modal-msg').textContent = data.msg || '등록되었습니다.';
             document.getElementById('modal').classList.add('show');
@@ -423,8 +664,9 @@
 
     function closeModal() { document.getElementById('modal').classList.remove('show'); }
 
-    // 초기 추천 키워드 렌더링
+    /* ── 초기화 ── */
     renderSuggest();
+    loadBest();
 </script>
 </body>
 </html>

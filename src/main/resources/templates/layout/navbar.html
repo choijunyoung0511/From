@@ -6,77 +6,140 @@
     </a>
     <div style="display:flex; align-items:center; gap:70px;">
 
-        <!-- 로그인 상태일 때만 nav 표시 -->
         <nav class="main-nav" th:if="${session.SS_USER_ID != null}">
             <a th:href="@{/book/register}">책 등록</a>
             <a th:href="@{/ranking}">랭킹</a>
-            <a href="javascript:void(0)" onclick="openNavAiModal()">AI독서</a>
+            <a href="javascript:void(0)" onclick="openNavAiModal()">독서 스튜디오</a>
             <a th:href="@{/user/mypage}">마이페이지</a>
         </nav>
 
-        <!-- 로그인 상태 → 로그아웃 버튼 -->
         <form th:if="${session.SS_USER_ID != null}"
               th:action="@{/user/logout}" method="post" style="display:inline;">
             <button type="submit" class="header-logout-btn">로그아웃</button>
         </form>
 
-        <!-- 비로그인 상태 → 로그인 버튼 -->
         <a th:if="${session.SS_USER_ID == null}"
            th:href="@{/user/login}" class="header-logout-btn">로그인</a>
 
     </div>
 </header>
 
-<!-- AI독서 서브메뉴 모달 -->
-<div id="navAiModal" onclick="closeNavAiModal(event)"
-     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
-            z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
-    <div style="background:white; border-radius:28px; padding:48px 40px; max-width:600px;
-                width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.25); text-align:center;">
-        <div style="font-size:24px; font-weight:700; color:#333; margin-bottom:8px;">AI 독서</div>
-        <div style="font-size:14px; color:#888; margin-bottom:36px;">이용할 서비스를 선택해주세요</div>
+<style>
+@keyframes navModalSlideUp {
+    from { opacity:0; transform:translateY(18px) scale(.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+}
+</style>
 
-        <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom:32px;">
-            <a th:href="@{/review/create}"
-               style="background:#f8f9ff; border:2px solid #e4e7f0; border-radius:20px;
-                      padding:32px 24px; width:160px; text-align:center; text-decoration:none;
-                      transition:all 0.25s; display:block;"
-               onmouseover="this.style.borderColor='#6071E3'; this.style.background='#eef1fe'; this.style.transform='translateY(-6px)';"
-               onmouseout="this.style.borderColor='#e4e7f0'; this.style.background='#f8f9ff'; this.style.transform='none';">
-                <div style="font-size:44px; margin-bottom:12px;">📝</div>
-                <div style="font-size:15px; font-weight:700; color:#333;">AI 독후감</div>
-            </a>
-            <a th:href="@{/image/create}"
-               style="background:#f8f9ff; border:2px solid #e4e7f0; border-radius:20px;
-                      padding:32px 24px; width:160px; text-align:center; text-decoration:none;
-                      transition:all 0.25s; display:block;"
-               onmouseover="this.style.borderColor='#6071E3'; this.style.background='#eef1fe'; this.style.transform='translateY(-6px)';"
-               onmouseout="this.style.borderColor='#e4e7f0'; this.style.background='#f8f9ff'; this.style.transform='none';">
-                <div style="font-size:44px; margin-bottom:12px;">🎨</div>
-                <div style="font-size:15px; font-weight:700; color:#333;">책 속 주인공</div>
-            </a>
+<!-- 독서 스튜디오 서브메뉴 모달 -->
+<div id="navAiModal" onclick="closeNavAiModal(event)"
+     style="display:none; position:fixed; inset:0; background:rgba(10,12,28,.6);
+            z-index:9999; align-items:center; justify-content:center;
+            backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">
+
+    <div style="background:#ffffff; border-radius:28px; padding:40px 36px 34px;
+                max-width:500px; width:90%;
+                box-shadow:0 32px 80px rgba(0,0,0,.2), 0 0 0 1px rgba(0,0,0,.04);
+                animation:navModalSlideUp .3s cubic-bezier(.34,1.56,.64,1);">
+
+        <!-- 헤더 -->
+        <div style="text-align:center; margin-bottom:28px;">
+            <div style="font-size:11px; font-weight:700; color:#6071E3;
+                        letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px;">FROM READING</div>
+            <div style="font-size:22px; font-weight:700; color:#1a1d2e; margin-bottom:6px;">독서 스튜디오</div>
+            <div style="font-size:13px; color:#9ca3af;">원하는 독서 경험을 선택해보세요</div>
+        </div>
+
+        <!-- AI 기능 섹션 -->
+        <div style="margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                <span style="display:inline-block; width:3px; height:13px;
+                             background:#6071E3; border-radius:2px; flex-shrink:0;"></span>
+                <span style="font-size:11px; font-weight:700; color:#6b7280;
+                             letter-spacing:.07em; text-transform:uppercase;">AI 기능</span>
+                <span style="font-size:10px; background:#eef1fe; color:#6071E3;
+                             border-radius:99px; padding:2px 9px; font-weight:700;">OpenAI · Gemini</span>
+            </div>
+            <div style="display:flex; gap:12px;">
+
+                <a th:href="@{/review/create}"
+                   style="flex:1; background:#f8f9ff; border:1.5px solid #e4e7f0; border-radius:18px;
+                          padding:22px 16px; text-align:center; text-decoration:none; display:block;
+                          transition:all .22s ease;"
+                   onmouseover="this.style.borderColor='#6071E3';this.style.background='#eef1fe';
+                                this.style.transform='translateY(-5px)';
+                                this.style.boxShadow='0 12px 32px rgba(96,113,227,.18)'"
+                   onmouseout="this.style.borderColor='#e4e7f0';this.style.background='#f8f9ff';
+                               this.style.transform='none';this.style.boxShadow='none'">
+                    <div style="font-size:34px; margin-bottom:10px;">✍️</div>
+                    <div style="font-size:14px; font-weight:700; color:#1a1d2e; margin-bottom:5px;">AI 독후감</div>
+                    <div style="font-size:11px; color:#9ca3af; line-height:1.6;">OpenAI 기반<br>감성 독후감 생성</div>
+                </a>
+
+                <a th:href="@{/image/create}"
+                   style="flex:1; background:#f8f9ff; border:1.5px solid #e4e7f0; border-radius:18px;
+                          padding:22px 16px; text-align:center; text-decoration:none; display:block;
+                          transition:all .22s ease;"
+                   onmouseover="this.style.borderColor='#6071E3';this.style.background='#eef1fe';
+                                this.style.transform='translateY(-5px)';
+                                this.style.boxShadow='0 12px 32px rgba(96,113,227,.18)'"
+                   onmouseout="this.style.borderColor='#e4e7f0';this.style.background='#f8f9ff';
+                               this.style.transform='none';this.style.boxShadow='none'">
+                    <div style="font-size:34px; margin-bottom:10px;">🎭</div>
+                    <div style="font-size:14px; font-weight:700; color:#1a1d2e; margin-bottom:5px;">AI 이미지 생성</div>
+                    <div style="font-size:11px; color:#9ca3af; line-height:1.6;">Gemini 기반<br>책 속 주인공 변환</div>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- 도서 추천 섹션 -->
+        <div style="margin-bottom:26px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                <span style="display:inline-block; width:3px; height:13px;
+                             background:#f59e0b; border-radius:2px; flex-shrink:0;"></span>
+                <span style="font-size:11px; font-weight:700; color:#6b7280;
+                             letter-spacing:.07em; text-transform:uppercase;">도서 추천</span>
+                <span style="font-size:10px; background:#fff7ed; color:#d97706;
+                             border-radius:99px; padding:2px 9px; font-weight:700;">알라딘 API</span>
+            </div>
+
             <a th:href="@{/book/recommend}"
-               style="background:#f8f9ff; border:2px solid #e4e7f0; border-radius:20px;
-                      padding:32px 24px; width:160px; text-align:center; text-decoration:none;
-                      transition:all 0.25s; display:block;"
-               onmouseover="this.style.borderColor='#6071E3'; this.style.background='#eef1fe'; this.style.transform='translateY(-6px)';"
-               onmouseout="this.style.borderColor='#e4e7f0'; this.style.background='#f8f9ff'; this.style.transform='none';">
-                <div style="font-size:44px; margin-bottom:12px;">🤖</div>
-                <div style="font-size:15px; font-weight:700; color:#333;">책 추천</div>
+               style="display:flex; align-items:center; gap:16px; background:#fffbf5;
+                      border:1.5px solid #fde68a; border-radius:18px; padding:18px 22px;
+                      text-decoration:none; transition:all .22s ease;"
+               onmouseover="this.style.borderColor='#f59e0b';this.style.background='#fff7ed';
+                            this.style.transform='translateY(-4px)';
+                            this.style.boxShadow='0 10px 28px rgba(245,158,11,.14)'"
+               onmouseout="this.style.borderColor='#fde68a';this.style.background='#fffbf5';
+                           this.style.transform='none';this.style.boxShadow='none'">
+                <div style="font-size:28px; flex-shrink:0;">📚</div>
+                <div>
+                    <div style="font-size:14px; font-weight:700; color:#1a1d2e; margin-bottom:4px;">맞춤 도서 추천</div>
+                    <div style="font-size:11px; color:#9ca3af; line-height:1.6;">
+                        작가 · 장르 기반 큐레이션 · 알라딘 베스트셀러
+                    </div>
+                </div>
+                <div style="margin-left:auto; font-size:20px; color:#d97706; font-weight:300;">›</div>
             </a>
         </div>
 
-        <button onclick="closeNavAiModal()"
-                style="background:none; border:2px solid #ddd; border-radius:50px;
-                       padding:10px 36px; font-size:15px; font-weight:600; color:#888;
-                       cursor:pointer; font-family:inherit;">닫기</button>
+        <!-- 닫기 -->
+        <div style="text-align:center;">
+            <button onclick="closeNavAiModal()"
+                    style="background:none; border:1.5px solid #e5e7eb; border-radius:99px;
+                           padding:9px 38px; font-size:14px; font-weight:600; color:#9ca3af;
+                           cursor:pointer; font-family:inherit; transition:all .2s;"
+                    onmouseover="this.style.borderColor='#6071E3';this.style.color='#6071E3'"
+                    onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#9ca3af'">닫기</button>
+        </div>
+
     </div>
 </div>
 
 <script>
     function openNavAiModal() {
-        const modal = document.getElementById('navAiModal');
-        modal.style.display = 'flex';
+        document.getElementById('navAiModal').style.display = 'flex';
     }
     function closeNavAiModal(e) {
         if (e && e.target !== document.getElementById('navAiModal')) return;

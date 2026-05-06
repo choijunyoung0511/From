@@ -6,108 +6,217 @@
     <title>스타일 선택 · FROM</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
-        .step-bar { display: flex; justify-content: center; align-items: center; padding: 32px 0 0; gap: 0; }
-        .step { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-        .step-circle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #ddd; background: white; color: #aaa; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-        .step.active .step-circle { background: #6071E3; border-color: #6071E3; color: white; }
-        .step.done .step-circle   { background: #a0a8f0; border-color: #a0a8f0; color: white; }
-        .step-label { font-size: 12px; color: #aaa; white-space: nowrap; }
-        .step.active .step-label  { color: #6071E3; font-weight: 700; }
-        .step-line { width: 80px; height: 2px; background: #ddd; margin-bottom: 22px; }
-        .step-line.done { background: #a0a8f0; }
-
-        .style-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px; }
-        .style-card { border: 2px solid #E0D5CC; border-radius: 12px; padding: 20px 12px; text-align: center; cursor: pointer; transition: all 0.2s; background: #FAFAFA; position: relative; }
-        .style-card:hover  { border-color: #6071E3; background: #f5f5ff; }
-        .style-card.selected { border-color: #6071E3; background: #eef0fd; }
-        .style-card.selected::after { content: '✓'; position: absolute; top: 6px; right: 10px; font-size: 12px; color: #6071E3; font-weight: 700; }
-        input[type="radio"] { display: none; }
-        .style-emoji { font-size: 32px; display: block; margin-bottom: 8px; }
-        .style-name  { font-weight: 700; font-size: 15px; margin-bottom: 4px; color: #333; }
-        .style-desc  { font-size: 12px; color: #999; line-height: 1.4; }
-
-        .btn-row { display: flex; gap: 12px; margin-top: 28px; }
-        .btn-back { flex: 0 0 120px; }
-
-        .loading-spinner {
-            width: 56px; height: 56px;
-            border: 5px solid #E0D5CC;
-            border-top-color: #6071E3;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+        *{box-sizing:border-box}
+        body{background:linear-gradient(160deg,#F8F6FF 0%,#FFF8F4 100%);min-height:100vh;position:relative;overflow-x:hidden}
+        body::before{
+            content:'';position:fixed;top:-160px;left:50%;transform:translateX(-50%);
+            width:800px;height:600px;
+            background:radial-gradient(ellipse,rgba(96,113,227,.07) 0%,transparent 68%);
+            pointer-events:none;z-index:0;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-title { font-size: 17px; font-weight: 700; color: #333; margin-bottom: 8px; }
-        .loading-sub   { font-size: 13px; color: #999; line-height: 1.6; }
+
+        /* ── Wizard ── */
+        .wizard{display:flex;align-items:center;justify-content:center;padding:36px 20px 0;gap:0;position:relative;z-index:1}
+        .wiz-step{display:flex;flex-direction:column;align-items:center;gap:8px}
+        .wiz-circle{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;transition:all .3s}
+        .wiz-step.done    .wiz-circle{background:#6071E3;color:#fff;box-shadow:0 0 0 4px rgba(96,113,227,.15)}
+        .wiz-step.active  .wiz-circle{background:linear-gradient(135deg,#6071E3,#8B59C7);color:#fff;box-shadow:0 0 24px rgba(96,113,227,.55),0 0 0 4px rgba(96,113,227,.15);animation:wizPulse 2s ease-in-out infinite}
+        .wiz-step.pending .wiz-circle{background:#fff;color:#C8C5D8;border:2px solid #E4E1F0}
+        @keyframes wizPulse{0%,100%{box-shadow:0 0 24px rgba(96,113,227,.55),0 0 0 4px rgba(96,113,227,.15)}50%{box-shadow:0 0 36px rgba(96,113,227,.8),0 0 0 6px rgba(96,113,227,.1)}}
+        .wiz-label{font-size:11px;font-weight:700;letter-spacing:.3px}
+        .wiz-step.done    .wiz-label{color:#6071E3}
+        .wiz-step.active  .wiz-label{color:#6071E3}
+        .wiz-step.pending .wiz-label{color:#C0BDD0}
+        .wiz-line{width:72px;height:2px;margin-bottom:30px;border-radius:2px;background:#E4E1F0}
+        .wiz-line.done{background:linear-gradient(90deg,#6071E3,#8B59C7)}
+
+        /* ── Hero ── */
+        .hero{text-align:center;padding:36px 20px 0;position:relative;z-index:1}
+        .hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(96,113,227,.09);color:#6071E3;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:6px 16px;border-radius:100px;margin-bottom:14px}
+        .hero h2{font-size:24px;font-weight:800;color:#1A1A2E;margin:0 0 8px}
+        .hero p{color:#7A7899;font-size:14px;margin:0}
+
+        /* ── Main Card ── */
+        .main-card{max-width:600px;margin:28px auto 60px;padding:36px 32px;background:#fff;border-radius:24px;box-shadow:0 20px 60px rgba(96,113,227,.1),0 4px 16px rgba(0,0,0,.04);position:relative;z-index:1}
+
+        /* ── Book Badge ── */
+        .book-badge{
+            display:inline-flex;align-items:center;gap:8px;
+            background:linear-gradient(135deg,rgba(96,113,227,.08),rgba(139,89,199,.08));
+            border:1px solid rgba(96,113,227,.18);
+            color:#5060CC;font-size:14px;font-weight:700;
+            padding:8px 18px;border-radius:100px;margin-bottom:28px;
+        }
+
+        /* ── Scene ── */
+        .section-label{font-size:13px;font-weight:700;color:#555577;margin-bottom:10px;display:block;letter-spacing:.3px}
+        .scene-wrap{position:relative;margin-bottom:28px}
+        .scene-textarea{
+            width:100%;padding:14px 16px;border:1.5px solid #E4E1F0;border-radius:12px;
+            font-size:14px;color:#1A1A2E;resize:none;font-family:inherit;
+            transition:border-color .2s,box-shadow .2s;background:#FAFAFF;
+        }
+        .scene-textarea:focus{outline:none;border-color:#6071E3;box-shadow:0 0 0 3px rgba(96,113,227,.1)}
+        .char-cnt{position:absolute;bottom:10px;right:14px;font-size:12px;color:#B0B0C8}
+
+        /* ── Style Grid ── */
+        .style-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+        .style-card{
+            border:2px solid #EEE9F8;border-radius:16px;cursor:pointer;overflow:hidden;
+            transition:all .25s;background:#fff;position:relative;
+        }
+        .style-card:hover{border-color:#6071E3;box-shadow:0 8px 24px rgba(96,113,227,.15);transform:translateY(-2px)}
+        .style-card.selected{border-color:#6071E3;box-shadow:0 0 0 3px rgba(96,113,227,.12)}
+        .style-card input[type="radio"]{display:none}
+        .style-card.selected::after{
+            content:'✓';position:absolute;top:8px;right:10px;font-size:13px;font-weight:800;
+            color:#fff;background:#6071E3;width:22px;height:22px;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;z-index:2;
+        }
+        .style-preview{height:72px;display:flex;align-items:center;justify-content:center;font-size:28px}
+        .style-card.style-watercolor   .style-preview{background:linear-gradient(135deg,#74B9FF,#A29BFE,#FD79A8)}
+        .style-card.style-cartoon      .style-preview{background:linear-gradient(135deg,#FDCB6E,#E17055,#FD79A8)}
+        .style-card.style-realistic    .style-preview{background:linear-gradient(135deg,#636E72,#B2BEC3,#DFE6E9)}
+        .style-card.style-oil_painting .style-preview{background:linear-gradient(135deg,#6D4C41,#D4A574,#FFD700)}
+        .style-card.style-sketch       .style-preview{background:linear-gradient(135deg,#2D3436,#636E72,#B2BEC3)}
+        .style-card.style-fantasy      .style-preview{background:linear-gradient(135deg,#A29BFE,#6C5CE7,#FD79A8)}
+        .style-info{padding:10px 12px 12px}
+        .style-name{font-size:13px;font-weight:700;color:#1A1A2E;margin-bottom:3px}
+        .style-desc{font-size:11px;color:#9999B8;line-height:1.4}
+
+        /* ── Generate Button ── */
+        .btn-generate{
+            width:100%;padding:18px;border:none;border-radius:14px;
+            background:linear-gradient(135deg,#6071E3,#8B59C7);color:#fff;
+            font-size:17px;font-weight:700;cursor:pointer;transition:all .25s;
+            display:flex;align-items:center;justify-content:center;gap:8px;
+        }
+        .btn-generate:disabled{background:linear-gradient(135deg,#C8C5E8,#D8D0EC);cursor:not-allowed}
+        .btn-generate:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(96,113,227,.45)}
+        .btn-generate:not(:disabled):active{transform:translateY(0)}
+
+        /* ── Loading Overlay ── */
+        .loading-overlay{
+            position:fixed;inset:0;background:rgba(16,12,30,.82);backdrop-filter:blur(10px);
+            z-index:9999;display:none;align-items:center;justify-content:center;
+        }
+        .loading-overlay.show{display:flex}
+        .loading-box{
+            background:#fff;border-radius:28px;padding:52px 44px;
+            max-width:380px;width:90%;text-align:center;
+            box-shadow:0 32px 80px rgba(0,0,0,.25),0 0 0 1px rgba(96,113,227,.15);
+        }
+        .loading-ring-wrap{position:relative;width:88px;height:88px;margin:0 auto 24px}
+        .loading-ring{
+            position:absolute;inset:0;border-radius:50%;
+            border:4px solid rgba(96,113,227,.15);
+            border-top:4px solid #6071E3;border-right:4px solid #8B59C7;
+            animation:spinRing 1.4s linear infinite;
+        }
+        @keyframes spinRing{to{transform:rotate(360deg)}}
+        .loading-emoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px}
+        .loading-title{font-size:18px;font-weight:800;color:#1A1A2E;margin:0 0 12px}
+        .loading-msg{font-size:14px;color:#7A7899;margin:0 0 20px;line-height:1.6;min-height:44px;transition:opacity .4s}
+        .loading-msg.fade{opacity:0}
+        .loading-bar{height:4px;background:#EEE9F8;border-radius:4px;overflow:hidden}
+        .loading-bar-fill{height:100%;width:0;background:linear-gradient(90deg,#6071E3,#8B59C7);border-radius:4px;transition:width 1s linear}
+        .loading-sub{font-size:12px;color:#B0B0C8;margin:12px 0 0}
+
+        @media(max-width:560px){
+            .main-card{margin:24px 16px 40px;padding:28px 20px}
+            .style-grid{grid-template-columns:repeat(2,1fr)}
+            .wiz-line{width:44px}
+        }
     </style>
 </head>
 <body>
-
 <div th:replace="~{layout/navbar :: navbar}"></div>
 
-<div class="step-bar">
-    <div class="step done"><div class="step-circle">✓</div><span class="step-label">사진 업로드</span></div>
-    <div class="step-line done"></div>
-    <div class="step active"><div class="step-circle">2</div><span class="step-label">스타일 선택</span></div>
-    <div class="step-line"></div>
-    <div class="step"><div class="step-circle">3</div><span class="step-label">결과 확인</span></div>
-</div>
-
-<div class="page-container">
-    <div class="form-container">
-        <h2 class="form-title">어떤 장면을 만들어볼까요?</h2>
-        <p style="text-align:center; color:#888; margin-bottom:28px; font-size:15px;">
-            📚 <span th:text="${bookTitle}">책 제목</span>
-        </p>
-
-        <div class="form-group">
-            <label>책 장면 설명</label>
-            <textarea id="sceneInput" class="form-control" maxlength="300" rows="3"
-                      placeholder="예) 주인공이 빗속에서 우산을 쓰고 걷는 장면..."></textarea>
-            <span class="success-msg" style="text-align:right; display:block;"><span id="charCnt">0</span> / 300</span>
-        </div>
-
-        <div class="form-group">
-            <label>이미지 스타일</label>
-            <div class="style-grid">
-                <label th:each="opt : ${styleOptions}" class="style-card" th:data-value="${opt.value}">
-                    <input type="radio" name="styleRadio" th:value="${opt.value}">
-                    <span class="style-emoji"
-                          th:text="${opt.value == 'watercolor'   ? '🎨' :
-                                     opt.value == 'cartoon'      ? '✏️' :
-                                     opt.value == 'realistic'    ? '📷' :
-                                     opt.value == 'oil_painting' ? '🖼️' :
-                                     opt.value == 'sketch'       ? '✒️' : '🔮'}">🎨</span>
-                    <p class="style-name" th:text="${opt.label}">스타일</p>
-                    <p class="style-desc" th:text="${opt.description}">설명</p>
-                </label>
-            </div>
-        </div>
-
-        <div class="btn-row">
-            <button class="btn btn-outline btn-back" onclick="history.back()">← 이전</button>
-            <button class="btn btn-primary" style="flex:1" id="generateBtn" disabled>✨ 이미지 생성하기</button>
-        </div>
+<!-- Wizard -->
+<div class="wizard">
+    <div class="wiz-step done">
+        <div class="wiz-circle">✓</div>
+        <span class="wiz-label">사진 업로드</span>
+    </div>
+    <div class="wiz-line done"></div>
+    <div class="wiz-step active">
+        <div class="wiz-circle">2</div>
+        <span class="wiz-label">스타일 선택</span>
+    </div>
+    <div class="wiz-line"></div>
+    <div class="wiz-step pending">
+        <div class="wiz-circle">3</div>
+        <span class="wiz-label">결과 확인</span>
     </div>
 </div>
 
-<!-- 로딩 모달 -->
-<div class="modal-overlay" id="loadingModal">
-    <div class="modal-box" style="padding: 40px 48px;">
-        <div class="loading-spinner"></div>
-        <p class="loading-title">이미지를 생성하고 있어요</p>
-        <p class="loading-sub">AI가 열심히 그리는 중입니다.<br>2~3분 정도 소요됩니다.</p>
+<!-- Hero -->
+<div class="hero">
+    <div class="hero-tag">🎨 Style &amp; Scene</div>
+    <h2>어떤 모습으로 변환할까요?</h2>
+    <p>장면을 묘사하고 원하는 아트 스타일을 선택해주세요</p>
+</div>
+
+<!-- Card -->
+<div class="main-card">
+    <div class="book-badge">
+        📖 <span th:text="${bookTitle}">책 제목</span>
+    </div>
+
+    <!-- Scene -->
+    <label class="section-label">✍️ 책 속 장면을 묘사해주세요</label>
+    <div class="scene-wrap">
+        <textarea id="sceneInput" class="scene-textarea" rows="3" maxlength="300"
+                  placeholder="예) 주인공이 비 내리는 거리에서 우산을 들고 걷는 장면..."></textarea>
+        <span class="char-cnt"><span id="charCnt">0</span>/300</span>
+    </div>
+
+    <!-- Style Grid -->
+    <label class="section-label">🖼️ 이미지 스타일을 선택해주세요</label>
+    <div class="style-grid">
+        <label th:each="opt : ${styleOptions}"
+               th:class="'style-card style-' + ${opt.value}"
+               th:data-value="${opt.value}">
+            <input type="radio" name="styleRadio" th:value="${opt.value}">
+            <div class="style-preview"
+                 th:text="${opt.value == 'watercolor' ? '🎨' :
+                            opt.value == 'cartoon'    ? '✏️' :
+                            opt.value == 'realistic'  ? '📷' :
+                            opt.value == 'oil_painting' ? '🖼️' :
+                            opt.value == 'sketch'     ? '✒️' : '🔮'}">🎨</div>
+            <div class="style-info">
+                <div class="style-name" th:text="${opt.label}">스타일</div>
+                <div class="style-desc" th:text="${opt.description}">설명</div>
+            </div>
+        </label>
+    </div>
+
+    <button class="btn-generate" id="generateBtn" disabled>✨ AI 이미지 생성하기</button>
+</div>
+
+<!-- Cinematic Loading -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box">
+        <div class="loading-ring-wrap">
+            <div class="loading-ring"></div>
+            <div class="loading-emoji">✨</div>
+        </div>
+        <h3 class="loading-title">AI가 그림을 그리는 중</h3>
+        <p class="loading-msg" id="loadingMsg">📖 책 속 장면을 분석하는 중...</p>
+        <div class="loading-bar"><div class="loading-bar-fill" id="loadingBarFill"></div></div>
+        <p class="loading-sub">보통 2~3분 소요됩니다 ☕</p>
     </div>
 </div>
 
 <script>
-    const sceneInput   = document.getElementById('sceneInput');
-    const charCnt      = document.getElementById('charCnt');
-    const generateBtn  = document.getElementById('generateBtn');
-    const styleCards   = document.querySelectorAll('.style-card');
-    const loadingModal = document.getElementById('loadingModal');
-    let selectedStyle  = '';
+    const sceneInput    = document.getElementById('sceneInput');
+    const charCnt       = document.getElementById('charCnt');
+    const generateBtn   = document.getElementById('generateBtn');
+    const styleCards    = document.querySelectorAll('.style-card');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingMsg    = document.getElementById('loadingMsg');
+    const barFill       = document.getElementById('loadingBarFill');
+    let selectedStyle = '';
 
     sceneInput.addEventListener('input', () => { charCnt.textContent = sceneInput.value.length; updateBtn(); });
 
@@ -115,39 +224,79 @@
         card.addEventListener('click', () => {
             styleCards.forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
-            selectedStyle = card.dataset.value;
             card.querySelector('input[type="radio"]').checked = true;
+            selectedStyle = card.dataset.value;
             updateBtn();
         });
     });
 
     function updateBtn() { generateBtn.disabled = !(sceneInput.value.trim() && selectedStyle); }
 
+    // Loading animation
+    const messages = [
+        '📖 책 속 장면을 분석하는 중...',
+        '🎨 당신만의 스타일로 그리는 중...',
+        '✨ AI가 디테일을 정교하게 다듬는 중...',
+        '🌟 마지막 터치를 입히는 중...',
+        '💫 당신의 이야기가 그림이 되고 있어요...'
+    ];
+    let msgIdx = 0, msgTimer = null, barTimer = null;
+
+    function startLoading() {
+        loadingOverlay.classList.add('show');
+        barFill.style.width = '0';
+        msgIdx = 0;
+        loadingMsg.textContent = messages[0];
+
+        // 메시지 순환
+        msgTimer = setInterval(() => {
+            loadingMsg.classList.add('fade');
+            setTimeout(() => {
+                msgIdx = (msgIdx + 1) % messages.length;
+                loadingMsg.textContent = messages[msgIdx];
+                loadingMsg.classList.remove('fade');
+            }, 400);
+        }, 3500);
+
+        // 가상 프로그레스 바 (90%까지만)
+        let pct = 0;
+        barTimer = setInterval(() => {
+            pct = Math.min(90, pct + Math.random() * 3);
+            barFill.style.width = pct + '%';
+        }, 1000);
+    }
+
+    function stopLoading() {
+        clearInterval(msgTimer);
+        clearInterval(barTimer);
+        barFill.style.width = '100%';
+        setTimeout(() => loadingOverlay.classList.remove('show'), 400);
+    }
+
     generateBtn.addEventListener('click', async () => {
         generateBtn.disabled = true;
-        loadingModal.classList.add('show');
+        startLoading();
 
-        const formData = new FormData();
-        formData.append('scene', sceneInput.value.trim());
-        formData.append('style', selectedStyle);
+        const fd = new FormData();
+        fd.append('scene', sceneInput.value.trim());
+        fd.append('style', selectedStyle);
 
         try {
-            const res  = await fetch('/image/generate', { method: 'POST', body: formData });
+            const res  = await fetch('/image/generate', { method: 'POST', body: fd });
             const data = await res.json();
 
             if (data.success && data.imageId) {
+                stopLoading();
                 window.location.href = `/image/result/${data.imageId}`;
             } else {
-                loadingModal.classList.remove('show');
+                stopLoading();
                 alert('이미지 생성 실패: ' + (data.errorMessage || '알 수 없는 오류'));
                 generateBtn.disabled = false;
-                generateBtn.textContent = '✨ 이미지 생성하기';
             }
-        } catch (e) {
-            loadingModal.classList.remove('show');
+        } catch {
+            stopLoading();
             alert('오류가 발생했습니다. 다시 시도해주세요.');
             generateBtn.disabled = false;
-            generateBtn.textContent = '✨ 이미지 생성하기';
         }
     });
 </script>

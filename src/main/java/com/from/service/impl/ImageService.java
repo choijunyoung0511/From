@@ -8,12 +8,14 @@ import com.from.repository.ImageResultRepository;
 import com.from.service.IBookService;
 import com.from.service.IImageService;
 import com.from.service.INanobanaService;
+import com.from.service.IS3UploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,7 @@ public class ImageService implements IImageService {
     private final INanobanaService nanobanaService;
     private final ImageResultRepository imageResultRepository;
     private final IBookService bookService;
+    private final IS3UploadService s3UploadService;
 
     /**
      * 사용자 사진을 Gemini API 로 변환하여 DB에 저장한 뒤 결과를 반환한다.
@@ -44,7 +47,11 @@ public class ImageService implements IImageService {
         log.info("{}.generateAndSave Start! - userId:{}, bookId:{}, style:{}",
                 this.getClass().getName(), userId, request.bookId(), request.style());
         try {
-            String imageUrl = nanobanaService.generateImage(
+            // 1. 사용자 원본 사진 → S3 inputs/ 폴더에 저장
+            String inputImageUrl = s3UploadService.upload(photoBytes, photoType, "inputs");
+
+            // 2. Gemini API 호출 → base64 Data URL ("data:image/png;base64,...")
+            String dataUrl = nanobanaService.generateImage(
                     photoBytes,
                     photoType,
                     request.scene(),
@@ -52,9 +59,16 @@ public class ImageService implements IImageService {
                     request.bookTitle()
             );
 
+            // 3. Gemini 결과 이미지 디코딩 후 S3 outputs/ 폴더에 저장
+            String[] parts = dataUrl.split(",", 2);
+            String mime = parts[0].replace("data:", "").replace(";base64", "");
+            byte[] imageBytes = Base64.getDecoder().decode(parts[1]);
+            String imageUrl = s3UploadService.upload(imageBytes, mime, "outputs");
+
             ImageResult saved = imageResultRepository.save(ImageResult.builder()
                     .userId(userId)
                     .bookId(request.bookId())
+                    .inputImageUrl(inputImageUrl)
                     .imageUrl(imageUrl)
                     .style(request.style())
                     .build());
@@ -112,10 +126,11 @@ public class ImageService implements IImageService {
                     String bookTitle = bookService.findById(img.getBookId())
                             .map(b -> b.title()).orElse("-");
                     Map<String, Object> body = new HashMap<>();
-                    body.put("imageUrl",  img.getImageUrl());
-                    body.put("style",     img.getStyle());
-                    body.put("bookId",    img.getBookId());
-                    body.put("bookTitle", bookTitle);
+                    body.put("imageUrl",      img.getImageUrl());
+                    body.put("inputImageUrl", img.getInputImageUrl());
+                    body.put("style",         img.getStyle());
+                    body.put("bookId",        img.getBookId());
+                    body.put("bookTitle",     bookTitle);
                     log.info("{}.getImageDetail End!", this.getClass().getName());
                     return body;
                 })
