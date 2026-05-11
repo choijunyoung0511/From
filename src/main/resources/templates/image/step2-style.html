@@ -201,10 +201,10 @@
             <div class="loading-ring"></div>
             <div class="loading-emoji">✨</div>
         </div>
-        <h3 class="loading-title">AI가 그림을 그리는 중</h3>
-        <p class="loading-msg" id="loadingMsg">📖 책 속 장면을 분석하는 중...</p>
+        <h3 class="loading-title" id="loadingTitle">당신의 이야기를 그리는 중</h3>
+        <p class="loading-msg" id="loadingMsg">📖 선택한 책의 분위기를 읽는 중...</p>
         <div class="loading-bar"><div class="loading-bar-fill" id="loadingBarFill"></div></div>
-        <p class="loading-sub">보통 2~3분 소요됩니다 ☕</p>
+        <p class="loading-sub">잠시만 기다려주세요 ☕</p>
     </div>
 </div>
 
@@ -232,17 +232,31 @@
 
     function updateBtn() { generateBtn.disabled = !(sceneInput.value.trim() && selectedStyle); }
 
-    // Loading animation
-    const messages = [
-        '📖 책 속 장면을 분석하는 중...',
-        '🎨 당신만의 스타일로 그리는 중...',
-        '✨ AI가 디테일을 정교하게 다듬는 중...',
-        '🌟 마지막 터치를 입히는 중...',
+    // 스타일별 로딩 메시지 (선택한 스타일이 화면에 자연스럽게 반영)
+    const styleMessages = {
+        watercolor:   '🎨 수채화 물감으로 채색하는 중...',
+        cartoon:      '✏️ 애니메이션 스타일로 변환하는 중...',
+        realistic:    '📷 사실적인 디테일을 렌더링하는 중...',
+        oil_painting: '🖌 유화 붓터치를 입히는 중...',
+        sketch:       '✒️ 연필 선을 정교하게 다듬는 중...',
+        fantasy:      '🔮 판타지 세계로 초대하는 중...'
+    };
+
+    // 로딩 중 단계별 안내 메시지
+    const baseMessages = [
+        '📖 선택한 책의 분위기를 읽는 중...',
+        '✨ AI가 장면을 해석하는 중...',
+        '',   // 스타일별 메시지 (startLoading에서 동적으로 채워짐)
+        '🎨 이미지를 완성하는 중...',
         '💫 당신의 이야기가 그림이 되고 있어요...'
     ];
     let msgIdx = 0, msgTimer = null, barTimer = null;
 
     function startLoading() {
+        // 스타일별 메시지를 3번째 슬롯에 삽입
+        const messages = [...baseMessages];
+        messages[2] = styleMessages[selectedStyle] || '🖼 이미지 스타일을 적용하는 중...';
+
         loadingOverlay.classList.add('show');
         barFill.style.width = '0';
         msgIdx = 0;
@@ -256,7 +270,7 @@
                 loadingMsg.textContent = messages[msgIdx];
                 loadingMsg.classList.remove('fade');
             }, 400);
-        }, 3500);
+        }, 3000);
 
         // 가상 프로그레스 바 (90%까지만)
         let pct = 0;

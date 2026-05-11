@@ -2,6 +2,7 @@ package com.from.service;
 
 import com.from.dto.ImageRequestDto;
 import com.from.dto.ImageResponseDto;
+import com.from.dto.ImageResultDto;
 import com.from.dto.ImageStyleOptionDto;
 
 import java.util.List;
@@ -15,10 +16,11 @@ import java.util.Map;
 public interface IImageService {
 
     /**
-     * 사용자 사진을 Gemini API로 변환하여 이미지를 생성하고 DB에 저장한다.
+     * Claude로 프롬프트를 생성하고 NanoBanana로 이미지를 생성한 뒤 DB에 저장한다.
+     * 실패 시 RuntimeException을 던지며, 호출한 Controller에서 예외를 처리한다.
      */
-    ImageResponseDto generateAndSave(byte[] photoBytes, String photoType,
-                                     ImageRequestDto request, String userId);
+    ImageResultDto generateAndSave(byte[] photoBytes, String photoType,
+                                   ImageRequestDto request, String userId);
 
     /**
      * 특정 유저의 이미지 생성 히스토리를 최신순으로 조회한다.

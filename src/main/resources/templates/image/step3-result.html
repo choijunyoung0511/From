@@ -73,17 +73,32 @@
         .single-section{display:none;border-radius:20px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.15);margin-bottom:24px}
         .single-section img{width:100%;max-height:500px;object-fit:contain;display:block;background:#1a1410}
 
-        /* ── Info Area ── */
+        /* ── Info Card ── */
         .info-card{background:#fff;border-radius:20px;padding:24px 28px;box-shadow:0 8px 32px rgba(96,113,227,.08);margin-bottom:20px}
-        .info-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-        .artwork-title{font-size:17px;font-weight:800;color:#1A1A2E}
-        .badge-wrap{display:flex;gap:8px;flex-wrap:wrap}
-        .badge{
-            display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:100px;
-            font-size:13px;font-weight:700;
+        .artwork-title{font-size:16px;font-weight:800;color:#1A1A2E;margin-bottom:18px}
+
+        /* ── Info Chips (책, 스타일) ── */
+        .info-chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+        .info-chip{
+            display:flex;align-items:center;gap:10px;
+            background:#FAFAFF;border:1px solid #EEEAF8;border-radius:14px;
+            padding:10px 16px;flex:1;min-width:120px;
         }
-        .badge-book{background:linear-gradient(135deg,rgba(96,113,227,.1),rgba(139,89,199,.1));color:#5060CC;border:1px solid rgba(96,113,227,.2)}
-        .badge-style{background:rgba(253,121,168,.1);color:#C2185B;border:1px solid rgba(253,121,168,.25)}
+        .chip-icon{font-size:20px;line-height:1}
+        .chip-label{font-size:11px;font-weight:700;color:#9999B8;letter-spacing:.3px;margin-bottom:3px}
+        .chip-value{font-size:14px;font-weight:700;color:#1A1A2E}
+
+        /* ── AI 장면 해석 ── */
+        .ai-section{
+            background:linear-gradient(135deg,rgba(96,113,227,.05),rgba(139,89,199,.05));
+            border:1px solid rgba(96,113,227,.12);border-radius:14px;
+            padding:14px 18px;margin-bottom:20px;
+        }
+        .ai-label{
+            display:flex;align-items:center;gap:6px;
+            font-size:12px;font-weight:700;color:#6071E3;letter-spacing:.3px;margin-bottom:8px;
+        }
+        .ai-text{font-size:14px;color:#333355;line-height:1.7}
 
         /* ── Buttons ── */
         .btn-row{display:flex;gap:10px;margin-bottom:12px}
@@ -140,13 +155,15 @@
 
 <!-- Hero -->
 <div class="hero">
-    <div class="hero-tag">🌟 AI Artwork</div>
-    <h2>당신이 책 속 주인공이 되었습니다</h2>
-    <p>AI가 당신만의 독서 장면을 완성했습니다<br>슬라이더를 움직여 변환 전후를 비교해보세요</p>
+    <div class="hero-tag">✨ AI Book Character</div>
+    <h2>AI가 완성한 나만의 책 속 장면</h2>
+    <p>슬라이더를 움직여 변환 전후를 비교해보세요</p>
 </div>
 
-<!-- Hidden imageId -->
-<div id="imageIdData" th:data-id="${imageId}" style="display:none"></div>
+<!-- 서버에서 전달된 데이터 (imageId, 장면 설명, Claude 프롬프트) -->
+<div id="imageIdData"      th:data-id="${imageId}"          style="display:none"></div>
+<div id="sceneData"        th:data-scene="${sceneDescription}"  style="display:none"></div>
+<div id="promptData"       th:data-prompt="${generatedPrompt}"  style="display:none"></div>
 
 <!-- Artwork Card -->
 <div class="artwork-card">
@@ -173,12 +190,30 @@
 
     <!-- Info & Buttons -->
     <div class="info-card">
-        <div class="info-header">
-            <span class="artwork-title">나의 책 속 장면</span>
-            <div class="badge-wrap">
-                <span class="badge badge-book">📚 <span id="infoBook">-</span></span>
-                <span class="badge badge-style">🎨 <span id="infoStyle">-</span></span>
+        <div class="artwork-title">나만의 책 속 장면</div>
+
+        <!-- 📖 책 · 🎨 스타일 칩 -->
+        <div class="info-chips">
+            <div class="info-chip">
+                <span class="chip-icon">📖</span>
+                <div>
+                    <div class="chip-label">선택한 책</div>
+                    <div class="chip-value" id="infoBook">-</div>
+                </div>
             </div>
+            <div class="info-chip">
+                <span class="chip-icon">🎨</span>
+                <div>
+                    <div class="chip-label">적용 스타일</div>
+                    <div class="chip-value" id="infoStyle">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✨ AI 장면 해석 (사용자 입력 장면을 자연스럽게 표시) -->
+        <div class="ai-section" id="aiSection" style="display:none">
+            <div class="ai-label">✨ AI 장면 해석</div>
+            <div class="ai-text" id="aiText"></div>
         </div>
 
         <div class="btn-row">
@@ -194,8 +229,15 @@
 
 <script>
     /* ── Load detail ── */
-    const imageId = document.getElementById('imageIdData').dataset.id;
+    const imageId  = document.getElementById('imageIdData').dataset.id;
+    const sceneVal = document.getElementById('sceneData').dataset.scene || '';
     let resultUrl = '';
+
+    // AI 장면 해석: 사용자가 입력한 장면 설명을 자연스럽게 표시
+    if (sceneVal && sceneVal !== 'null') {
+        document.getElementById('aiText').textContent = sceneVal;
+        document.getElementById('aiSection').style.display = 'block';
+    }
 
     if (imageId && imageId !== 'undefined') {
         fetch(`/image/detail/${imageId}`)

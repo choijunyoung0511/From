@@ -1,7 +1,7 @@
 package com.from.controller;
 
 import com.from.dto.ImageRequestDto;
-import com.from.dto.ImageResponseDto;
+import com.from.dto.ImageResultDto;
 import com.from.dto.MsgDTO;
 import com.from.dto.BookSearchDTO;
 import com.from.service.IBookService;
@@ -68,7 +68,6 @@ public class ImageController {
      * @param bookId    선택한 책 ID
      * @param bookTitle 선택한 책 제목
      * @param session   로그인 세션
-     * @param model     에러 메시지 전달용
      * @return Step 2 화면으로 리다이렉트
      */
     @PostMapping("/create")
@@ -123,14 +122,14 @@ public class ImageController {
     }
 
     /**
-     * 이미지 생성 API (비동기 호출).
-     * 세션에 저장된 사진과 요청 파라미터를 ImageService 에 전달하여 Gemini API 를 호출한다.
-     * 생성된 이미지는 DB에 저장되고 응답으로 imageId·imageUrl 을 반환한다.
+     * 이미지 생성 API (step2-style.html에서 비동기 fetch 호출).
+     * Claude → NanoBanana 순서로 호출하고 결과를 DB에 저장한다.
+     * 성공 시 {success:true, imageId:...} 반환, 실패 시 {success:false, errorMessage:...} 반환.
      *
      * @param scene   장면 설명 텍스트
      * @param style   아트 스타일 (watercolor, cartoon 등)
      * @param session 로그인 세션
-     * @return {@link ImageDto.GenerateResponse} JSON
+     * @return JSON 응답
      */
     @PostMapping("/generate")
     @ResponseBody
@@ -142,37 +141,66 @@ public class ImageController {
         log.info("{}.generate Start!", this.getClass().getName());
 
         String userId = (String) session.getAttribute("SS_USER_ID");
-        if (userId == null) return ResponseEntity.status(401).body(MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build());
+        if (userId == null) {
+            return ResponseEntity.status(401)
+                    .body(MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build());
+        }
 
-        // 세션에서 Step 1 에서 저장한 사진·책 정보 꺼내기
+        // 세션에서 Step 1에서 저장한 사진·책 정보 꺼내기
         byte[] photoBytes = (byte[]) session.getAttribute("uploadedPhoto");
         String photoType  = (String) session.getAttribute("uploadedPhotoType");
         Long   bookId     = (Long)   session.getAttribute("imageBookId");
         String bookTitle  = (String) session.getAttribute("imageBookTitle");
 
-        if (photoBytes == null) return ResponseEntity.badRequest().body(MsgDTO.builder().result(0).msg("사진을 먼저 업로드해주세요.").build());
+        if (photoBytes == null) {
+            return ResponseEntity.badRequest()
+                    .body(MsgDTO.builder().result(0).msg("사진을 먼저 업로드해주세요.").build());
+        }
 
-        // 이미지 생성 요청 DTO 구성
-        ImageRequestDto request = new ImageRequestDto(bookId, bookTitle, scene, style);
+        try {
+            // 이미지 생성 요청 DTO 구성
+            ImageRequestDto request = new ImageRequestDto(bookId, bookTitle, scene, style);
 
-        ImageResponseDto response =
-                imageService.generateAndSave(photoBytes, photoType, request, userId);
+            // Claude → NanoBanana 이미지 생성 (실패 시 RuntimeException 발생)
+            ImageResultDto result = imageService.generateAndSave(photoBytes, photoType, request, userId);
 
-        log.info("{}.generate End!", this.getClass().getName());
-        return ResponseEntity.ok(response);
+            // 결과 화면(step3-result.html)에서 표시할 정보를 세션에 저장
+            session.setAttribute("imageGeneratedPrompt",   result.generatedPrompt());
+            session.setAttribute("imageSceneDescription",  result.sceneDescription());
+
+            log.info("{}.generate End! - imageId:{}", this.getClass().getName(), result.imageId());
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "imageId", result.imageId()
+            ));
+
+        } catch (Exception e) {
+            log.error("이미지 생성 실패: {}", e.getMessage());
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "errorMessage", "이미지 생성에 실패했습니다. 잠시 후 다시 시도해주세요."
+            ));
+        }
     }
 
     /**
      * Step 3: 이미지 결과 화면을 반환한다.
+     * 세션에 저장된 Claude 프롬프트와 장면 설명도 모델에 담아 결과 화면에서 표시한다.
      *
      * @param imageId 생성된 이미지 ID
-     * @param model   imageId 전달용
+     * @param model   imageId, generatedPrompt, sceneDescription 전달용
+     * @param session 로그인 세션
      * @return image/step3-result 템플릿
      */
     @GetMapping("/result/{imageId}")
-    public String resultPage(@PathVariable Long imageId, Model model) {
+    public String resultPage(@PathVariable Long imageId, Model model, HttpSession session) {
         log.info("{}.resultPage Start! - imageId:{}", this.getClass().getName(), imageId);
-        model.addAttribute("imageId", imageId);
+
+        model.addAttribute("imageId",          imageId);
+        // Claude가 생성한 프롬프트와 사용자가 입력한 장면 설명을 결과 화면에 전달
+        model.addAttribute("generatedPrompt",  session.getAttribute("imageGeneratedPrompt"));
+        model.addAttribute("sceneDescription", session.getAttribute("imageSceneDescription"));
+
         log.info("{}.resultPage End!", this.getClass().getName());
         return "image/step3-result";
     }
@@ -236,16 +264,20 @@ public class ImageController {
         try {
             String scene = "책 '" + bookTitle + "'의 주인공으로 등장하는 장면";
             ImageRequestDto request = new ImageRequestDto(bookId, bookTitle, scene, style);
-            ImageResponseDto response =
+            ImageResultDto result =
                     imageService.generateAndSave(photo.getBytes(), photo.getContentType(), request, userId);
-            log.info("{}.generateDirect End!", this.getClass().getName());
-            return ResponseEntity.ok(response);
+            log.info("{}.generateDirect End! - imageId:{}", this.getClass().getName(), result.imageId());
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "imageId", result.imageId(),
+                    "imageUrl", result.imageUrl()
+            ));
         } catch (Exception e) {
             log.error("이미지 직접 생성 오류", e);
-            return ResponseEntity.ok(ImageResponseDto.builder()
-                    .success(false)
-                    .errorMessage("이미지 생성 중 오류가 발생했습니다.")
-                    .build());
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "errorMessage", "이미지 생성에 실패했습니다. 잠시 후 다시 시도해주세요."
+            ));
         }
     }
 }
