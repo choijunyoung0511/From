@@ -242,7 +242,7 @@ public class ImageController {
 
     /**
      * SPA용 단일 요청 이미지 생성 API.
-     * 사진·책·스타일을 한 번에 받아 Gemini API 를 호출하고 결과를 반환한다.
+     * 사진·책·스타일을 한 번에 받아 Claude + 이미지 생성 API를 호출하고 결과를 반환한다.
      * review/image.html 의 클라이언트 사이드 3단계 플로우에서 사용한다.
      */
     @PostMapping("/generate-direct")

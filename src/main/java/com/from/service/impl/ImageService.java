@@ -2,6 +2,7 @@ package com.from.service.impl;
 
 import com.from.client.ClaudePromptClient;
 import com.from.client.NanoBananaImageClient;
+import com.from.dto.nano.NanoBananaRequest;
 import com.from.domain.ImageResult;
 import com.from.dto.ImageRequestDto;
 import com.from.dto.ImageResponseDto;
@@ -84,13 +85,13 @@ public class ImageService implements IImageService {
         );
         log.info("Claude 프롬프트 생성 완료: {}", generatedPrompt);
 
-        // Step 3: NanoBanana API 호출 → 사진 + Claude 프롬프트로 이미지 생성
+        // Step 3: NanoBananaRequest 구성 후 이미지 생성 API 호출
         log.info("NanoBanana 이미지 생성 중...");
-        String generatedImage = nanoBananaImageClient.generateImage(
-                photoBytes,
-                photoType,
-                generatedPrompt
-        );
+        String base64Photo = java.util.Base64.getEncoder().encodeToString(photoBytes);
+        String safeType    = (photoType != null) ? photoType : "image/jpeg";
+
+        NanoBananaRequest imageRequest = new NanoBananaRequest(generatedPrompt, base64Photo, safeType);
+        String generatedImage = nanoBananaImageClient.generateImage(imageRequest);
 
         // Step 4: 생성된 이미지 결과 처리 (URL 또는 base64 Data URL)
         String imageUrl;
