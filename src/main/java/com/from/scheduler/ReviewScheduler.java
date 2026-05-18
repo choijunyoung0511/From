@@ -39,7 +39,13 @@ public class ReviewScheduler {
         log.info("{}.sendScheduledReviews Start!", this.getClass().getName());
 
         // 아직 발송되지 않은 독후감 전체 조회
-        List<BookReviewDocument> pending = bookReviewMongoRepository.findByIsSent(0);
+        List<BookReviewDocument> pending;
+        try {
+            pending = bookReviewMongoRepository.findByIsSent(0);
+        } catch (Exception e) {
+            log.warn("MongoDB 연결 실패 - 스케줄러 스킵: {}", e.getMessage());
+            return;
+        }
 
         LocalDate today = LocalDate.now();
         LocalTime now   = LocalTime.now();

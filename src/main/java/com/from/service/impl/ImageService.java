@@ -140,12 +140,17 @@ public class ImageService implements IImageService {
         List<ImageResponseDto> result = imageResultRepository
                 .findByUserIdOrderByCreateAtDesc(userId)
                 .stream()
-                .map(img -> ImageResponseDto.builder()
-                        .imageId(img.getImageId())
-                        .imageUrl(img.getImageUrl())
-                        .style(img.getStyle())
-                        .success(true)
-                        .build())
+                .map(img -> {
+                    String bookTitle = bookService.findById(img.getBookId())
+                            .map(b -> b.title()).orElse("-");
+                    return ImageResponseDto.builder()
+                            .imageId(img.getImageId())
+                            .imageUrl(img.getImageUrl())
+                            .style(img.getStyle())
+                            .bookTitle(bookTitle)
+                            .success(true)
+                            .build();
+                })
                 .toList();
         log.info("{}.getUserImages End! - {}건", this.getClass().getName(), result.size());
         return result;

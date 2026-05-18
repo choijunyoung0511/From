@@ -188,6 +188,35 @@
         .db-genre-pct { font-family:monospace; color:var(--text3); font-size:12px; }
         .db-empty { text-align:center; padding:40px 20px; color:var(--text3); font-size:14px; }
         .db-tooltip { position:fixed; background:#1a1d2e; border-radius:8px; padding:8px 12px; font-size:12px; color:white; font-family:monospace; pointer-events:none; z-index:999; display:none; white-space:nowrap; }
+
+        /* ── 이미지 갤러리 탭 ── */
+        .gallery-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .gallery-card {
+            background: white; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer; text-decoration: none; display: block; color: inherit;
+        }
+        .gallery-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(96,113,227,0.18); }
+        .gallery-img-wrap {
+            width: 100%; aspect-ratio: 1 / 1; overflow: hidden;
+            background: linear-gradient(135deg, #F0EEFF, #EEF1FE);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .gallery-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .gallery-img-placeholder { font-size: 40px; color: #C8C5E8; }
+        .gallery-info { padding: 14px 16px; }
+        .gallery-book { font-size: 14px; font-weight: 700; color: #1A1A2E; margin-bottom: 6px;
+                        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gallery-style {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: rgba(96,113,227,.1); color: #6071E3;
+            font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 99px;
+        }
+        @media (max-width: 560px) { .gallery-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -197,6 +226,7 @@
 <div class="mypage-container">
     <div class="tab-menu">
         <button class="tab-btn active"  onclick="showTab('profile')">프로필</button>
+        <button class="tab-btn"         onclick="showTab('images')">내 이미지</button>
         <button class="tab-btn"         onclick="showTab('reviews')">독후감 기록</button>
         <button class="tab-btn"         onclick="showTab('dashboard')">독서 대시보드</button>
         <button class="tab-btn"         onclick="showTab('password')">비밀번호 변경</button>
@@ -224,12 +254,53 @@
 
         <div class="user-card">
             <ul class="menu-list">
+                <li><button onclick="showTab('images')">🎭 내 AI 이미지 작품 보기</button></li>
                 <li><button onclick="showTab('reviews')">📖 내 독후감 기록 조회</button></li>
                 <li><button onclick="location.href='/user/dashboard'">📊 독서 대시보드</button></li>
                 <li><button onclick="showTab('password')">🔒 비밀번호 변경</button></li>
                 <li><button class="danger" onclick="showDeleteModal()">⚠️ 회원 탈퇴</button></li>
             </ul>
             <a th:href="@{/}" class="home-link">홈으로 돌아가기</a>
+        </div>
+    </div>
+
+    <!-- ── 탭: 내 이미지 작품 ── -->
+    <div id="images-tab" class="tab-content">
+        <h2 class="page-title">🎭 내 AI 이미지 작품</h2>
+
+        <div th:if="${images != null and !images.isEmpty()}" class="gallery-grid">
+            <a th:each="img : ${images}"
+               th:href="@{/image/result/{id}(id=${img.imageId})}"
+               class="gallery-card">
+                <div class="gallery-img-wrap">
+                    <img th:if="${img.imageUrl != null}"
+                         th:src="${img.imageUrl}"
+                         alt="AI 생성 이미지"
+                         loading="lazy"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="gallery-img-placeholder"
+                         th:style="${img.imageUrl != null} ? 'display:none' : 'display:flex'">🎨</div>
+                </div>
+                <div class="gallery-info">
+                    <div class="gallery-book" th:text="${img.bookTitle != null ? img.bookTitle : '제목 없음'}">책 제목</div>
+                    <span class="gallery-style"
+                          th:text="${img.style == 'watercolor'   ? '🎨 수채화'      :
+                                    img.style == 'cartoon'       ? '✏️ 만화/애니메이션' :
+                                    img.style == 'realistic'     ? '📷 사실적'      :
+                                    img.style == 'oil_painting'  ? '🖌 유화'        :
+                                    img.style == 'sketch'        ? '✒️ 스케치'      :
+                                    img.style == 'fantasy'       ? '🔮 판타지'      : img.style}">스타일</span>
+                </div>
+            </a>
+        </div>
+
+        <div th:if="${images == null or images.isEmpty()}" class="empty-state">
+            <div class="icon">🎭</div>
+            <p>아직 생성한 이미지가 없어요.<br>책 속 주인공이 되어보세요!</p>
+            <a th:href="@{/image/create}"
+               style="display:inline-block;margin-top:20px;padding:12px 28px;
+                      background:#6071E3;color:white;border-radius:10px;
+                      text-decoration:none;font-weight:700;">이미지 만들러 가기</a>
         </div>
     </div>
 
@@ -390,7 +461,7 @@
 
 <script>
     /** 탭 전환. event.target 대신 탭 인덱스로 버튼을 찾아 active 처리한다 */
-    const TAB_NAMES = ['profile', 'reviews', 'dashboard', 'password'];
+    const TAB_NAMES = ['profile', 'images', 'reviews', 'dashboard', 'password'];
 
     function showTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));

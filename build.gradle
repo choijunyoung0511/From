@@ -23,6 +23,7 @@ repositories {
 }
 
 dependencies {
+
     // Spring Boot Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
@@ -35,14 +36,20 @@ dependencies {
     // MongoDB
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 
-    // WebFlux (Reactive)
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // WebFlux
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     // Mail
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-    // MySQL
-    runtimeOnly 'com.mysql:mysql-connector-j'
+    // MariaDB JDBC
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
+
+    // AWS S3
+    implementation 'software.amazon.awssdk:s3:2.25.0'
 
     // DevTools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -53,13 +60,6 @@ dependencies {
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
-    //redis
-    implementation'org.springframework.boot:spring-boot-starter-data-redis'
-
-    // AWS S3
-    implementation 'software.amazon.awssdk:s3:2.25.0'
-
 }
 
 tasks.named('test') {

@@ -1,10 +1,12 @@
 package com.from.controller;
 
 import com.from.domain.BookReviewDocument;
+import com.from.dto.ImageResponseDto;
 import com.from.dto.MsgDTO;
 import com.from.dto.UserInfoDTO;
 import com.from.dto.BookSearchDTO;
 import com.from.service.IBookService;
+import com.from.service.IImageService;
 import com.from.service.IReviewService;
 import com.from.service.IUserInfoService;
 import com.from.util.CmmUtil;
@@ -44,6 +46,7 @@ public class UserInfoController {
     private final IUserInfoService userInfoService;
     private final IReviewService reviewService;
     private final IBookService bookService;
+    private final IImageService imageService;
 
     /**
      * 회원가입 화면을 반환한다.
@@ -495,6 +498,10 @@ public class UserInfoController {
         // 독후감 이력 조회 (MongoDB aireviews 컬렉션)
         List<BookReviewDocument> reviews = reviewService.getReviewsByUserId(userId);
         model.addAttribute("reviews", reviews);
+
+        // AI 이미지 생성 이력 조회 (MySQL imge_results 테이블, 최신순)
+        List<ImageResponseDto> images = imageService.getUserImages(userId);
+        model.addAttribute("images", images);
 
         log.info("{}.user/mypage End!", this.getClass().getName());
         return "user/mypage";
