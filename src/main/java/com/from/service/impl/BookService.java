@@ -4,12 +4,18 @@ package com.from.service.impl;
 import com.from.dto.BookSearchDTO;
 
 // Repository 계층 (DB 접근)
+import com.from.repository.BookRatingRepository;
 import com.from.repository.BookRepository;
+import com.from.repository.BookReviewCommentRepository;
+import com.from.repository.BookReviewLikeRepository;
 import com.from.repository.ReadingLogRepository;
 import com.from.repository.UserBookRepository;
 
 // Entity (DB 테이블 매핑 객체)
 import com.from.repository.entity.BookEntity;
+import com.from.repository.entity.BookRatingEntity;
+import com.from.repository.entity.BookReviewCommentEntity;
+import com.from.repository.entity.BookReviewLikeEntity;
 import com.from.repository.entity.ReadingLogEntity;
 import com.from.repository.entity.UserBookEntity;
 import com.from.repository.entity.UserBookId;
@@ -27,8 +33,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 
@@ -77,6 +86,9 @@ public class BookService implements IBookService {
      * 잔디 차트 생성 데이터
      */
     private final ReadingLogRepository readingLogRepository;
+    private final BookRatingRepository bookRatingRepository;
+    private final BookReviewLikeRepository bookReviewLikeRepository;
+    private final BookReviewCommentRepository bookReviewCommentRepository;
 
 
 
@@ -223,7 +235,76 @@ public class BookService implements IBookService {
 
 
 
-  //빌더로 DTO반환
+    @Override
+    public void saveRating(String userId, Long bookId, int rating, String content) {
+        bookRatingRepository.findByUserIdAndBookId(userId, bookId).ifPresentOrElse(
+            existing -> {
+                existing.setRating(rating);
+                existing.setContent(content);
+                bookRatingRepository.save(existing);
+            },
+            () -> bookRatingRepository.save(BookRatingEntity.builder()
+                .userId(userId).bookId(bookId).rating(rating).content(content).build())
+        );
+    }
+
+    @Override
+    public List<Map<String, Object>> getRatings(Long bookId, String currentUserId) {
+        return bookRatingRepository.findByBookIdOrderByCreatedAtDesc(bookId).stream()
+            .map(r -> {
+                Map<String, Object> m = new HashMap<>();
+                String uid = r.getUserId();
+                m.put("id", r.getId());
+                m.put("userId", uid.length() <= 2 ? "***" : uid.charAt(0) + "***" + uid.charAt(uid.length() - 1));
+                m.put("rating", r.getRating());
+                m.put("content", r.getContent() == null ? "" : r.getContent());
+                m.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate().toString() : "");
+                m.put("likeCount", bookReviewLikeRepository.countByRatingId(r.getId()));
+                m.put("commentCount", bookReviewCommentRepository.countByRatingId(r.getId()));
+                m.put("liked", currentUserId != null && bookReviewLikeRepository.existsByRatingIdAndUserId(r.getId(), currentUserId));
+                return m;
+            })
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, Object> toggleLike(Long ratingId, String userId) {
+        Map<String, Object> result = new HashMap<>();
+        bookReviewLikeRepository.findByRatingIdAndUserId(ratingId, userId).ifPresentOrElse(
+            like -> {
+                bookReviewLikeRepository.delete(like);
+                result.put("liked", false);
+            },
+            () -> {
+                bookReviewLikeRepository.save(BookReviewLikeEntity.builder().ratingId(ratingId).userId(userId).build());
+                result.put("liked", true);
+            }
+        );
+        result.put("count", bookReviewLikeRepository.countByRatingId(ratingId));
+        return result;
+    }
+
+    @Override
+    public void addComment(Long ratingId, String userId, String content) {
+        bookReviewCommentRepository.save(BookReviewCommentEntity.builder()
+            .ratingId(ratingId).userId(userId).content(content).build());
+    }
+
+    @Override
+    public List<Map<String, Object>> getComments(Long ratingId) {
+        return bookReviewCommentRepository.findByRatingIdOrderByCreatedAtAsc(ratingId).stream()
+            .map(c -> {
+                Map<String, Object> m = new HashMap<>();
+                String uid = c.getUserId();
+                m.put("userId", uid.length() <= 2 ? "***" : uid.charAt(0) + "***" + uid.charAt(uid.length() - 1));
+                m.put("content", c.getContent());
+                m.put("createdAt", c.getCreatedAt() != null ? c.getCreatedAt().toLocalDate().toString() : "");
+                return m;
+            })
+            .collect(Collectors.toList());
+    }
+
+    //빌더로 DTO반환
     private BookSearchDTO toDTO(BookEntity entity) {
 
         return BookSearchDTO.builder()

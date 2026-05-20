@@ -351,6 +351,11 @@
         if (currentStep === 3) {
             if (!selectedDate) { document.getElementById('date-error').textContent = '날짜를 선택해주세요.'; return; }
             if (!selectedTime) { document.getElementById('date-error').textContent = '시간을 선택해주세요.'; return; }
+            const selectedDT = new Date(`${selectedDate}T${selectedTime}:00`);
+            if (selectedDT <= new Date()) {
+                document.getElementById('date-error').textContent = '현재 이후의 날짜와 시간을 선택해주세요.';
+                return;
+            }
         }
         document.getElementById('selected-book-name').textContent = selectedBookTitle;
         document.getElementById('selected-book-author').textContent = selectedBookAuthor;

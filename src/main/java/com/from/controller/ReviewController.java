@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,6 +84,12 @@ public class ReviewController {
 
         String userId = (String) session.getAttribute("SS_USER_ID");
         if (userId == null) return MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build();
+
+        LocalDate parsedDate = LocalDate.parse(deliveryDate);
+        LocalTime parsedTime = LocalTime.parse(deliveryTime);
+        if (LocalDateTime.of(parsedDate, parsedTime).isBefore(LocalDateTime.now())) {
+            return MsgDTO.builder().result(0).msg("발송 날짜와 시간은 현재 이후여야 합니다.").build();
+        }
 
         MsgDTO dto;
         try {

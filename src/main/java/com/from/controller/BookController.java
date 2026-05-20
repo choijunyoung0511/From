@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -209,9 +210,9 @@ public class BookController {
 
             if (registered) {
                 rankingRedisService.incrementBookCount(userId);
-                dto = MsgDTO.builder().result(1).msg("등록되었습니다.").build();
+                dto = MsgDTO.builder().result(1).msg("등록되었습니다.").bookId(book.bookId()).build();
             } else {
-                dto = MsgDTO.builder().result(0).msg("이미 등록된 책입니다.").build();
+                dto = MsgDTO.builder().result(0).msg("이미 등록된 책입니다.").bookId(book.bookId()).build();
             }
 
         } catch (Exception e) {
@@ -221,6 +222,72 @@ public class BookController {
 
         log.info("{}.registerBook End!", this.getClass().getName());
         return dto;
+    }
+
+    @PostMapping("/rating")
+    @ResponseBody
+    public MsgDTO saveRating(@RequestParam Long bookId,
+                             @RequestParam int rating,
+                             @RequestParam(required = false, defaultValue = "") String content,
+                             HttpSession session) {
+        log.info("{}.saveRating Start! - bookId:{}, rating:{}", this.getClass().getName(), bookId, rating);
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build();
+        if (rating < 1 || rating > 5) return MsgDTO.builder().result(0).msg("별점은 1~5 사이여야 합니다.").build();
+        try {
+            String safeContent = content.length() > 300 ? content.substring(0, 300) : content;
+            bookService.saveRating(userId, bookId, rating, safeContent);
+            log.info("{}.saveRating End!", this.getClass().getName());
+            return MsgDTO.builder().result(1).msg("후기가 등록되었습니다.").build();
+        } catch (Exception e) {
+            log.error("후기 저장 오류", e);
+            return MsgDTO.builder().result(0).msg("후기 등록에 실패했습니다.").build();
+        }
+    }
+
+    @GetMapping("/ratings")
+    @ResponseBody
+    public ResponseEntity<?> getRatings(@RequestParam String title, @RequestParam String author,
+                                        HttpSession session) {
+        log.info("{}.getRatings Start! - title:{}", this.getClass().getName(), title);
+        try {
+            String userId = (String) session.getAttribute("SS_USER_ID");
+            Optional<BookSearchDTO> book = bookService.findByTitleAndAuthor(title, author);
+            if (book.isEmpty()) return ResponseEntity.ok(java.util.Collections.emptyList());
+            List<java.util.Map<String, Object>> ratings = bookService.getRatings(book.get().bookId(), userId);
+            log.info("{}.getRatings End! - {}건", this.getClass().getName(), ratings.size());
+            return ResponseEntity.ok(ratings);
+        } catch (Exception e) {
+            log.error("후기 조회 오류", e);
+            return ResponseEntity.ok(java.util.Collections.emptyList());
+        }
+    }
+
+    @PostMapping("/rating/{ratingId}/like")
+    @ResponseBody
+    public ResponseEntity<?> toggleLike(@PathVariable Long ratingId, HttpSession session) {
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return ResponseEntity.status(401).body(MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build());
+        return ResponseEntity.ok(bookService.toggleLike(ratingId, userId));
+    }
+
+    @PostMapping("/rating/{ratingId}/comment")
+    @ResponseBody
+    public MsgDTO addComment(@PathVariable Long ratingId,
+                             @RequestParam String content,
+                             HttpSession session) {
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build();
+        if (content == null || content.isBlank()) return MsgDTO.builder().result(0).msg("댓글 내용을 입력해주세요.").build();
+        String safe = content.length() > 500 ? content.substring(0, 500) : content;
+        bookService.addComment(ratingId, userId, safe);
+        return MsgDTO.builder().result(1).msg("댓글이 등록되었습니다.").build();
+    }
+
+    @GetMapping("/rating/{ratingId}/comments")
+    @ResponseBody
+    public ResponseEntity<?> getComments(@PathVariable Long ratingId) {
+        return ResponseEntity.ok(bookService.getComments(ratingId));
     }
 
     /** "김훈 (지은이)" → "김훈", 여러 저자면 첫 번째만 */

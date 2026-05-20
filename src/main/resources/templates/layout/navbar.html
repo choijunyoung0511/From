@@ -147,4 +147,11 @@
     }
 </script>
 
+<!-- 로그아웃 후 뒤로가기 시 bfcache 복원 방지 -->
+<script th:if="${session.SS_USER_ID != null}">
+    window.addEventListener('pageshow', function(e) {
+        if (e.persisted) window.location.reload();
+    });
+</script>
+
 </th:block>

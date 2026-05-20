@@ -36,10 +36,17 @@ public class AladinService implements IAladinService {
      //알라딘 API 호출
      //JSON 결과 수신
      //DTO로 변환
+    private String cleanQuery(String query) {
+        if (query == null) return "";
+        if (query.contains("-")) query = query.split("-")[0].trim();
+        query = query.replaceAll("[?！!·…]", "").trim();
+        return query;
+    }
+
     @Override
     public List<BookSearchDTO> searchBooks(String query, String type) {
-
-        log.info("{}.searchBooks Start! - query:{}, type:{}", this.getClass().getName(), query, type);
+        String cleanedQuery = cleanQuery(query);
+        log.info("{}.searchBooks Start! - query:{}, type:{}", this.getClass().getName(), cleanedQuery, type);
 
        //제목,저자,키워드
         String queryType = switch (type) {
@@ -62,7 +69,7 @@ public class AladinService implements IAladinService {
                             .queryParam("TTBKey", apiKey)
 
                             // 검색어
-                            .queryParam("Query", query)
+                            .queryParam("Query", cleanedQuery)
 
                             // 검색 타입
                             .queryParam("QueryType", queryType)
@@ -156,7 +163,7 @@ public class AladinService implements IAladinService {
     //제목으로 표지 이미지 조회
     @Override
     public String searchCover(String title) {
-
+        String cleanedTitle = cleanQuery(title);
         try {
 
             String json = WebClient.create("https://www.aladin.co.kr").get()
@@ -166,7 +173,7 @@ public class AladinService implements IAladinService {
                             .queryParam("TTBKey", apiKey)
 
                             // 제목 검색
-                            .queryParam("Query", title)
+                            .queryParam("Query", cleanedTitle)
 
                             .queryParam("QueryType", "Title")
 

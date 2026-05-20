@@ -3,6 +3,7 @@ package com.from.service;
 import com.from.dto.BookSearchDTO;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface IBookService {
@@ -21,4 +22,19 @@ public interface IBookService {
 
     // 유저가 등록한 책 목록 조회 (최신순)
     List<BookSearchDTO> findByUserId(String userId);
+
+    // 책 후기 저장 (이미 작성했으면 수정)
+    void saveRating(String userId, Long bookId, int rating, String content);
+
+    // 책 후기 목록 조회 (ratingId·likeCount·commentCount·isLiked 포함)
+    List<Map<String, Object>> getRatings(Long bookId, String currentUserId);
+
+    // 후기 좋아요 토글 — 좋아요 눌렀으면 취소, 안 눌렀으면 추가
+    Map<String, Object> toggleLike(Long ratingId, String userId);
+
+    // 댓글 추가
+    void addComment(Long ratingId, String userId, String content);
+
+    // 댓글 목록 조회
+    List<Map<String, Object>> getComments(Long ratingId);
 }

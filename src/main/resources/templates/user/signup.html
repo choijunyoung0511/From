@@ -364,6 +364,8 @@
         if (!password) { document.getElementById('password-error').textContent = '비밀번호를 입력해주세요.'; return; }
         if (!passwordConfirm) { document.getElementById('password-confirm-error').textContent = '비밀번호 확인을 입력해주세요.'; return; }
         if (password !== passwordConfirm) { document.getElementById('password-confirm-error').textContent = '비밀번호가 일치하지 않습니다.'; return; }
+        const pwRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
+        if (!pwRegex.test(password)) { document.getElementById('password-error').textContent = '비밀번호 조건을 확인해주세요 (문자+숫자+특수문자 8~20자).'; return; }
         if (!email) { document.getElementById('email-error').textContent = '이메일을 입력해주세요.'; return; }
         if (!emailVerified) { showModal('이메일 인증을 완료해주세요.'); return; }
 

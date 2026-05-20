@@ -17,5 +17,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record MsgDTO(
         int result,   // 1 = 성공, 0 = 실패
-        String msg    // 처리 결과 메시지 (예: "등록되었습니다.")
+        String msg,   // 처리 결과 메시지 (예: "등록되었습니다.")
+        Long bookId   // 책 등록 시 책 ID (후기 작성에 사용, 선택적)
 ) {}
