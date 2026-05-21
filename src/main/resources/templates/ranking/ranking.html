@@ -6,61 +6,250 @@
     <title>랭킹 - FROM</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
-        /* ── 랭킹 ── */
-        .ranking-table { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        .ranking-table table { width: 100%; border-collapse: collapse; }
-        .ranking-table th { background: #1E3A5F; color: white; padding: 14px 20px; font-size: 14px; text-align: left; }
-        .ranking-table td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #f0ebe6; }
-        .ranking-table tr:last-child td { border-bottom: none; }
-        .ranking-table tr:hover td { background: #faf7f4; }
-        .rank-badge { font-weight: 700; font-size: 16px; }
-        .rank-1 { color: #FFB800; }
-        .rank-2 { color: #AAAAAA; }
-        .rank-3 { color: #CD7F32; }
-        .my-row td { background: #f0f5ff; font-weight: 600; }
-        .empty-msg { text-align: center; padding: 60px; color: #999; font-size: 15px; }
-        .week-label { font-size: 13px; color: #888; margin-bottom: 16px; }
+        body { background: #F4F5F9; min-height: 100vh; }
+
+        /* ── 헤더 ── */
+        .rank-hero {
+            text-align: center;
+            padding: 44px 20px 32px;
+        }
+        .rank-hero-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(96,113,227,.09); color: #6071E3;
+            font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+            padding: 6px 16px; border-radius: 100px; margin-bottom: 14px;
+        }
+        .rank-hero h2 { font-size: 26px; font-weight: 800; color: #1A1A2E; margin: 0 0 8px; }
+        .rank-hero p  { font-size: 14px; color: #7A7899; margin: 0; }
+        .week-label-badge {
+            display: inline-block; margin-top: 12px;
+            background: white; border: 1px solid #E4E1F0; border-radius: 99px;
+            padding: 6px 18px; font-size: 13px; color: #555577; font-weight: 600;
+        }
+
+        /* ── TOP 3 포디움 ── */
+        .podium-wrap {
+            display: flex; align-items: flex-end; justify-content: center;
+            gap: 16px; padding: 0 20px 36px; max-width: 520px; margin: 0 auto;
+        }
+        .podium-card {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            background: white; border-radius: 20px; padding: 20px 12px 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.08);
+            position: relative; transition: transform .2s;
+            max-width: 160px;
+        }
+        .podium-card:hover { transform: translateY(-4px); }
+        .podium-card.rank-1 {
+            box-shadow: 0 12px 40px rgba(255,184,0,.25), 0 0 0 2px #FFD700;
+            order: 2; transform: translateY(-16px);
+        }
+        .podium-card.rank-1:hover { transform: translateY(-20px); }
+        .podium-card.rank-2 { order: 1; }
+        .podium-card.rank-3 { order: 3; }
+
+        .podium-crown {
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            font-size: 26px; line-height: 1;
+        }
+        .podium-avatar {
+            width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+            border: 3px solid #E4E1F0; margin-bottom: 10px; background: #f0f0ff;
+            font-size: 28px; display: flex; align-items: center; justify-content: center;
+        }
+        .podium-card.rank-1 .podium-avatar { border-color: #FFD700; width: 76px; height: 76px; }
+        .podium-card.rank-2 .podium-avatar { border-color: #C0C0C0; }
+        .podium-card.rank-3 .podium-avatar { border-color: #CD7F32; }
+        .podium-rank {
+            font-size: 11px; font-weight: 700; letter-spacing: .4px; margin-bottom: 4px;
+        }
+        .podium-card.rank-1 .podium-rank { color: #B8860B; }
+        .podium-card.rank-2 .podium-rank { color: #808080; }
+        .podium-card.rank-3 .podium-rank { color: #8B4513; }
+        .podium-name  { font-size: 13px; font-weight: 700; color: #1A1A2E; margin-bottom: 6px; text-align: center; }
+        .podium-count { font-size: 12px; color: #6071E3; font-weight: 700; }
+        .podium-streak{ font-size: 11px; color: #999; margin-top: 2px; }
+
+        /* ── 나머지 랭킹 리스트 ── */
+        .rank-list-wrap {
+            max-width: 560px; margin: 0 auto; padding: 0 16px 80px;
+        }
+        .rank-list-title {
+            font-size: 14px; font-weight: 700; color: #9999B8;
+            letter-spacing: .3px; margin-bottom: 12px; padding-left: 4px;
+        }
+        .rank-item {
+            display: flex; align-items: center; gap: 14px;
+            background: white; border-radius: 14px; padding: 14px 18px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.055);
+            border: 1px solid rgba(0,0,0,.03);
+            transition: transform .15s, box-shadow .15s;
+        }
+        .rank-item:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.09); }
+        .rank-item.my-rank {
+            border: 2px solid #6071E3;
+            background: linear-gradient(135deg, #f4f5ff, #faf9ff);
+        }
+        .rank-num {
+            width: 32px; text-align: center; font-size: 16px; font-weight: 800;
+            color: #CCCCDD; flex-shrink: 0;
+        }
+        .rank-item-avatar {
+            width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
+            background: #f0f0ff; border: 2px solid #E4E1F0; flex-shrink: 0;
+            font-size: 20px; display: flex; align-items: center; justify-content: center;
+        }
+        .rank-item-info { flex: 1; min-width: 0; }
+        .rank-item-name  { font-size: 14px; font-weight: 700; color: #1A1A2E; margin-bottom: 2px; }
+        .rank-item-sub   { font-size: 12px; color: #999; }
+        .rank-item-count { font-size: 14px; font-weight: 700; color: #6071E3; flex-shrink: 0; }
+
+        /* ── 내 순위 고정 카드 ── */
+        .my-rank-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; border-top: 2px solid #6071E3;
+            padding: 12px 20px; z-index: 100;
+            box-shadow: 0 -4px 24px rgba(96,113,227,.15);
+        }
+        .my-rank-inner {
+            max-width: 560px; margin: 0 auto;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .my-rank-label { font-size: 11px; font-weight: 700; color: #6071E3; letter-spacing: .4px; margin-right: 2px; }
+        .my-rank-avatar {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+            background: #f0f0ff; border: 2px solid #6071E3; flex-shrink: 0;
+            font-size: 16px; display: flex; align-items: center; justify-content: center;
+        }
+        .my-rank-name  { font-size: 13px; font-weight: 700; color: #1A1A2E; flex: 1; }
+        .my-rank-pos   { font-size: 22px; font-weight: 800; color: #6071E3; }
+        .my-rank-pos span { font-size: 13px; font-weight: 400; color: #999; }
+
+        /* ── 빈 상태 ── */
+        .empty-box {
+            text-align: center; padding: 60px 20px;
+            background: white; border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.06);
+        }
+        .empty-box p { color: #999; font-size: 15px; margin-top: 12px; }
+
+        @media (max-width: 480px) {
+            .podium-card { padding: 16px 8px 12px; }
+            .podium-avatar { width: 52px; height: 52px; }
+            .podium-card.rank-1 .podium-avatar { width: 62px; height: 62px; }
+        }
     </style>
 </head>
 <body>
-
 <div th:replace="~{layout/navbar :: navbar}"></div>
 
-<div class="page-container">
-    <h2 class="page-header">주간 랭킹</h2>
-    <p class="week-label" th:text="${weekLabel}">이번 주 랭킹</p>
+<!-- 헤더 -->
+<div class="rank-hero">
+    <div class="rank-hero-tag">🔥 Weekly Ranking</div>
+    <h2>이번 주 독서 랭킹</h2>
+    <p>이번 주 가장 많이 읽은 독서왕은 누구일까요?</p>
+    <div class="week-label-badge" th:text="${weekLabel}">이번 주 랭킹</div>
+</div>
 
-    <div class="ranking-table" th:if="${#lists.isEmpty(rankings)}">
-        <p class="empty-msg">아직 집계된 랭킹이 없습니다.</p>
+<!-- 빈 상태 -->
+<div th:if="${#lists.isEmpty(rankings)}" style="max-width:560px;margin:0 auto;padding:0 16px;">
+    <div class="empty-box">
+        <div style="font-size:48px;">📚</div>
+        <p>아직 이번 주 독서 기록이 없습니다.<br>책을 등록하고 랭킹에 올라보세요!</p>
+    </div>
+</div>
+
+<div th:unless="${#lists.isEmpty(rankings)}">
+
+    <!-- TOP 3 포디움 -->
+    <div class="podium-wrap" th:if="${#lists.size(rankings) >= 1}">
+        <!-- 1위 -->
+        <div th:if="${#lists.size(rankings) >= 1}"
+             th:with="r=${rankings[0]}"
+             class="podium-card rank-1">
+            <div class="podium-crown">👑</div>
+            <div class="podium-avatar">
+                <img th:if="${r.profileImageUrl != null}" th:src="${r.profileImageUrl}" alt="프로필"
+                     style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                <span th:unless="${r.profileImageUrl != null}">📖</span>
+            </div>
+            <div class="podium-rank">🥇 1위</div>
+            <div class="podium-name" th:text="${r.userName}">독서왕</div>
+            <div class="podium-count" th:text="${r.weeklyBookCount} + '권'">0권</div>
+            <div class="podium-streak" th:text="${r.consecutiveDays} + '일 연속'">0일</div>
+        </div>
+        <!-- 2위 -->
+        <div th:if="${#lists.size(rankings) >= 2}"
+             th:with="r=${rankings[1]}"
+             class="podium-card rank-2">
+            <div class="podium-avatar">
+                <img th:if="${r.profileImageUrl != null}" th:src="${r.profileImageUrl}" alt="프로필"
+                     style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                <span th:unless="${r.profileImageUrl != null}">📖</span>
+            </div>
+            <div class="podium-rank">🥈 2위</div>
+            <div class="podium-name" th:text="${r.userName}">독서왕</div>
+            <div class="podium-count" th:text="${r.weeklyBookCount} + '권'">0권</div>
+            <div class="podium-streak" th:text="${r.consecutiveDays} + '일 연속'">0일</div>
+        </div>
+        <!-- 3위 -->
+        <div th:if="${#lists.size(rankings) >= 3}"
+             th:with="r=${rankings[2]}"
+             class="podium-card rank-3">
+            <div class="podium-avatar">
+                <img th:if="${r.profileImageUrl != null}" th:src="${r.profileImageUrl}" alt="프로필"
+                     style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                <span th:unless="${r.profileImageUrl != null}">📖</span>
+            </div>
+            <div class="podium-rank">🥉 3위</div>
+            <div class="podium-name" th:text="${r.userName}">독서왕</div>
+            <div class="podium-count" th:text="${r.weeklyBookCount} + '권'">0권</div>
+            <div class="podium-streak" th:text="${r.consecutiveDays} + '일 연속'">0일</div>
+        </div>
     </div>
 
-    <div class="ranking-table" th:unless="${#lists.isEmpty(rankings)}">
-        <table>
-            <thead>
-            <tr>
-                <th>순위</th>
-                <th>닉네임</th>
-                <th>독서량</th>
-                <th>연속 독서일</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="r : ${rankings}"
-                th:classappend="${session.SS_USER_ID != null and r.userId == session.SS_USER_ID} ? 'my-row'">
-                <td>
-                    <!-- RankingDto 필드: rankPosition -->
-                    <span class="rank-badge"
-                          th:classappend="${r.rankPosition == 1} ? 'rank-1' : (${r.rankPosition == 2} ? 'rank-2' : (${r.rankPosition == 3} ? 'rank-3' : ''))"
-                          th:text="${r.rankPosition}">1</span>
-                </td>
-                <!-- RankingDto 필드: userName -->
-                <td th:text="${r.userName}">닉네임</td>
-                <!-- RankingDto 필드: weeklyBookCount -->
-                <td th:text="${r.weeklyBookCount} + '권'">0권</td>
-                <td th:text="${r.consecutiveDays} + '일'">0일</td>
-            </tr>
-            </tbody>
-        </table>
+    <!-- 4위 이하 -->
+    <div class="rank-list-wrap" th:if="${#lists.size(rankings) > 3}">
+        <div class="rank-list-title">그 외 순위</div>
+        <div th:each="r : ${rankings}"
+             th:if="${r.rankPosition > 3}"
+             th:classappend="${session.SS_USER_ID != null and r.userId == session.SS_USER_ID} ? 'my-rank'"
+             class="rank-item">
+            <div class="rank-num" th:text="${r.rankPosition}">4</div>
+            <div class="rank-item-avatar">
+                <img th:if="${r.profileImageUrl != null}" th:src="${r.profileImageUrl}" alt="프로필"
+                     style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                <span th:unless="${r.profileImageUrl != null}">📖</span>
+            </div>
+            <div class="rank-item-info">
+                <div class="rank-item-name" th:text="${r.userName}">닉네임</div>
+                <div class="rank-item-sub" th:text="${r.consecutiveDays} + '일 연속 독서'">0일</div>
+            </div>
+            <div class="rank-item-count" th:text="${r.weeklyBookCount} + '권'">0권</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 내 순위 고정 바 (로그인한 경우) -->
+<div class="my-rank-bar" th:if="${session.SS_USER_ID != null and !#lists.isEmpty(rankings)}">
+    <div class="my-rank-inner">
+        <span class="my-rank-label">내 순위</span>
+        <th:block th:each="r : ${rankings}" th:if="${r.userId == session.SS_USER_ID}">
+            <div class="my-rank-avatar">
+                <img th:if="${r.profileImageUrl != null}" th:src="${r.profileImageUrl}" alt="프로필"
+                     style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                <span th:unless="${r.profileImageUrl != null}">📖</span>
+            </div>
+            <span class="my-rank-name" th:text="${r.userName}">나</span>
+            <span style="font-size:13px;color:#999;margin-right:4px;" th:text="${r.weeklyBookCount} + '권'"></span>
+            <div class="my-rank-pos" th:text="${r.rankPosition}">-<span>위</span></div>
+            <span style="font-size:14px;color:#6071E3;font-weight:700;">위</span>
+        </th:block>
+        <th:block th:if="${!rankings.stream().anyMatch(r -> r.userId().equals(session.SS_USER_ID))}">
+            <span style="font-size:13px;color:#999;">이번 주 아직 책을 등록하지 않았습니다.</span>
+        </th:block>
     </div>
 </div>
 

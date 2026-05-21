@@ -10,7 +10,7 @@
            BASE — 크림 그라디언트 배경
         ════════════════════════════════════ */
         body {
-            background: linear-gradient(to bottom, #f8f5ef, #f3eee6 65%, #ede8de) !important;
+            background: linear-gradient(to bottom, #F4F5F9, #EEF0F8 65%, #E8EAF4) !important;
             min-height: 100vh;
         }
         /* page-container 레이아웃 재정의 */
@@ -40,13 +40,13 @@
         .hero-title {
             font-family: 'Hi Melody', cursive;
             font-size: 34px;
-            color: #2d2926;
+            color: #1A1A2E;
             line-height: 1.5;
             margin-bottom: 12px;
         }
         .hero-sub {
             font-size: 15px;
-            color: #9d8f82;
+            color: #7A7899;
             line-height: 1.7;
         }
 
@@ -64,7 +64,7 @@
         .search-bar {
             display: flex;
             align-items: center;
-            border: 2px solid #ddd5c8;
+            border: 2px solid rgba(67,97,238,.15);
             border-radius: 30px;
             background: #fff;
             box-shadow: 0 4px 22px rgba(0,0,0,.07);
@@ -78,20 +78,20 @@
         .search-type {
             padding: 0 4px 0 18px;
             border: none; outline: none;
-            font-size: 13px; color: #7d7168;
+            font-size: 13px; color: #555577;
             background: transparent;
             cursor: pointer;
             font-family: 'Jua', sans-serif;
             white-space: nowrap;
         }
-        .search-divider { width: 1px; height: 18px; background: #ddd5c8; margin: 0 6px; flex-shrink: 0; }
+        .search-divider { width: 1px; height: 18px; background: rgba(67,97,238,.15); margin: 0 6px; flex-shrink: 0; }
         .search-input {
             flex: 1; padding: 16px 12px;
             border: none; outline: none;
             font-size: 15px; font-family: 'Jua', sans-serif;
-            min-width: 0; background: transparent; color: #2d2926;
+            min-width: 0; background: transparent; color: #1A1A2E;
         }
-        .search-input::placeholder { color: #c0b5a8; }
+        .search-input::placeholder { color: #AAAABC; }
         .search-btn {
             padding: 0 22px;
             background: none; border: none;
@@ -117,16 +117,16 @@
         .search-dropdown.open { display: block; }
 
         .dd-sec { padding: 16px 20px 14px; }
-        .dd-sec + .dd-sec { border-top: 1px solid #f3ede7; }
+        .dd-sec + .dd-sec { border-top: 1px solid #EEEEF8; }
 
         .dd-label {
             font-size: 11px; font-weight: 700;
-            color: #c0b5a8; text-transform: uppercase;
+            color: #AAAABC; text-transform: uppercase;
             letter-spacing: .06em; margin-bottom: 10px;
             display: flex; justify-content: space-between; align-items: center;
         }
         .dd-clear { font-size: 11px; color: #c8bfb3; cursor: pointer; font-weight: 400; text-transform: none; letter-spacing: 0; }
-        .dd-clear:hover { color: #9d8f82; }
+        .dd-clear:hover { color: #7A7899; }
 
         /* [3] 최근 검색어 — 축소 */
         .recent-empty { font-size: 13px; color: #c8bfb3; padding: 2px 0 4px; }
@@ -136,18 +136,18 @@
             padding: 6px 8px; border-radius: 8px; cursor: pointer;
             transition: background .15s;
         }
-        .recent-item:hover { background: #f8f3ee; }
-        .recent-left  { display: flex; align-items: center; gap: 9px; font-size: 13px; color: #4a3f36; }
+        .recent-item:hover { background: #F0F0F8; }
+        .recent-left  { display: flex; align-items: center; gap: 9px; font-size: 13px; color: #1A1A2E; }
         .recent-clock { font-size: 12px; color: #c8bfb3; }
         .recent-del   { font-size: 11px; color: #d4c9bd; cursor: pointer; padding: 2px 5px; }
-        .recent-del:hover { color: #9d8f82; }
+        .recent-del:hover { color: #7A7899; }
 
         /* [4] 추천 키워드 — pill + 애니메이션 */
         .suggest-tags { display: flex; flex-wrap: wrap; gap: 7px; }
         .suggest-tag {
             padding: 6px 15px; border-radius: 99px;
-            background: #f3ede7; color: #7d7168;
-            border: 1px solid #e8e0d6;
+            background: #EEEEF8; color: #555577;
+            border: 1px solid rgba(67,97,238,.12);
             font-size: 13px; cursor: pointer;
             font-family: 'Jua', sans-serif;
             transition: all .2s cubic-bezier(.25,.46,.45,.94);
@@ -159,15 +159,15 @@
             box-shadow: 0 4px 12px rgba(96,113,227,.28);
         }
 
-        .dd-footer { padding: 10px 20px 14px; border-top: 1px solid #f3ede7; text-align: right; }
+        .dd-footer { padding: 10px 20px 14px; border-top: 1px solid #EEEEF8; text-align: right; }
         .dd-close  {
             font-size: 12px; color: #c8bfb3; cursor: pointer;
-            padding: 4px 13px; border: 1px solid #e8e0d6;
+            padding: 4px 13px; border: 1px solid rgba(67,97,238,.12);
             border-radius: 99px; background: none;
             font-family: 'Jua', sans-serif;
             transition: all .15s;
         }
-        .dd-close:hover { color: #7d7168; border-color: #c0b5a8; }
+        .dd-close:hover { color: #555577; border-color: #AAAABC; }
 
         /* [7] FROM 브랜드 카피 */
         .brand-copy {
@@ -176,7 +176,7 @@
             max-width: 380px;
             font-family: 'Hi Melody', cursive;
             font-size: 15px;
-            color: #baafa4;
+            color: #AAAABC;
             line-height: 2;
         }
 
@@ -193,11 +193,11 @@
             display: flex; align-items: center; justify-content: space-between;
             margin-bottom: 14px;
         }
-        .results-label { font-size: 14px; color: #9d8f82; }
-        .results-label strong { color: #2d2926; }
+        .results-label { font-size: 14px; color: #7A7899; }
+        .results-label strong { color: #1A1A2E; }
         .results-back {
-            font-size: 12px; color: #b8ad9f; cursor: pointer;
-            padding: 5px 13px; border: 1px solid #ddd5c8;
+            font-size: 12px; color: #9999B8; cursor: pointer;
+            padding: 5px 13px; border: 1px solid rgba(67,97,238,.15);
             border-radius: 99px; background: none;
             font-family: 'Jua', sans-serif; transition: all .15s;
         }
@@ -229,11 +229,11 @@
         }
         .book-info { flex: 1; min-width: 0; }
         .book-title {
-            font-size: 15px; font-weight: 700; color: #2d2926;
+            font-size: 15px; font-weight: 700; color: #1A1A2E;
             margin-bottom: 4px; white-space: nowrap;
             overflow: hidden; text-overflow: ellipsis;
         }
-        .book-author { font-size: 13px; color: #9d8f82; }
+        .book-author { font-size: 13px; color: #7A7899; }
         .register-btn {
             padding: 9px 20px;
             border: 1.5px solid #6071E3; border-radius: 99px;
@@ -257,8 +257,8 @@
             justify-content: space-between;
             margin-bottom: 26px;
         }
-        .best-zone-title { font-size: 20px; font-weight: 700; color: #2d2926; margin-bottom: 4px; }
-        .best-zone-sub   { font-size: 13px; color: #b8ad9f; }
+        .best-zone-title { font-size: 20px; font-weight: 700; color: #1A1A2E; margin-bottom: 4px; }
+        .best-zone-sub   { font-size: 13px; color: #9999B8; }
         .best-live-badge {
             display: inline-flex; align-items: center; gap: 5px;
             background: #fff8e1; color: #9a6800;
@@ -292,7 +292,7 @@
             border: 1px solid #e0d8d0;
             box-shadow: 0 4px 16px rgba(0,0,0,.12);
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 18px; color: #7d7168;
+            cursor: pointer; font-size: 18px; color: #555577;
             z-index: 2; transition: all .2s;
         }
         .bslider:hover { background: #6071E3; color: #fff; border-color: #6071E3; box-shadow: 0 4px 16px rgba(96,113,227,.3); }
@@ -342,7 +342,7 @@
         .best-rank-num.top3 { color: #FFD98A; }
 
         .best-card-title {
-            font-size: 13px; color: #3a332c;
+            font-size: 13px; color: #1A1A2E;
             line-height: 1.5;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -358,9 +358,9 @@
         /* 로딩 */
         .best-loading {
             display: flex; align-items: center; gap: 10px;
-            padding: 16px 0; color: #c0b5a8; font-size: 14px;
+            padding: 16px 0; color: #AAAABC; font-size: 14px;
         }
-        .ld { width:8px; height:8px; border-radius:50%; background:#ddd5c8; animation:blink 1.2s ease-in-out infinite; }
+        .ld { width:8px; height:8px; border-radius:50%; background:rgba(67,97,238,.15); animation:blink 1.2s ease-in-out infinite; }
         .ld:nth-child(2){animation-delay:.2s} .ld:nth-child(3){animation-delay:.4s}
         @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
 
@@ -373,13 +373,13 @@
             left: 50%;
             transform: translateX(-50%) translateY(-90px);
             background: #FFFBF8;
-            border-left: 4px solid #D4956A;
+            border-left: 4px solid #6071E3;
             border-radius: 14px;
             padding: 14px 28px;
             box-shadow: 0 8px 36px rgba(100,60,20,.16), 0 0 0 1px rgba(212,149,106,.12);
             font-family: 'Jua', sans-serif;
             font-size: 14px;
-            color: #2d2926;
+            color: #1A1A2E;
             z-index: 99999;
             opacity: 0;
             transition: transform .38s cubic-bezier(.34,1.56,.64,1), opacity .38s;
@@ -392,7 +392,7 @@
             opacity: 1;
         }
         #from-toast .toast-title { font-weight: 700; margin-bottom: 3px; }
-        #from-toast .toast-sub   { font-size: 12px; color: #9d8f82; }
+        #from-toast .toast-sub   { font-size: 12px; color: #7A7899; }
 
         /* ════════════════════════════════════
            반응형
@@ -608,7 +608,7 @@
     function renderBest(books) {
         const list = document.getElementById('best-list');
         if (!books || !books.length) {
-            list.innerHTML = '<div style="font-size:14px;color:#c0b5a8;padding:20px 0">베스트 정보를 불러올 수 없습니다.</div>';
+            list.innerHTML = '<div style="font-size:14px;color:#AAAABC;padding:20px 0">베스트 정보를 불러올 수 없습니다.</div>';
             return;
         }
         list.innerHTML = books.slice(0, 10).map((book, i) => {
@@ -681,14 +681,14 @@
         document.getElementById('best-zone').style.display    = 'none';
         document.getElementById('results-label').innerHTML    = `<strong>"${query}"</strong> 검색 결과`;
         document.getElementById('book-list').innerHTML        =
-            '<p style="text-align:center;color:#c0b5a8;padding:36px 0;font-size:14px;">검색 중...</p>';
+            '<p style="text-align:center;color:#AAAABC;padding:36px 0;font-size:14px;">검색 중...</p>';
 
         fetch(`/book/search?query=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}`)
             .then(r => r.json())
             .then(books => {
                 const list = document.getElementById('book-list');
                 if (!books || !books.length) {
-                    list.innerHTML = '<p style="text-align:center;color:#c0b5a8;padding:52px 0;font-size:14px;">검색 결과가 없습니다.</p>';
+                    list.innerHTML = '<p style="text-align:center;color:#AAAABC;padding:52px 0;font-size:14px;">검색 결과가 없습니다.</p>';
                     return;
                 }
                 list.innerHTML = books.map(book => {
@@ -861,10 +861,15 @@
                         <span style="font-size:13px;color:#999;font-weight:400;">(${list.length}명)</span>
                     </p>` +
                     list.map(r => `
-                    <div id="review-card-${r.id}" style="border-top:1px solid #f3ede7;padding:12px 4px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                            <span style="font-size:13px;font-weight:600;color:#555;">${r.userId}</span>
-                            <span style="font-size:12px;color:#bbb;">${r.createdAt}</span>
+                    <div id="review-card-${r.id}" style="border-top:1px solid #EEEEF8;padding:12px 4px;">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                            <div style="width:36px;height:36px;border-radius:50%;background:#f0f0ff;border:2px solid #E4E1F0;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;">
+                                ${r.profileImageUrl ? `<img src="${r.profileImageUrl}" style="width:100%;height:100%;object-fit:cover;">` : '📖'}
+                            </div>
+                            <div style="flex:1;">
+                                <span style="font-size:13px;font-weight:700;color:#333;">${r.displayName || r.userId}</span>
+                                <span style="font-size:12px;color:#bbb;margin-left:8px;">${r.createdAt}</span>
+                            </div>
                         </div>
                         <div style="font-size:15px;color:#f59e0b;margin-bottom:6px;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
                         ${r.content ? `<div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:8px;">${r.content}</div>` : ''}

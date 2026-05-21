@@ -11,5 +11,6 @@ public record RankingDto(
         String userId,
         String userName,
         int weeklyBookCount,
-        int consecutiveDays
+        int consecutiveDays,
+        String profileImageUrl
 ) {}

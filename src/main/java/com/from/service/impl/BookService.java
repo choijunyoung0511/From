@@ -10,6 +10,7 @@ import com.from.repository.BookReviewCommentRepository;
 import com.from.repository.BookReviewLikeRepository;
 import com.from.repository.ReadingLogRepository;
 import com.from.repository.UserBookRepository;
+import com.from.repository.UserInfoRepository;
 
 // Entity (DB 테이블 매핑 객체)
 import com.from.repository.entity.BookEntity;
@@ -89,6 +90,7 @@ public class BookService implements IBookService {
     private final BookRatingRepository bookRatingRepository;
     private final BookReviewLikeRepository bookReviewLikeRepository;
     private final BookReviewCommentRepository bookReviewCommentRepository;
+    private final UserInfoRepository userInfoRepository;
 
 
 
@@ -254,8 +256,15 @@ public class BookService implements IBookService {
             .map(r -> {
                 Map<String, Object> m = new HashMap<>();
                 String uid = r.getUserId();
+                String maskedId = uid.length() <= 2 ? "***" : uid.charAt(0) + "***" + uid.charAt(uid.length() - 1);
+                // 실제 username과 profileImageUrl 조회
+                userInfoRepository.findByUserId(uid).ifPresent(user -> {
+                    m.put("displayName", user.getUsername() != null ? user.getUsername() : maskedId);
+                    m.put("profileImageUrl", user.getProfileImageUrl());
+                });
                 m.put("id", r.getId());
-                m.put("userId", uid.length() <= 2 ? "***" : uid.charAt(0) + "***" + uid.charAt(uid.length() - 1));
+                m.put("userId", maskedId);
+                if (!m.containsKey("displayName")) m.put("displayName", maskedId);
                 m.put("rating", r.getRating());
                 m.put("content", r.getContent() == null ? "" : r.getContent());
                 m.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate().toString() : "");

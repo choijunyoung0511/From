@@ -5,10 +5,14 @@ import com.from.dto.ImageResponseDto;
 import com.from.dto.MsgDTO;
 import com.from.dto.UserInfoDTO;
 import com.from.dto.BookSearchDTO;
+import com.from.dto.RankingDto;
 import com.from.service.IBookService;
 import com.from.service.IImageService;
+import com.from.service.IRankingService;
 import com.from.service.IReviewService;
+import com.from.service.IS3UploadService;
 import com.from.service.IUserInfoService;
+import org.springframework.web.multipart.MultipartFile;
 import com.from.util.CmmUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,6 +51,8 @@ public class UserInfoController {
     private final IReviewService reviewService;
     private final IBookService bookService;
     private final IImageService imageService;
+    private final IS3UploadService s3UploadService;
+    private final IRankingService rankingService;
 
     /**
      * 회원가입 화면을 반환한다.
@@ -158,35 +164,42 @@ public class UserInfoController {
      */
     @ResponseBody
     @PostMapping("/signup")
-    public MsgDTO signup(HttpServletRequest request, HttpSession session) throws Exception {
+    public MsgDTO signup(@RequestParam String userId,
+                         @RequestParam String username,
+                         @RequestParam String password,
+                         @RequestParam String name,
+                         @RequestParam String email,
+                         @RequestParam(required = false) MultipartFile profileImage,
+                         HttpSession session) throws Exception {
         log.info("{}.signup Start!", this.getClass().getName());
 
         String msg;
         int res;
 
-        // 이메일 인증 완료 여부 확인 (세션에 emailVerified=true가 없으면 차단)
         Boolean verified = (Boolean) session.getAttribute("emailVerified");
         if (verified == null || !verified) {
-            MsgDTO dto = MsgDTO.builder().result(0).msg("이메일 인증을 완료해주세요.").build();
-            return dto;
+            return MsgDTO.builder().result(0).msg("이메일 인증을 완료해주세요.").build();
         }
-
-        // 폼 데이터 추출
-        String userId   = CmmUtil.nvl(request.getParameter("userId"));
-        String username = CmmUtil.nvl(request.getParameter("username"));
-        String password = CmmUtil.nvl(request.getParameter("password"));
-        String name     = CmmUtil.nvl(request.getParameter("name"));
-        String email    = CmmUtil.nvl(request.getParameter("email"));
 
         log.info("userId : {}, username : {}, name : {}, email : {}", userId, username, name, email);
 
-        // 파라미터를 DTO에 담아 서비스로 전달
+        // 프로필 이미지 업로드 (선택사항)
+        String profileImageUrl = null;
+        if (profileImage != null && !profileImage.isEmpty()) {
+            try {
+                profileImageUrl = s3UploadService.upload(profileImage.getBytes(), profileImage.getContentType(), "profiles");
+            } catch (Exception e) {
+                log.warn("프로필 이미지 업로드 실패 — 기본 아바타 사용: {}", e.getMessage());
+            }
+        }
+
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .userId(userId)
-                .username(username)
-                .password(password)
-                .name(name)
-                .email(email)
+                .userId(CmmUtil.nvl(userId))
+                .username(CmmUtil.nvl(username))
+                .password(CmmUtil.nvl(password))
+                .name(CmmUtil.nvl(name))
+                .email(CmmUtil.nvl(email))
+                .profileImageUrl(profileImageUrl)
                 .build();
 
         boolean success = userInfoService.signup(pDTO);
@@ -257,7 +270,6 @@ public class UserInfoController {
 
     /**
      * 서비스 시작 화면을 반환한다.
-     * LoginInterceptor가 /user/service 경로를 보호하므로 여기서는 별도 세션 확인 불필요.
      */
     @GetMapping("/service")
     public String service() {
@@ -612,6 +624,26 @@ public class UserInfoController {
 
         log.info("{}.changePasswordMypage End!", this.getClass().getName());
         return dto;
+    }
+
+    @ResponseBody
+    @PostMapping("/mypage/profile")
+    public MsgDTO updateProfileImage(@RequestParam MultipartFile profileImage,
+                                     HttpSession session) throws Exception {
+        log.info("{}.updateProfileImage Start!", this.getClass().getName());
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build();
+        if (profileImage == null || profileImage.isEmpty())
+            return MsgDTO.builder().result(0).msg("이미지를 선택해주세요.").build();
+        try {
+            String url = s3UploadService.upload(profileImage.getBytes(), profileImage.getContentType(), "profiles");
+            userInfoService.updateProfileImage(userId, url);
+            log.info("{}.updateProfileImage End! - url:{}", this.getClass().getName(), url);
+            return MsgDTO.builder().result(1).msg(url).build(); // msg에 URL 담아서 JS에서 바로 반영
+        } catch (Exception e) {
+            log.error("프로필 이미지 변경 실패", e);
+            return MsgDTO.builder().result(0).msg("프로필 변경에 실패했습니다.").build();
+        }
     }
 
     /**

@@ -33,6 +33,9 @@ public class RankingRedisService {
     private static final String SELECT_USERNAME =
             "SELECT username FROM users WHERE user_id = ?";
 
+    private static final String SELECT_PROFILE =
+            "SELECT profile_image_url FROM users WHERE user_id = ?";
+
     private static final String SELECT_READ_DATES =
             "SELECT DISTINCT read_date FROM reading_logs " +
             "WHERE user_id = ? ORDER BY read_date DESC";
@@ -95,8 +98,9 @@ public class RankingRedisService {
             int    weeklyCount = tuple.getScore() != null ? tuple.getScore().intValue() : 0;
             String username    = findUsername(userId);
             int    consecutive = getConsecutiveDays(userId);
+            String profileUrl  = findProfileImageUrl(userId);
 
-            result.add(new RankingDto(rank++, userId, username, weeklyCount, consecutive));
+            result.add(new RankingDto(rank++, userId, username, weeklyCount, consecutive, profileUrl));
         }
 
         return result;
@@ -108,6 +112,14 @@ public class RankingRedisService {
         } catch (Exception e) {
             log.warn("[RankingRedisService] username 조회 실패 userId={}", userId);
             return userId;
+        }
+    }
+
+    private String findProfileImageUrl(String userId) {
+        try {
+            return jdbcTemplate.queryForObject(SELECT_PROFILE, String.class, userId);
+        } catch (Exception e) {
+            return null;
         }
     }
 

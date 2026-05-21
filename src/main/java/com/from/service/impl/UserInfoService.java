@@ -111,13 +111,14 @@ public class UserInfoService implements IUserInfoService {
          *  - 일부 필드만 세팅할 때 유연함
          */
         UserInfoEntity pEntity = UserInfoEntity.builder()
-                .userId(pDTO.userId())                            // 아이디 (평문 저장)
-                .username(pDTO.username())                        // 닉네임 (평문 저장)
-                .password(EncryptUtil.encryptSHA256(pDTO.password())) // 비밀번호: SHA-256 단방향 암호화
-                .name(pDTO.name())                                // 이름 (평문 저장)
-                .email(EncryptUtil.encryptAES(pDTO.email()))      // 이메일: AES-256 양방향 암호화
-                .createdAt(LocalDateTime.now())                   // 가입 시각 (현재 시각 자동 기록)
-                .updatedAt(LocalDateTime.now())                   // 수정 시각 (최초 가입 시 가입 시각과 동일)
+                .userId(pDTO.userId())
+                .username(pDTO.username())
+                .password(EncryptUtil.encryptSHA256(pDTO.password()))
+                .name(pDTO.name())
+                .email(EncryptUtil.encryptAES(pDTO.email()))
+                .profileImageUrl(pDTO.profileImageUrl())          // 프로필 이미지 URL (null이면 기본 아바타)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
         // JPA save(): Entity에 @Id 값이 있으면 INSERT, 이미 존재하면 UPDATE
@@ -401,11 +402,22 @@ public class UserInfoService implements IUserInfoService {
                 .userId(user.getUserId())
                 .username(user.getUsername())
                 .name(user.getName())
-                .email(EncryptUtil.decryptAES(user.getEmail())) // 화면 표시용 복호화
+                .email(EncryptUtil.decryptAES(user.getEmail()))
+                .profileImageUrl(user.getProfileImageUrl())
                 .build();
 
         log.info("{}.getUserInfo End!", this.getClass().getName());
         return Optional.of(rDTO);
+    }
+
+    @Override
+    public void updateProfileImage(String userId, String imageUrl) throws Exception {
+        log.info("{}.updateProfileImage Start! - userId:{}", this.getClass().getName(), userId);
+        userInfoRepository.findByUserId(userId).ifPresent(entity -> {
+            entity.setProfileImageUrl(imageUrl);
+            userInfoRepository.save(entity);
+        });
+        log.info("{}.updateProfileImage End!", this.getClass().getName());
     }
 
     //  Private 헬퍼 메서드

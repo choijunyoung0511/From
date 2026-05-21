@@ -11,7 +11,7 @@
 
         body {
             min-height: 100vh;
-            background: #f5f5f5;
+            background: #F4F5F9;
             font-family: 'Jua', sans-serif;
         }
 
@@ -41,6 +41,29 @@
         .info-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
         .info-label { font-size: 14px; color: #999; min-width: 60px; }
         .info-value { font-size: 16px; color: #333; font-weight: 500; }
+
+        /* ── 프로필 ── */
+        .profile-section { display: flex; align-items: center; gap: 24px; margin-bottom: 28px; }
+        .profile-img-wrap { position: relative; cursor: pointer; flex-shrink: 0; }
+        .profile-img {
+            width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
+            border: 3px solid #6071E3; background: #f0f0ff;
+            display: flex; align-items: center; justify-content: center; font-size: 36px;
+        }
+        .profile-img-overlay {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: rgba(96,113,227,.6); display: none;
+            align-items: center; justify-content: center;
+            color: white; font-size: 18px; font-weight: 700;
+        }
+        .profile-img-wrap:hover .profile-img-overlay { display: flex; }
+        .profile-change-btn {
+            margin-top: 8px; font-size: 12px; color: #6071E3;
+            background: none; border: 1px solid #6071E3; border-radius: 99px;
+            padding: 4px 12px; cursor: pointer; font-family: 'Jua', sans-serif;
+            transition: all .2s;
+        }
+        .profile-change-btn:hover { background: #6071E3; color: white; }
 
         .menu-list { list-style: none; }
         .menu-list li { border-bottom: 1px solid #f0ebe6; }
@@ -235,11 +258,34 @@
     <!-- ── 탭 1: 프로필 ── -->
     <div id="profile-tab" class="tab-content active">
         <div class="user-card">
-            <div class="user-info">
-                <!-- model 에서 user 객체를 받아 표시 (컨트롤러에서 DB 조회 후 주입) -->
+            <!-- 프로필 사진 영역 -->
+            <div class="profile-section">
+                <div>
+                    <input type="file" id="profileFileInput" accept="image/*" style="display:none" onchange="uploadProfile(this)">
+                    <div class="profile-img-wrap" onclick="document.getElementById('profileFileInput').click()">
+                        <div class="profile-img" id="profileImgContainer">
+                            <img th:if="${user != null and user.profileImageUrl != null}"
+                                 th:src="${user.profileImageUrl}" id="profileImg"
+                                 style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="프로필">
+                            <span th:unless="${user != null and user.profileImageUrl != null}" id="profileEmoji">📖</span>
+                        </div>
+                        <div class="profile-img-overlay">✏️</div>
+                    </div>
+                    <div style="text-align:center;margin-top:8px;">
+                        <button class="profile-change-btn" onclick="document.getElementById('profileFileInput').click()">사진 변경</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="font-size:22px;font-weight:800;color:#1E3A5F;margin-bottom:4px;"
+                        th:text="${user != null ? user.username : session.SS_USER_NAME}">닉네임</h3>
+                    <p style="font-size:14px;color:#888;" th:text="${user != null ? user.userId : session.SS_USER_ID}">아이디</p>
+                </div>
+            </div>
+
+            <div class="user-info" style="display:none;">
                 <h3 th:text="${user != null ? user.name : session.SS_USER_NAME}">이름</h3>
             </div>
-            <div style="margin-top: 20px;">
+            <div style="margin-top: 4px;">
                 <div class="info-row">
                     <span class="info-label">이메일</span>
                     <span class="info-value" th:text="${user != null ? user.email : '-'}">이메일</span>
@@ -462,6 +508,45 @@
 <script>
     /** 탭 전환. event.target 대신 탭 인덱스로 버튼을 찾아 active 처리한다 */
     const TAB_NAMES = ['profile', 'images', 'reviews', 'dashboard', 'password'];
+
+    function uploadProfile(input) {
+        const file = input.files[0];
+        if (!file) return;
+        // 즉시 미리보기
+        const reader = new FileReader();
+        reader.onload = e => {
+            const container = document.getElementById('profileImgContainer');
+            container.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt="프로필">`;
+        };
+        reader.readAsDataURL(file);
+        // 서버 업로드
+        const fd = new FormData();
+        fd.append('profileImage', file);
+        fetch('/user/mypage/profile', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                if (data.result === 1) {
+                    showMypageToast('✅ 프로필이 변경되었습니다.');
+                } else {
+                    showMypageToast('⚠️ ' + (data.msg || '변경에 실패했습니다.'));
+                }
+            });
+    }
+
+    function showMypageToast(msg) {
+        let t = document.getElementById('mypage-toast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'mypage-toast';
+            t.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-80px);background:#1A1A2E;color:#fff;padding:12px 24px;border-radius:100px;font-size:14px;font-weight:600;z-index:9999;transition:transform .35s,opacity .35s;opacity:0;';
+            document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.transform = 'translateX(-50%) translateY(0)';
+        t.style.opacity = '1';
+        clearTimeout(t._t);
+        t._t = setTimeout(() => { t.style.transform = 'translateX(-50%) translateY(-80px)'; t.style.opacity = '0'; }, 2400);
+    }
 
     function showTab(tabName) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));

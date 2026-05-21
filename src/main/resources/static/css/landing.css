@@ -542,25 +542,40 @@ img {
 .mock-line.w-55 { width: 55%; }
 .mock-line.w-100 { width: 100%; }
 
-.mock-metrics {
+.mock-letter-preview {
     margin-top: 18px;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    background: linear-gradient(135deg, #FFF8F0, #F5E6D3);
+    border-radius: 12px;
+    padding: 16px 18px;
+    border-left: 3px solid #D4956A;
 }
 
-.metric-box {
-    border-radius: 20px;
-    padding: 18px;
-    background: #f8fbff;
-    border: 1px solid rgba(59,130,246,0.08);
+.mock-letter-tag {
+    font-size: 11px;
+    color: #9d8f82;
+    font-weight: 600;
+    margin-bottom: 10px;
+    letter-spacing: 0.03em;
 }
 
-.metric-box strong {
-    display: block;
-    font-size: 24px;
-    color: #1d4ed8;
-    margin-bottom: 6px;
+.mock-letter-line {
+    height: 7px;
+    background: rgba(180,140,100,0.22);
+    border-radius: 4px;
+    margin-bottom: 7px;
+}
+
+.mock-letter-line.w-90 { width: 90%; }
+.mock-letter-line.w-75 { width: 75%; }
+.mock-letter-line.w-85 { width: 85%; }
+.mock-letter-line.w-60 { width: 60%; }
+
+.mock-letter-footer {
+    font-size: 11px;
+    color: #D4956A;
+    font-weight: 700;
+    margin-top: 12px;
+    text-align: right;
 }
 
 .metric-box span {

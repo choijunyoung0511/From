@@ -24,8 +24,9 @@ public record UserInfoDTO(
         String password,         // 비밀번호 (평문, 서비스 계층에서 SHA-256으로 암호화)
         String name,             // 실명
         String email,            // 이메일 (DB에는 AES-128-CBC 암호화 저장, DTO에서는 평문)
-        String existsYn,         // 중복 여부: "Y" = 존재, "N" = 미존재
-        LocalDateTime createdAt, // 가입 일시
-        LocalDateTime updatedAt, // 최근 수정 일시
-        LocalDateTime deletedAt  // 탈퇴 일시 (소프트 삭제용, 현재 미사용)
+        String existsYn,           // 중복 여부: "Y" = 존재, "N" = 미존재
+        LocalDateTime createdAt,   // 가입 일시
+        LocalDateTime updatedAt,   // 최근 수정 일시
+        LocalDateTime deletedAt,   // 탈퇴 일시 (소프트 삭제용, 현재 미사용)
+        String profileImageUrl     // S3 프로필 이미지 URL (null이면 기본 아바타)
 ) {}

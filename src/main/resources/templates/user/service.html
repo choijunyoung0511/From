@@ -12,6 +12,17 @@
             min-height: 100vh;
             background: url('/images/library.png') center/cover no-repeat;
             font-family: 'Jua', sans-serif;
+            position: relative;
+        }
+        /* 중앙은 밝게, 사이드는 배경 살리는 방사형 오버레이 */
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: 0;
+            background: radial-gradient(ellipse at 50% 45%,
+                rgba(255,255,255,0.85) 0%,
+                rgba(255,255,255,0.70) 40%,
+                rgba(255,255,255,0.42) 100%);
+            pointer-events: none;
         }
 
         .main-header {
@@ -23,6 +34,7 @@
             background: white;
             border-bottom: 1px solid #eee;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative; z-index: 10;
         }
         .main-logo { text-decoration: none; display: flex; align-items: center; }
         .main-logo img { height: 44px !important; }
@@ -57,16 +69,30 @@
             min-height: calc(100vh - 100px);
             padding: 60px 20px;
             text-align: center;
+            position: relative; z-index: 1;
         }
 
         .welcome-title {
             font-size: 52px;
             font-weight: 700;
-            color: white;
-            text-shadow: 0 3px 12px rgba(0,0,0,0.6);
+            color: #1A1A2E;
+            text-shadow: 0 2px 16px rgba(255,255,255,0.8);
             margin-bottom: 70px;
             font-family: 'Hi Melody', cursive;
             line-height: 1.4;
+        }
+
+        /* 스파클 */
+        .sparkle-layer {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        }
+        .sp {
+            position: absolute; font-size: 18px;
+            color: rgba(96,113,227,0.28); animation: spFloat 4s ease-in-out infinite;
+        }
+        @keyframes spFloat {
+            0%,100% { transform: translateY(0) rotate(0deg); opacity: .28; }
+            50%      { transform: translateY(-8px) rotate(15deg); opacity: .42; }
         }
 
         .service-cards {
@@ -78,19 +104,22 @@
         }
 
         .service-card {
-            background: white;
+            background: #FFFFFF;
             border-radius: 28px;
             padding: 60px 50px;
             width: 360px;
             text-align: center;
             cursor: pointer;
             text-decoration: none;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 20px 50px rgba(67,97,238,0.12);
+            border: 1px solid rgba(67,97,238,0.08);
+            backdrop-filter: blur(12px);
         }
         .service-card:hover {
-            transform: translateY(-15px);
-            box-shadow: 0 20px 50px rgba(96,113,227,0.35);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 28px 56px rgba(67,97,238,0.22);
+            border-color: rgba(96,113,227,0.18);
         }
         .service-card img {
             width: 180px;
@@ -109,7 +138,7 @@
         }
 
         .back-btn {
-            background: #6071E3;
+            background: linear-gradient(135deg, #6071E3, #4361EE);
             color: white;
             border: none;
             padding: 22px 90px;
@@ -119,13 +148,13 @@
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
-            transition: all 0.3s;
-            box-shadow: 0 10px 30px rgba(96,113,227,0.45);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(76,110,245,0.35);
         }
         .back-btn:hover {
-            background: #4f5fd4;
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(96,113,227,0.55);
+            background: linear-gradient(135deg, #5B7CFA, #4361EE);
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 16px 40px rgba(76,110,245,0.48);
         }
 
         /* ── AI 독서 서브메뉴 모달 ── */
@@ -165,7 +194,6 @@
             margin-bottom: 40px;
         }
 
-        /* 섹션 레이블 */
         .studio-section { margin-bottom: 18px; }
         .studio-section-label {
             display: flex;
@@ -197,7 +225,6 @@
         .studio-section-badge.blue  { background: #eef1fe; color: #6071E3; }
         .studio-section-badge.amber { background: #fff7ed; color: #d97706; }
 
-        /* AI 카드 그리드 */
         .ai-cards { display: flex; gap: 14px; }
 
         .sub-card {
@@ -222,7 +249,6 @@
         .sub-card-title { font-size: 15px; font-weight: 700; color: #1a1d2e; margin-bottom: 6px; }
         .sub-card-desc  { font-size: 12px; color: #9ca3af; line-height: 1.6; }
 
-        /* 맞춤 추천 카드 (가로형) */
         .recommend-card {
             display: flex;
             align-items: center;
@@ -284,27 +310,22 @@
 </head>
 <body>
 
-<header class="main-header">
-    <a th:href="@{/user/service}" class="main-logo">
-        <img th:src="@{/images/logo.png}" alt="from">
-    </a>
-    <div style="display:flex; align-items:center; gap:70px;">
-        <nav class="main-nav">
-            <a th:href="@{/book/register}">책 등록</a>
-            <a th:href="@{/ranking}">랭킹</a>
-            <a href="javascript:void(0)" onclick="openAiModal()">독서 스튜디오</a>
-            <a th:href="@{/user/mypage}">마이페이지</a>
-        </nav>
-        <form th:action="@{/user/logout}" method="post" style="display:inline;">
-            <button type="submit" class="header-logout-btn">로그아웃</button>
-        </form>
-    </div>
-</header>
+<div th:replace="~{layout/navbar :: navbar}"></div>
+
+<!-- 스파클 레이어 -->
+<div class="sparkle-layer">
+    <span class="sp" style="top:14%;left:7%;animation-delay:0s;">✨</span>
+    <span class="sp" style="top:22%;right:9%;animation-delay:1.2s;">✨</span>
+    <span class="sp" style="bottom:28%;left:11%;animation-delay:0.7s;">✨</span>
+    <span class="sp" style="bottom:18%;right:8%;animation-delay:2s;">✨</span>
+    <span class="sp" style="top:55%;left:4%;animation-delay:1.5s;font-size:13px;">✦</span>
+    <span class="sp" style="top:38%;right:5%;animation-delay:0.4s;font-size:13px;">✦</span>
+</div>
 
 <div class="hero-content">
     <h1 class="welcome-title">
-        <span th:text="${session.SS_USER_NAME}">사용자</span>님 어서오세요!
-        어떤 서비스를 이용하고 싶으신가요?
+        <span th:text="${session.SS_USER_NAME}">사용자</span>님,<br>
+        오늘도 독서를 시작해볼까요?
     </h1>
 
     <div class="service-cards">
@@ -316,7 +337,6 @@
             <img th:src="@{/images/image 11.png}" alt="랭킹 보기">
             <div class="service-card-title">랭킹 보기</div>
         </a>
-        <!-- 독서 스튜디오 → 클릭 시 모달 오픈 -->
         <div class="service-card" onclick="openAiModal()">
             <img th:src="@{/images/image 10.png}" alt="독서 스튜디오">
             <div class="service-card-title">독서 스튜디오</div>
@@ -335,7 +355,6 @@
         <div class="modal-title">독서 스튜디오</div>
         <div class="modal-desc">원하는 독서 경험을 선택해보세요</div>
 
-        <!-- AI 기능 섹션 -->
         <div class="studio-section">
             <div class="studio-section-label">
                 <span class="studio-section-bar blue"></span>
@@ -356,7 +375,6 @@
             </div>
         </div>
 
-        <!-- 도서 추천 섹션 -->
         <div class="studio-section" style="margin-bottom:28px;">
             <div class="studio-section-label">
                 <span class="studio-section-bar amber"></span>

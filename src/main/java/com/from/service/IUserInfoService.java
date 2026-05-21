@@ -38,4 +38,7 @@ public interface IUserInfoService {
 
     // 유저 정보 조회 (마이페이지·대시보드용, 유저 없으면 empty)
     Optional<UserInfoDTO> getUserInfo(String userId) throws Exception;
+
+    // 프로필 이미지 URL 업데이트
+    void updateProfileImage(String userId, String imageUrl) throws Exception;
 }

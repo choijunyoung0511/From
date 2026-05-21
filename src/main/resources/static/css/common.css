@@ -5,11 +5,22 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* ── FROM Design Tokens ── */
+:root {
+    --from-primary:   #6071E3;
+    --from-primary-2: #4361EE;
+    --from-bg:        #F4F5F9;
+    --from-text:      #1A1A2E;
+    --from-text-sub:  #7A7899;
+    --from-card-shadow: 0 8px 32px rgba(67,97,238,.10);
+    --from-card-border: 1px solid rgba(67,97,238,.08);
+}
+
 body {
     font-family: 'Jua', sans-serif;
-    background: #F4EFEA;
+    background: var(--from-bg);
     min-height: 100vh;
-    color: #333;
+    color: var(--from-text);
 }
 
 /* 회원가입/로그인 페이지 전용 중앙정렬 + 배경 */
@@ -34,12 +45,12 @@ body.auth-page {
     align-items: center;
     padding: 0 80px;
     height: 100px;
-    background: #F4EFEA;
-    border-bottom: 1px solid #E0D5CC;
+    background: white;
+    border-bottom: 1px solid rgba(67,97,238,.10);
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 12px rgba(67,97,238,.08);
 }
 .nav-logo a { display: flex; align-items: center; text-decoration: none; }
 .nav-logo img { height: 80px; }
@@ -61,8 +72,16 @@ body.auth-page {
     font-weight: 500;
     font-family: 'Jua', sans-serif;
 }
-.btn-primary { background: #6071E3; color: white; font-weight: 700; }
-.btn-primary:hover { background: #4f5fd4; }
+.btn-primary {
+    background: linear-gradient(135deg, #6071E3, #4361EE);
+    color: white; font-weight: 700;
+    box-shadow: 0 4px 16px rgba(67,97,238,.22);
+}
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5B7CFA, #4361EE);
+    box-shadow: 0 8px 24px rgba(67,97,238,.32);
+    transform: translateY(-1px);
+}
 .btn-block { width: 100%; }
 .btn-outline { background: white; color: #6071E3; border: 1.5px solid #6071E3; }
 .btn-outline:hover { background: #f0f0ff; }
@@ -76,9 +95,18 @@ body.auth-page {
     max-width: 640px;
     margin: 0 auto;
     background: white;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 60px 80px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    box-shadow: var(--from-card-shadow);
+    border: var(--from-card-border);
+}
+
+/* ── 공통 카드 유틸리티 ── */
+.from-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--from-card-shadow);
+    border: var(--from-card-border);
 }
 .form-title {
     font-size: 26px;
@@ -106,15 +134,18 @@ body.auth-page {
 .form-control {
     width: 100%;
     padding: 14px 18px;
-    border: 1.5px solid #E0D5CC;
+    border: 1.5px solid rgba(67,97,238,.18);
     border-radius: 8px;
     font-size: 16px;
-    background: #FAFAFA;
-    transition: border-color 0.2s;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
     outline: none;
     font-family: 'Jua', sans-serif;
 }
-.form-control:focus { border-color: #6071E3; background: white; }
+.form-control:focus {
+    border-color: var(--from-primary);
+    box-shadow: 0 0 0 3px rgba(67,97,238,.10);
+}
 .form-row { display: flex; gap: 8px; align-items: flex-start; }
 .form-row .form-control { flex: 1; }
 .error-msg { color: #e74c3c; font-size: 14px; margin-top: 4px; display: block; min-height: 16px; }
@@ -139,11 +170,12 @@ body.auth-page {
 .modal-overlay.show { display: flex; }
 .modal-box {
     background: white;
-    border-radius: 12px;
+    border-radius: 20px;
     padding: 32px 40px;
     text-align: center;
     min-width: 280px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 20px 60px rgba(67,97,238,.18);
+    border: var(--from-card-border);
 }
 .modal-box p { font-size: 16px; color: #333; margin-bottom: 20px; line-height: 1.6; }
 .modal-box .btn { min-width: 100px; }
