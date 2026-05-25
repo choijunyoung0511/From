@@ -17,10 +17,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-/**
- * 예약된 독후감을 이메일로 발송하는 스케줄러.
- * 1분마다 실행하여 발송 시각이 지난 미발송(isSent=0) 도큐먼트를 처리한다.
- */
+
+//이메일 발송 스케줄러,1분마다 실행하여 발송시각이 지난 미발송 도큐먼트 처리
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -30,10 +28,8 @@ public class ReviewScheduler {
     private final UserInfoRepository userInfoRepository;   // JPA 사용 (userId = String)
     private final JavaMailSender mailSender;
 
-    /**
-     * 1분마다 실행.
-     * isSent=0 인 도큐먼트 중 발송 예약 시각이 도래한 항목을 찾아 이메일을 발송한다.
-     */
+
+    // 발송 예약 시간이 도래한 항목을 찾아 이메일을 발송한다.
     @Scheduled(fixedRate = 60000)
     public void sendScheduledReviews() {
         log.debug("{}.sendScheduledReviews Start!", this.getClass().getName());
@@ -102,14 +98,8 @@ public class ReviewScheduler {
         log.info("{}.sendScheduledReviews End!", this.getClass().getName());
     }
 
-    /**
-     * 독후감 이메일을 발송한다.
-     *
-     * @param toEmail 수신자 이메일
-     * @param name    수신자 이름
-     * @param review  발송할 독후감 도큐먼트
-     * @throws Exception 메일 발송 실패 시
-     */
+    //메일 발송코드
+    //수신자 이메일,이름,독후감
     private void sendReviewMail(String toEmail, String name, BookReviewDocument review) throws Exception {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -120,14 +110,7 @@ public class ReviewScheduler {
         mailSender.send(message);
     }
 
-    /**
-     * 편지지 테마(paperId)에 따라 이메일 HTML 본문을 생성한다.
-     * paperId 1~12 각각의 배경색·글자색·테두리색·이모지가 적용된다.
-     *
-     * @param name   수신자 이름
-     * @param review 독후감 도큐먼트
-     * @return HTML 문자열
-     */
+   //html반환
     private String buildHtmlContent(String name, BookReviewDocument review) {
         int paperId = review.getPaperId() != null ? review.getPaperId() : 1;
 
@@ -192,24 +175,25 @@ public class ReviewScheduler {
         // 어두운 배경에서는 라벨 텍스트를 반투명 흰색으로 처리
         String labelColor = (paperId == 3 || paperId == 11) ? "rgba(255,255,255,0.6)" : "#888888";
 
-        return """
-            <div style="max-width:560px; margin:0 auto; font-family:'Nanum Myeongjo',Georgia,serif;">
+        // AI 생성 콘텐츠의 % 문자를 이스케이프 (String.format 오동작 방지)
+        String safeContent = review.getAiContent()
+                .replace("%", "%%")
+                .replace("\n", "<br>");
+
+        return ("""
+            <div style="max-width:560px; margin:0 auto; font-family:Georgia,'Times New Roman',serif;">
                 <div style="background:#6071E3; padding:24px; text-align:center; border-radius:12px 12px 0 0;">
                     <h1 style="color:white; margin:0; font-size:26px; font-style:italic; letter-spacing:2px;">from</h1>
                     <p style="color:#c5cbf7; margin:6px 0 0; font-size:13px;">미래의 나에게 보내는 독서 편지</p>
                 </div>
-                <div style="background:%s; padding:40px 36px; border-left:4px solid %s; line-height:2.2; color:%s; font-size:15px;">
+                <div style="background:%s; padding:40px 36px; border-left:4px solid %s; line-height:2.2; color:%s; font-size:15px; word-break:keep-all;">
                     <div style="text-align:right; font-size:13px; color:%s; margin-bottom:20px;">%s %s님께</div>
                     %s
                 </div>
                 <p style="text-align:center; color:#999; font-size:12px; margin-top:16px; padding-bottom:8px;">
-                    FROM | 책을 읽고 미래의 나에게 편지를 보내세요 📚
+                    FROM | 책을 읽고 미래의 나에게 편지를 보내세요
                 </p>
             </div>
-            """.formatted(
-                bg, borderColor, textColor,
-                labelColor, emoji, name,
-                review.getAiContent().replace("\n", "<br>")
-        );
+            """).formatted(bg, borderColor, textColor, labelColor, emoji, name, safeContent);
     }
 }

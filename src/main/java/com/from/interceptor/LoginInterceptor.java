@@ -5,21 +5,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-/**
- * 로그인 여부를 검사하는 인터셉터.
- * WebConfig에 등록된 보호 경로에 접근할 때 Controller 실행 전에 자동으로 호출된다.
- *
- * 비로그인 + GET 요청: 메인 페이지(/)로 리다이렉트하고 loginRequired 플래그를 세션에 저장
- * 비로그인 + POST/AJAX 요청: HTTP 401 + JSON 오류 응답 {"result":0,"msg":"로그인이 필요합니다."}
- * 로그인 완료: true를 반환하여 요청을 Controller로 통과시킴
- */
+
+// 로그인 인증검사 인터셉터
+// 컨트롤러 실행전에 자동으로 호출 비로그인시  get요청 메인페이지 / 로 리다이렉트
 public class LoginInterceptor implements HandlerInterceptor {
 
-    /**
-     * Controller 실행 전에 호출되는 메서드.
-     * true를 반환하면 다음 단계(Controller)로 진행하고,
-     * false를 반환하면 요청 처리를 중단한다.
-     */
+    // 참을 반환화면 다음단계 컨트롤러로 진행 -> 거짓을 반환하면 요청처리를 중단한다
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,

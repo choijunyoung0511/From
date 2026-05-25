@@ -37,32 +37,18 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class ImageService implements IImageService {
-
-    /** Claude API 호출 전용 클라이언트 (영어 프롬프트 생성) */
+    //클로드 전용 클라이언트(영문으로 작성 하여 재미나이에 던짐)
     private final ClaudePromptClient claudePromptClient;
-
-    /** NanoBanana API 호출 전용 클라이언트 (이미지 생성) */
+    //재미나이 사용 클라이언트
     private final NanoBananaImageClient nanoBananaImageClient;
-
-    /** 이미지 생성 결과 DB 저장소 */
+    //이미지 생성 후 저장소
     private final ImageResultRepository imageResultRepository;
-
-    /** 책 정보 조회 (결과 상세 화면에서 책 제목 표시용) */
+    //책 정보 조회
     private final IBookService bookService;
-
-    /** S3 파일 업로드 서비스 */
+    //아마존 s3에 이미지 저장
     private final IS3UploadService s3UploadService;
 
-    /**
-     * Claude + NanoBanana를 사용하여 사용자 사진을 책 속 주인공 이미지로 변환하고 DB에 저장한다.
-     *
-     * @param photoBytes 세션에 저장된 사용자 사진 byte[]
-     * @param photoType  사진 MIME 타입
-     * @param request    책 정보, 장면 설명, 스타일 정보
-     * @param userId     로그인한 사용자 ID
-     * @return 생성 결과 DTO (imageId, imageUrl, generatedPrompt 등 포함)
-     * @throws RuntimeException Claude 또는 NanoBanana API 호출 실패 시
-     */
+    // 클로드 + 제미나이를 사용하여 사용자 사진을 책 속 주인공 이미지로 변환후 DB에 저장
     @Override
     @Transactional
     public ImageResultDto generateAndSave(byte[] photoBytes,
@@ -136,6 +122,8 @@ public class ImageService implements IImageService {
      */
     @Override
     public List<ImageResponseDto> getUserImages(String userId) {
+        //마이페이지 에서 이미지 생성 한거 조회
+
         log.info("{}.getUserImages Start! - userId:{}", this.getClass().getName(), userId);
         List<ImageResponseDto> result = imageResultRepository
                 .findByUserIdOrderByCreateAtDesc(userId)
@@ -156,9 +144,7 @@ public class ImageService implements IImageService {
         return result;
     }
 
-    /**
-     * 이미지 상세 정보를 조회한다 (결과 화면 상세 API 용).
-     */
+    // 이미지 상세 정보를 조회한다 (결과화면 상세 API)
     @Override
     public Map<String, Object> getImageDetail(Long imageId) {
         log.info("{}.getImageDetail Start! - imageId:{}", this.getClass().getName(), imageId);
@@ -178,10 +164,7 @@ public class ImageService implements IImageService {
                 })
                 .orElse(null);
     }
-
-    /**
-     * 스타일 선택 화면에 표시할 아트 스타일 옵션 목록을 반환한다.
-     */
+    // 스타일 선택
     @Override
     public List<ImageStyleOptionDto> getStyleOptions() {
         return Arrays.asList(

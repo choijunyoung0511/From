@@ -58,70 +58,12 @@ import org.springframework.stereotype.Service;
 @Service // Spring Bean 등록 → Controller에서 주입 가능
 @RequiredArgsConstructor // final 필드 생성자 자동 생성
 public class EmailService implements IEmailService {
-
-
-    /**
-     * JavaMailSender
-     *
-     * Spring Boot Mail 라이브러리가 제공하는 이메일 발송 객체
-     *
-     * 역할
-     * SMTP 서버를 통해 실제 이메일을 보내는 기능 수행
-     *
-     * 예
-     *
-     * JavaMailSender
-     *      ↓
-     * Gmail SMTP
-     *      ↓
-     * 사용자 이메일
-     */
     private final JavaMailSender mailSender;
-
-
-    /**
-     * application.properties 또는 application.yml에서
-     * 발신 이메일 주소를 가져온다
-     *
-     * 예
-     *
-     * spring.mail.username=noreply@from.com
-     *
-     * 이 값이 이메일 발신자(from)가 된다
-     */
     @Value("${spring.mail.username}")
     private String fromEmail;
 
 
-    /**
-     * 이메일 인증번호 발송 메서드
-     *
-     * Controller에서 호출되는 메서드
-     *
-     * 예
-     *
-     * UserController
-     *      ↓
-     * emailService.sendVerificationCode()
-     *      ↓
-     * EmailService
-     *      ↓
-     * JavaMailSender
-     *      ↓
-     * SMTP 서버
-     *      ↓
-     * 사용자 이메일
-     *
-     * @param toEmail  받는 이메일 주소
-     * @param code     인증번호
-     * @param purpose  이메일 목적
-     *
-     * purpose 값
-     *
-     * SIGNUP        → 회원가입 인증
-     * FIND_ID       → 아이디 찾기
-     * FIND_PASSWORD → 비밀번호 찾기
-     */
+
     @Override
     public void sendVerificationCode(String toEmail, String code, String purpose) {
 
@@ -215,6 +157,7 @@ public class EmailService implements IEmailService {
             default ->
                     "이메일 인증";
         };
+        // css적용
 
         return """
                 <div style="font-family: 'Nanum Myeongjo', serif; max-width: 500px; margin: 0 auto; padding: 40px; border: 1px solid #e8d5b7; border-radius: 8px;">

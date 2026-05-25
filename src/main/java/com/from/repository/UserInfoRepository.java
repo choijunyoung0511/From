@@ -2,7 +2,11 @@ package com.from.repository;
 
 import com.from.repository.entity.UserInfoEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -43,4 +47,9 @@ public interface UserInfoRepository extends JpaRepository<UserInfoEntity, String
      * @return 조건에 맞는 사용자 (없으면 Optional.empty())
      */
     Optional<UserInfoEntity> findByNameAndEmail(String name, String email);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE UserInfoEntity u SET u.profileImageUrl = :url WHERE u.userId = :userId")
+    void updateProfileImageUrl(@Param("userId") String userId, @Param("url") String url);
 }

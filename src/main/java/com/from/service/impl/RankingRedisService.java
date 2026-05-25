@@ -39,51 +39,39 @@ public class RankingRedisService {
     private static final String SELECT_READ_DATES =
             "SELECT DISTINCT read_date FROM reading_logs " +
             "WHERE user_id = ? ORDER BY read_date DESC";
-
-    /**
-     * 이번 주 월요일 날짜 기준으로 Redis 키를 생성한다.
-     * 예: "ranking:weekly:2025-05-05"
-     */
+//현재 시간 기준으로 키를 만듬 (월요일 날짜로 !!)
     public String weeklyKey() {
         LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
         return "ranking:weekly:" + monday;
     }
 
-    /**
-     * 책 등록 시 호출 — 해당 유저의 이번 주 책 카운트를 1 증가시킨다.
-     * TTL은 14일로 설정한다.
-     */
     public void incrementBookCount(String userId) {
         String key = weeklyKey();
         redisTemplate.opsForZSet().incrementScore(key, userId, 1);
+        //userId의 점수 +1 증가
         redisTemplate.expire(key, 14, TimeUnit.DAYS);
+        //레디스 키를 14일뒤 자동삭제
+        // 이번주 데이터가 다음주까지는 남아있어도 되고 너무 오래되면 redis 메모리를 차지하기 떄문에 자동삭제하려고 14일로 설정
         log.info("[RankingRedisService] ZINCRBY key={} member={}", key, userId);
     }
 
-    /**
-     * 스케줄러 보정 시 사용 — 특정 키에 유저별 점수를 직접 설정한다.
-     */
+
     public void setScore(String key, String userId, int score) {
         redisTemplate.opsForZSet().add(key, userId, score);
     }
 
-    /**
-     * 특정 Redis 키를 삭제한다.
-     */
     public void deleteKey(String key) {
         redisTemplate.delete(key);
         log.info("[RankingRedisService] DELETE key={}", key);
+        // 래디스 키 제거 로직
     }
 
-    /**
-     * 이번 주 랭킹을 점수 내림차순으로 조회한다.
-     * 유저 닉네임과 연속 독서일은 DB에서 추가 조회한다.
-     */
     public List<RankingDto> getWeeklyRankings() {
         String key = weeklyKey();
 
         Set<ZSetOperations.TypedTuple<String>> tuples =
                 redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, -1);
+        // 점수높은 순서로 전체 조회하는 코드임
 
         if (tuples == null || tuples.isEmpty()) {
             log.info("[RankingRedisService] 랭킹 데이터 없음 key={}", key);
@@ -134,7 +122,8 @@ public class RankingRedisService {
 
         int streak = 0;
         LocalDate expected = LocalDate.now();
-
+        //reading_log 테이블에서 독서날짜를 최신순으로 조회한 뒤, 오늘 날짜부터 하루씩 감소시키며 연속여부를 검사했습니다.
+        // 날짜가 끊기는 순간 break 로 반복문을 종료해서 연속 독서일을 계산함
         for (LocalDate date : dates) {
             if (date.equals(expected)) {
                 streak++;

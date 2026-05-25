@@ -37,4 +37,13 @@ public interface IBookService {
 
     // 댓글 목록 조회
     List<Map<String, Object>> getComments(Long ratingId);
+
+    // 내 후기 삭제 (본인만 가능)
+    boolean deleteRating(Long ratingId, String userId);
+
+    // 내 후기 수정 (본인만 가능)
+    boolean updateMyRating(Long ratingId, String userId, int rating, String content);
+
+    // 내가 작성한 후기 목록 조회 (마이페이지용)
+    List<Map<String, Object>> getMyRatings(String userId);
 }

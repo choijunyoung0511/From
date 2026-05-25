@@ -2,7 +2,6 @@ package com.from.repository.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.Setter;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import java.time.LocalDateTime;
@@ -58,7 +57,6 @@ public class UserInfoEntity {
     private LocalDateTime deletedAt;
 
     /** S3에 저장된 프로필 이미지 URL (null이면 기본 아바타 표시) */
-    @Setter
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
 }

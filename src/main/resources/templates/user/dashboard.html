@@ -281,9 +281,20 @@ function calcStreak() {
 // ── 3. 잔디 차트 ─────────────────────────────────────────────────────────────
 function buildGrass() {
     const today = new Date();
-    const startDate = new Date(today);
-    startDate.setDate(startDate.getDate() - 364);
-    startDate.setDate(startDate.getDate() - startDate.getDay());
+
+    // 첫 독서 기록 날짜부터 시작 (없으면 최근 12주)
+    let startDate;
+    if (BOOKS.length > 0) {
+        const firstDate = BOOKS
+            .filter(b => b.date)
+            .map(b => new Date(b.date))
+            .reduce((a, b) => a < b ? a : b, new Date());
+        startDate = new Date(firstDate);
+    } else {
+        startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - 83);
+    }
+    startDate.setDate(startDate.getDate() - startDate.getDay()); // 주 시작(일요일) 맞추기
 
     const cols      = document.getElementById('grassCols');
     const monthsEl  = document.getElementById('grassMonths');

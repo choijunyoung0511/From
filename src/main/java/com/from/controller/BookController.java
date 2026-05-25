@@ -5,14 +5,16 @@ import com.from.dto.MsgDTO;
 import com.from.dto.RecommendSectionDTO;
 import com.from.service.IAladinService;
 import com.from.service.IBookService;
-import com.from.service.IReviewService;
+
 import com.from.service.impl.RankingRedisService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,7 +39,6 @@ public class BookController {
 
     private final IBookService bookService;
     private final IAladinService aladinService;
-    private final IReviewService reviewService;
     private final RankingRedisService rankingRedisService;
 
     @GetMapping("/register")
@@ -151,6 +152,11 @@ public class BookController {
         return ResponseEntity.ok(sections);
     }
 
+    /**
+     * 맞춤 도서 추천 (Aladin API 기반).
+     * 사용자가 읽은 책의 카테고리를 분석하여 알라딘 API로 직접 검색한다.
+     * GPT 호출 없이 Aladin 태그 검색만 사용 — 비용 절감 + 응답 빠름.
+     */
     @GetMapping("/ai-recommend")
     @ResponseBody
     public ResponseEntity<?> getAiRecommend(HttpSession session) {
@@ -159,14 +165,47 @@ public class BookController {
         String userId = (String) session.getAttribute("SS_USER_ID");
         if (userId == null) return ResponseEntity.status(401).body(MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build());
 
-        try {
-            List<Map<String, String>> result = reviewService.getAiRecommendations(userId);
-            log.info("{}.getAiRecommend End!", this.getClass().getName());
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            log.error("AI 추천 오류", e);
-            return ResponseEntity.status(500).body(MsgDTO.builder().result(0).msg("추천 생성 중 오류가 발생했습니다.").build());
+        List<BookSearchDTO> readBooks = bookService.findByUserId(userId);
+        if (readBooks.isEmpty()) return ResponseEntity.ok(List.of());
+
+        Set<String> readTitles = readBooks.stream()
+                .map(b -> b.title().toLowerCase().trim())
+                .collect(Collectors.toSet());
+
+        // 읽은 책의 카테고리 빈도 상위 3개 추출
+        List<String> topCategories = readBooks.stream()
+                .map(b -> extractLeafCategory(b.category()))
+                .filter(c -> !c.isBlank())
+                .collect(Collectors.groupingBy(c -> c, Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(3)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        if (topCategories.isEmpty()) topCategories = List.of("소설", "자기계발", "에세이");
+
+        // Aladin API로 카테고리별 검색 → 이미 읽은 책 제외 → 5권 반환
+        List<Map<String, String>> result = new ArrayList<>();
+        for (String category : topCategories) {
+            if (result.size() >= 5) break;
+            List<BookSearchDTO> found = aladinService.searchBooks(category, "Keyword");
+            for (BookSearchDTO b : found) {
+                if (result.size() >= 5) break;
+                if (!readTitles.contains(b.title().toLowerCase().trim())) {
+                    Map<String, String> rec = new java.util.HashMap<>();
+                    rec.put("title",  b.title());
+                    rec.put("author", b.author());
+                    rec.put("cover",  b.cover() != null ? b.cover() : "");
+                    rec.put("reason", "'" + category + "' 카테고리 기반 추천");
+                    result.add(rec);
+                    readTitles.add(b.title().toLowerCase().trim()); // 중복 방지
+                }
+            }
         }
+
+        log.info("{}.getAiRecommend End! - {}권", this.getClass().getName(), result.size());
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/search")
@@ -261,6 +300,39 @@ public class BookController {
             log.error("후기 조회 오류", e);
             return ResponseEntity.ok(java.util.Collections.emptyList());
         }
+    }
+
+    @DeleteMapping("/rating/{ratingId}")
+    @ResponseBody
+    public MsgDTO deleteRating(@PathVariable Long ratingId, HttpSession session) {
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build();
+        boolean deleted = bookService.deleteRating(ratingId, userId);
+        return deleted
+            ? MsgDTO.builder().result(1).msg("후기가 삭제되었습니다.").build()
+            : MsgDTO.builder().result(0).msg("삭제 권한이 없습니다.").build();
+    }
+
+    @PatchMapping("/rating/{ratingId}")
+    @ResponseBody
+    public MsgDTO updateMyRating(@PathVariable Long ratingId,
+                                 @RequestParam int rating,
+                                 @RequestParam(required = false, defaultValue = "") String content,
+                                 HttpSession session) {
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return MsgDTO.builder().result(0).msg("로그인이 필요합니다.").build();
+        boolean updated = bookService.updateMyRating(ratingId, userId, rating, content);
+        return updated
+            ? MsgDTO.builder().result(1).msg("후기가 수정되었습니다.").build()
+            : MsgDTO.builder().result(0).msg("수정 권한이 없습니다.").build();
+    }
+
+    @GetMapping("/my-ratings")
+    @ResponseBody
+    public ResponseEntity<?> getMyRatings(HttpSession session) {
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        if (userId == null) return ResponseEntity.status(401).body(List.of());
+        return ResponseEntity.ok(bookService.getMyRatings(userId));
     }
 
     @PostMapping("/rating/{ratingId}/like")

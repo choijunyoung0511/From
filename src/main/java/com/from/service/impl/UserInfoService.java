@@ -30,41 +30,18 @@ public class UserInfoService implements IUserInfoService {
 
     //  1. 아이디 중복 체크
 
-    /**
-     * 회원가입 화면에서 아이디 입력 시 실시간 Ajax 중복 체크에 사용한다.
-     *
-     * @param username 사용자가 입력한 아이디 (평문)
-     * @return "Y" = 이미 존재 (사용 불가) / "N" = 사용 가능
-     *
-     * 흐름: 입력값 → DB 조회 → 존재 여부 → "Y"/"N" 반환
-     */
     @Override
     public String checkUsernameExists(String username) throws Exception {
-        log.info("{}.checkUsernameExists Start!", this.getClass().getName());
-
-        // findByUserId() 는 Optional<UserInfoEntity> 를 반환
-        // isPresent() : 값이 있으면 true (= 아이디 이미 사용 중)
-        // 삼항 연산자로 Y/N 문자열로 변환하여 반환
+        log.info("{}.checkUsernameExists Start! username={}", this.getClass().getName(), username);
         String res = userInfoRepository.findByUserId(username).isPresent() ? "Y" : "N";
-
-        log.info("{}.checkUsernameExists End!", this.getClass().getName());
+        log.info("{}.checkUsernameExists End! exists={}", this.getClass().getName(), res);
         return res;
     }
 
     //  2. 이메일 중복 체크 + 인증번호 발송
+    //이메일 입력 후 AJAX호출 중복이메일이 아닌 경우 6자리 인증번호를 이메일로 발송하고 코드 자체를 반환한다.
+    // 반환된 코드를 세션에 저장하여 사용자 입력값과 일치하는지 비교
 
-
-    /**
-     * 회원가입 시 이메일 입력 후 Ajax 호출로 실행된다.
-     * 중복 이메일이 아닌 경우 6자리 인증번호를 이메일로 발송하고 코드 자체를 반환한다.
-     * 컨트롤러에서 반환된 코드를 세션에 저장하여 추후 사용자 입력값과 비교한다.
-     *
-     * @param email 사용자가 입력한 이메일 (평문)
-     * @return "DUPLICATE" = 중복 이메일 / 6자리 숫자 문자열 = 발송된 인증번호
-     *
-     * 흐름: 이메일 AES 암호화 → DB 조회 → 중복이면 종료
-     *       → 신규면 인증번호 생성 → 이메일 발송 → 인증번호 반환
-     */
     @Override
     public String checkEmailAndSendCode(String email) throws Exception {
         log.info("{}.checkEmailAndSendCode Start!", this.getClass().getName());
@@ -90,18 +67,10 @@ public class UserInfoService implements IUserInfoService {
     //  3. 회원가입
 
 
-    /**
-     * 이메일 인증까지 완료된 사용자의 가입을 처리한다.
-     * 민감 정보를 암호화한 뒤 DB에 저장하고, 저장 성공 여부를 반환한다.
-     *
-     * @param pDTO 컨트롤러에서 전달된 사용자 입력 데이터 (평문 상태)
-     * @return true = 가입 성공 / false = 가입 실패
-     *
-     * 흐름: DTO 수신 → 암호화 적용 → Entity 변환 → DB 저장 → 재조회로 성공 확인
-     */
+    //사용자 회원가입 처리 로직, 저장성공시 로그 짝음
     @Override
     public boolean signup(UserInfoDTO pDTO) throws Exception {
-        log.info("{}.signup Start!", this.getClass().getName());
+        log.info("{}.signup Start! userId={}, username={}", this.getClass().getName(), pDTO.userId(), pDTO.username());
 
         /*
          * DTO → Entity 변환
@@ -116,7 +85,7 @@ public class UserInfoService implements IUserInfoService {
                 .password(EncryptUtil.encryptSHA256(pDTO.password()))
                 .name(pDTO.name())
                 .email(EncryptUtil.encryptAES(pDTO.email()))
-                .profileImageUrl(pDTO.profileImageUrl())          // 프로필 이미지 URL (null이면 기본 아바타)
+                .profileImageUrl(pDTO.profileImageUrl())          // 프로필 이미지 URL (null이면 기본 아바타) 나머지는 아마존 s3에다가 프로필 사진 저장
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -135,19 +104,6 @@ public class UserInfoService implements IUserInfoService {
 
     //  4. 로그인
 
-
-    /**
-     * 아이디/비밀번호를 검증하고 로그인 성공 시 사용자 정보를 반환한다.
-     * 비밀번호는 단방향이므로 입력값을 동일하게 암호화하여 해시 비교한다.
-     *
-     * @param username 입력된 아이디
-     * @param password 입력된 비밀번호 (평문)
-     * @return 로그인 성공 → UserInfoDTO(이메일 복호화 포함) / 실패 → Optional.empty()
-     *
-     * 흐름: userId 조회 → 없으면 실패
-     *       → 비밀번호 SHA-256 암호화 후 DB 해시와 비교 → 다르면 실패
-     *       → 성공 시 이메일 복호화 후 DTO 반환
-     */
     @Override
     public UserInfoDTO login(String username, String password) throws Exception {
         log.info("{}.login Start!", this.getClass().getName());
@@ -175,19 +131,9 @@ public class UserInfoService implements IUserInfoService {
 
     //  5. 비밀번호 변경 (마이페이지 – 로그인 상태에서 사용)
 
-    /**
-     * 로그인된 사용자가 마이페이지에서 비밀번호를 변경할 때 사용한다.
-     * JPA Entity는 불변성을 권장하므로, 기존 정보를 유지하면서
-     * 비밀번호와 updatedAt만 바꾼 새 Entity를 save()로 덮어쓴다.
-     *
-     * @param userId      변경할 대상의 아이디
-     * @param newPassword 새 비밀번호 (평문)
-     * @return true = 변경 성공 / false = 해당 userId 없음
-     *
-     * 흐름: userId 조회 → 기존 정보 유지 → 비밀번호·updatedAt만 교체 → DB 덮어쓰기
-     */
     @Override
     public boolean changePassword(String userId, String newPassword) throws Exception {
+        //성공 실패만 필요하기 떄문에 boolean타입 쓴거임
         log.info("{}.changePassword Start!", this.getClass().getName());
 
         // 사용자 존재 여부 확인
@@ -206,14 +152,17 @@ public class UserInfoService implements IUserInfoService {
         UserInfoEntity pEntity = UserInfoEntity.builder()
                 .userId(user.getUserId())                              // 기존 값 유지 (PK)
                 .username(user.getUsername())                          // 기존 값 유지
-                .password(EncryptUtil.encryptSHA256(newPassword))      //  새 비밀번호 SHA-256 암호화
+                .password(EncryptUtil.encryptSHA256(newPassword))      //  새 비밀번호 SHA-256 단방향 암호화
                 .name(user.getName())                                  // 기존 값 유지
                 .email(user.getEmail())                                // 기존 값 유지 (이미 암호화된 상태)
                 .createdAt(user.getCreatedAt())                        // 기존 가입일 유지
-                .updatedAt(LocalDateTime.now())                        // ★ 수정 시각 갱신
+                .updatedAt(LocalDateTime.now())                        //  수정 시각 갱신
+
                 .build();
 
         userInfoRepository.save(pEntity); // PK 동일 → UPDATE 실행
+        //update query 안쓴 이유: jpa의 save는 PK가 동일하면 insert가 아니라 update수행 그래서 기존 pk를 유지한 상태로
+        // Entity생성해 save()를 호출
 
         log.info("{}.changePassword End!", this.getClass().getName());
         return true;
@@ -222,18 +171,6 @@ public class UserInfoService implements IUserInfoService {
 
     //  6. 비밀번호 변경 (비밀번호 찾기용 – 비로그인 상태)
 
-
-    /**
-     * 비밀번호 찾기 화면에서 인증 완료 후 새 비밀번호를 설정할 때 사용한다.
-     * 로직이 마이페이지 변경과 동일하므로 내부적으로 changePassword()를 위임 호출한다.
-     *
-     * @param username    대상 아이디
-     * @param newPassword 새 비밀번호 (평문)
-     * @return changePassword() 결과 그대로 반환
-     *
-     * 설계 의도: 두 케이스의 인터페이스를 분리(메서드명 명시)하여
-     *            컨트롤러에서 "어떤 시나리오인지" 명확하게 드러나도록 함
-     */
     @Override
     public boolean changePasswordByUsername(String username, String newPassword) throws Exception {
         log.info("{}.changePasswordByUsername Start!", this.getClass().getName());
@@ -246,18 +183,7 @@ public class UserInfoService implements IUserInfoService {
     }
 
 
-    //  7. 회원 탈퇴 (하드 삭제)
-
-    /**
-     * 비밀번호를 재확인하여 본인 인증 후 계정을 영구 삭제한다.
-     * 소프트 삭제(is_deleted 플래그)가 아닌 DB 레코드 자체를 제거하는 하드 삭제 방식이다.
-     *
-     * @param userId   탈퇴할 사용자의 아이디
-     * @param password 입력된 현재 비밀번호 (평문)
-     * @return true = 탈퇴 성공 / false = 조회 실패 또는 비밀번호 불일치
-     *
-     * 흐름: userId 조회 → 비밀번호 재검증 → DB 레코드 삭제
-     */
+    //  7. 회원 탈퇴
     @Override
     public boolean deleteUser(String userId, String password) throws Exception {
         log.info("{}.deleteUser Start!", this.getClass().getName());
@@ -282,17 +208,9 @@ public class UserInfoService implements IUserInfoService {
     //  8. 아이디 찾기 – 인증번호 발송
 
 
-    /**
-     * 이름 + 이메일로 가입 여부를 확인하고 인증번호를 발송한다.
-     * 인증번호 검증은 컨트롤러의 세션 비교로 처리한다.
-     *
-     * @param name  사용자가 입력한 이름
-     * @param email 사용자가 입력한 이메일 (평문)
-     * @return "NOT_FOUND" = 일치하는 유저 없음 / 6자리 코드 = 발송 완료
-     *
-     * 흐름: 이메일 AES 암호화 → 이름+이메일로 DB 조회 → 없으면 종료
-     *       → 인증번호 생성 → 이메일 발송 → 코드 반환
-     */
+
+    //이메일AES 암호화 -> 이름+이메일로 DB조회 -> 없으면종료
+    // 인증번호 생성 -> 이메일 발송 -> 코드반환
     @Override
     public String findIdSendCode(String name, String email) throws Exception {
         log.info("{}.findIdSendCode Start!", this.getClass().getName());
@@ -314,16 +232,7 @@ public class UserInfoService implements IUserInfoService {
 
     //  9. 아이디 찾기 – 아이디 반환
 
-    /**
-     * 인증번호 검증 완료 후 실제 아이디를 조회하여 반환한다.
-     * 인증번호 검증(세션 비교)은 컨트롤러에서 이미 완료된 상태에서 이 메서드가 호출된다.
-     *
-     * @param name  사용자가 입력한 이름
-     * @param email 사용자가 입력한 이메일 (평문)
-     * @return 아이디가 담긴 Optional / 없으면 Optional.empty()
-     *
-     * 흐름: 이메일 AES 암호화 → DB 조회 → Entity에서 userId 추출
-     */
+
     @Override
     public Optional<String> findUsername(String name, String email) throws Exception {
         log.info("{}.findUsername Start!", this.getClass().getName());
@@ -342,18 +251,6 @@ public class UserInfoService implements IUserInfoService {
     //  10. 비밀번호 찾기 – 인증번호 발송
 
 
-    /**
-     * 아이디와 이메일로 본인을 확인하고 인증번호를 발송한다.
-     * 아이디 찾기(이름+이메일)와 달리 아이디+이메일 조합으로 검증한다.
-     *
-     * @param username 사용자가 입력한 아이디
-     * @param email    사용자가 입력한 이메일 (평문)
-     * @return "NOT_FOUND" = 불일치 / 6자리 코드 = 발송 완료
-     *
-     * 흐름: userId 조회 → 없으면 종료
-     *       → DB 암호화 이메일 복호화 후 입력값과 비교 → 불일치면 종료
-     *       → 인증번호 생성 → 발송 → 코드 반환
-     */
     @Override
     public String findPasswordSendCode(String username, String email) throws Exception {
         log.info("{}.findPasswordSendCode Start!", this.getClass().getName());
@@ -381,13 +278,7 @@ public class UserInfoService implements IUserInfoService {
 
     //  11. 유저 정보 조회 (마이페이지·대시보드)
 
-    /**
-     * 로그인 세션에 저장된 userId로 상세 정보를 조회한다.
-     * 이메일은 복호화하여 평문으로 반환한다.
-     *
-     * @param userId 조회할 사용자의 아이디
-     * @return 사용자 정보 DTO / 없으면 Optional.empty()
-     */
+
     @Override
     public Optional<UserInfoDTO> getUserInfo(String userId) throws Exception {
         log.info("{}.getUserInfo Start!", this.getClass().getName());
@@ -413,14 +304,12 @@ public class UserInfoService implements IUserInfoService {
     @Override
     public void updateProfileImage(String userId, String imageUrl) throws Exception {
         log.info("{}.updateProfileImage Start! - userId:{}", this.getClass().getName(), userId);
-        userInfoRepository.findByUserId(userId).ifPresent(entity -> {
-            entity.setProfileImageUrl(imageUrl);
-            userInfoRepository.save(entity);
-        });
+        // Setter 없이 JPQL UPDATE로 직접 필드 수정
+        userInfoRepository.updateProfileImageUrl(userId, imageUrl);
         log.info("{}.updateProfileImage End!", this.getClass().getName());
     }
 
-    //  Private 헬퍼 메서드
+    //  Private 헬퍼 메서드,인증번호 설정
 
 
     private String generateCode() {

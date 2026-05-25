@@ -50,42 +50,12 @@ import java.util.stream.Collectors;
 public class BookService implements IBookService {
 
 
-    /**
-     * BookRepository
-     *
-     * books 테이블 접근 Repository
-     *
-     * 역할
-     * 책 정보 저장 / 조회
-     */
     private final BookRepository bookRepository;
 
 
-    /**
-     * UserBookRepository
-     *
-     * user_books 테이블 접근 Repository
-     *
-     * 역할
-     * 사용자와 책 관계 저장
-     *
-     * 예
-     *
-     * userId + bookId
-     */
     private final UserBookRepository userBookRepository;
 
 
-    /**
-     * ReadingLogRepository
-     *
-     * reading_logs 테이블 접근 Repository
-     *
-     * 역할
-     * 독서 활동 기록 저장
-     *
-     * 잔디 차트 생성 데이터
-     */
     private final ReadingLogRepository readingLogRepository;
     private final BookRatingRepository bookRatingRepository;
     private final BookReviewLikeRepository bookReviewLikeRepository;
@@ -94,25 +64,6 @@ public class BookService implements IBookService {
 
 
 
-    /**
-     * 책 중복 검사 메서드
-     *
-     * 목적
-     * 같은 책이 DB에 이미 있는지 확인
-     *
-     * 호출 위치
-     *
-     * BookController
-     *     ↓
-     * findByTitleAndAuthor()
-     *
-     * 예
-     *
-     * "어린왕자 + 생텍쥐페리"
-     *
-     * 이미 DB에 존재하면
-     * 새로운 책을 생성하지 않는다.
-     */
     @Override
     public Optional<BookSearchDTO> findByTitleAndAuthor(String title, String author) {
 
@@ -125,21 +76,6 @@ public class BookService implements IBookService {
 
 
 
-    /**
-     * 새로운 책 저장
-     *
-     * 흐름
-     *
-     * Controller
-     *     ↓
-     * Service (현재 메서드)
-     *     ↓
-     * Repository.save()
-     *     ↓
-     * DB 저장
-     *
-     * 이후 DTO로 변환하여 반환
-     */
     @Override
     public BookSearchDTO save(String title, String author, String coverImage, String description, String category) {
 
@@ -156,33 +92,13 @@ public class BookService implements IBookService {
 
 
 
-    /**
-     * 유저-책 연결 저장
-     *
-     * 저장되는 테이블
-     *
-     * user_books
-     *
-     * 구조
-     *
-     * userId + bookId
-     *
-     * 그리고 동시에
-     *
-     * reading_logs 기록도 저장한다
-     *
-     * 이유
-     *
-     * 독서 기록 데이터를 기반으로
-     * 잔디 차트를 생성하기 위해
-     */
     @Override
     public boolean saveUserBook(String userId, Long bookId) {
 
         UserBookId id = new UserBookId(userId, bookId);
 
 
-      //중복 저장 방지
+      //중복 저장 방지,책 등록 중복저장 방지
         if (userBookRepository.existsById(id)) {
             return false;
         }
@@ -195,7 +111,7 @@ public class BookService implements IBookService {
         );
 
 
-       //독서 잔디
+       //독서 잔디,빌더로 저장
         readingLogRepository.save(
                 ReadingLogEntity.builder()
                         .userId(userId)
@@ -239,15 +155,15 @@ public class BookService implements IBookService {
 
     @Override
     public void saveRating(String userId, Long bookId, int rating, String content) {
-        bookRatingRepository.findByUserIdAndBookId(userId, bookId).ifPresentOrElse(
-            existing -> {
-                existing.setRating(rating);
-                existing.setContent(content);
-                bookRatingRepository.save(existing);
-            },
-            () -> bookRatingRepository.save(BookRatingEntity.builder()
-                .userId(userId).bookId(bookId).rating(rating).content(content).build())
-        );
+        //후기 작성
+        if (bookRatingRepository.findByUserIdAndBookId(userId, bookId).isPresent()) {
+            // 이미 작성한 후기 → JPQL UPDATE (Setter 없이 필드만 변경)
+            bookRatingRepository.updateRating(userId, bookId, rating, content);
+        } else {
+            // 최초 작성 → INSERT
+            bookRatingRepository.save(BookRatingEntity.builder()
+                .userId(userId).bookId(bookId).rating(rating).content(content).build());
+        }
     }
 
     @Override
@@ -271,6 +187,7 @@ public class BookService implements IBookService {
                 m.put("likeCount", bookReviewLikeRepository.countByRatingId(r.getId()));
                 m.put("commentCount", bookReviewCommentRepository.countByRatingId(r.getId()));
                 m.put("liked", currentUserId != null && bookReviewLikeRepository.existsByRatingIdAndUserId(r.getId(), currentUserId));
+                m.put("isOwn", currentUserId != null && r.getUserId().equals(currentUserId));
                 return m;
             })
             .collect(Collectors.toList());
@@ -278,6 +195,7 @@ public class BookService implements IBookService {
 
     @Override
     public Map<String, Object> toggleLike(Long ratingId, String userId) {
+        //좋아요
         Map<String, Object> result = new HashMap<>();
         bookReviewLikeRepository.findByRatingIdAndUserId(ratingId, userId).ifPresentOrElse(
             like -> {
@@ -295,6 +213,7 @@ public class BookService implements IBookService {
 
     @Override
     public void addComment(Long ratingId, String userId, String content) {
+        //댓글
         bookReviewCommentRepository.save(BookReviewCommentEntity.builder()
             .ratingId(ratingId).userId(userId).content(content).build());
     }
@@ -313,8 +232,47 @@ public class BookService implements IBookService {
             .collect(Collectors.toList());
     }
 
+    @Override
+    public boolean deleteRating(Long ratingId, String userId) {
+        if (!bookRatingRepository.existsByIdAndUserId(ratingId, userId)) return false;
+        bookRatingRepository.deleteById(ratingId);
+        return true;
+    }
+
+    @Override
+    public boolean updateMyRating(Long ratingId, String userId, int rating, String content) {
+        return bookRatingRepository.findById(ratingId)
+            .filter(r -> r.getUserId().equals(userId))
+            .map(r -> {
+                bookRatingRepository.save(BookRatingEntity.builder()
+                    .id(r.getId()).userId(r.getUserId()).bookId(r.getBookId())
+                    .rating(rating).content(content).createdAt(r.getCreatedAt()).build());
+                return true;
+            }).orElse(false);
+    }
+
+    @Override
+    public List<Map<String, Object>> getMyRatings(String userId) {
+        return bookRatingRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+            .map(r -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id", r.getId());
+                m.put("bookId", r.getBookId());
+                m.put("rating", r.getRating());
+                m.put("content", r.getContent() == null ? "" : r.getContent());
+                m.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate().toString() : "");
+                // 책 제목 조회
+                bookRepository.findById(r.getBookId()).ifPresent(b -> {
+                    m.put("bookTitle", b.getTitle());
+                    m.put("bookAuthor", b.getAuthor());
+                });
+                return m;
+            }).collect(Collectors.toList());
+    }
+
     //빌더로 DTO반환
     private BookSearchDTO toDTO(BookEntity entity) {
+        // 빌더로 저장후에 DTO로 저장
 
         return BookSearchDTO.builder()
 

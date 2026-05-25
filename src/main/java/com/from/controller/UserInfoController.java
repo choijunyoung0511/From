@@ -5,10 +5,8 @@ import com.from.dto.ImageResponseDto;
 import com.from.dto.MsgDTO;
 import com.from.dto.UserInfoDTO;
 import com.from.dto.BookSearchDTO;
-import com.from.dto.RankingDto;
 import com.from.service.IBookService;
 import com.from.service.IImageService;
-import com.from.service.IRankingService;
 import com.from.service.IReviewService;
 import com.from.service.IS3UploadService;
 import com.from.service.IUserInfoService;
@@ -52,7 +50,6 @@ public class UserInfoController {
     private final IBookService bookService;
     private final IImageService imageService;
     private final IS3UploadService s3UploadService;
-    private final IRankingService rankingService;
 
     /**
      * 회원가입 화면을 반환한다.

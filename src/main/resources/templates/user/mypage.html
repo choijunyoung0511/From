@@ -251,6 +251,7 @@
         <button class="tab-btn active"  onclick="showTab('profile')">프로필</button>
         <button class="tab-btn"         onclick="showTab('images')">내 이미지</button>
         <button class="tab-btn"         onclick="showTab('reviews')">독후감 기록</button>
+        <button class="tab-btn"         onclick="showTab('my-ratings'); loadMyRatings();">독서 후기</button>
         <button class="tab-btn"         onclick="showTab('dashboard')">독서 대시보드</button>
         <button class="tab-btn"         onclick="showTab('password')">비밀번호 변경</button>
     </div>
@@ -347,6 +348,14 @@
                style="display:inline-block;margin-top:20px;padding:12px 28px;
                       background:#6071E3;color:white;border-radius:10px;
                       text-decoration:none;font-weight:700;">이미지 만들러 가기</a>
+        </div>
+    </div>
+
+    <!-- ── 탭 4: 독서 후기 ── -->
+    <div id="my-ratings-tab" class="tab-content">
+        <h2 class="page-title">⭐ 내 독서 후기</h2>
+        <div id="my-ratings-list">
+            <p style="text-align:center;color:#aaa;padding:40px 0;">불러오는 중...</p>
         </div>
     </div>
 
@@ -507,7 +516,7 @@
 
 <script>
     /** 탭 전환. event.target 대신 탭 인덱스로 버튼을 찾아 active 처리한다 */
-    const TAB_NAMES = ['profile', 'images', 'reviews', 'dashboard', 'password'];
+    const TAB_NAMES = ['profile', 'images', 'reviews', 'my-ratings', 'dashboard', 'password'];
 
     function uploadProfile(input) {
         const file = input.files[0];
@@ -531,6 +540,106 @@
                     showMypageToast('⚠️ ' + (data.msg || '변경에 실패했습니다.'));
                 }
             });
+    }
+
+    /* ── 독서 후기 탭 ── */
+    let editingRatingId = null;
+
+    function loadMyRatings() {
+        fetch('/book/my-ratings')
+            .then(r => r.json())
+            .then(list => {
+                const el = document.getElementById('my-ratings-list');
+                if (!list || !list.length) {
+                    el.innerHTML = '<p style="text-align:center;color:#aaa;padding:60px 0;">아직 작성한 후기가 없습니다.</p>';
+                    return;
+                }
+                el.innerHTML = list.map(r => `
+                    <div id="rating-card-${r.id}" style="background:white;border-radius:14px;padding:20px 22px;margin-bottom:12px;box-shadow:0 2px 12px rgba(67,97,238,.08);border:1px solid rgba(67,97,238,.08);">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                            <div>
+                                <div style="font-size:15px;font-weight:700;color:#1A1A2E;">${r.bookTitle || '-'}</div>
+                                <div style="font-size:12px;color:#aaa;">${r.bookAuthor || ''}</div>
+                            </div>
+                            <span style="font-size:12px;color:#bbb;">${r.createdAt}</span>
+                        </div>
+                        <div style="font-size:17px;color:#f59e0b;margin-bottom:8px;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                        <div id="rating-content-${r.id}" style="font-size:14px;color:#555;line-height:1.7;margin-bottom:12px;">${r.content || '<span style="color:#ccc;">후기 없음</span>'}</div>
+                        <div style="display:flex;gap:8px;">
+                            <button onclick="openEditRating(${r.id}, ${r.rating}, \`${(r.content||'').replace(/`/g,'\\`')}\`)"
+                                style="padding:6px 14px;border:1.5px solid #6071E3;border-radius:8px;background:none;color:#6071E3;font-size:12px;cursor:pointer;font-family:inherit;">수정</button>
+                            <button onclick="deleteMyRating(${r.id})"
+                                style="padding:6px 14px;border:1.5px solid #e74c3c;border-radius:8px;background:none;color:#e74c3c;font-size:12px;cursor:pointer;font-family:inherit;">삭제</button>
+                        </div>
+                    </div>`).join('');
+            });
+    }
+
+    function deleteMyRating(ratingId) {
+        if (!confirm('이 후기를 삭제하시겠습니까?')) return;
+        fetch(`/book/rating/${ratingId}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.result === 1) {
+                    document.getElementById(`rating-card-${ratingId}`)?.remove();
+                    showMypageToast('✅ 후기가 삭제되었습니다.');
+                } else {
+                    showMypageToast('⚠️ ' + data.msg);
+                }
+            });
+    }
+
+    function openEditRating(ratingId, currentRating, currentContent) {
+        editingRatingId = ratingId;
+        document.getElementById('edit-rating-stars-val').value = currentRating;
+        renderEditStars(currentRating);
+        document.getElementById('edit-rating-content').value = currentContent;
+        document.getElementById('edit-rating-modal').style.display = 'flex';
+    }
+
+    function closeEditRating() {
+        document.getElementById('edit-rating-modal').style.display = 'none';
+        editingRatingId = null;
+    }
+
+    function renderEditStars(val) {
+        document.querySelectorAll('#edit-star-row span').forEach((s, i) => {
+            s.textContent = i < val ? '★' : '☆';
+            s.style.color  = i < val ? '#f59e0b' : '#ccc';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('#edit-star-row span').forEach(s => {
+            s.addEventListener('click', () => {
+                const v = parseInt(s.dataset.v);
+                document.getElementById('edit-rating-stars-val').value = v;
+                renderEditStars(v);
+            });
+            s.addEventListener('mouseover', () => renderEditStars(parseInt(s.dataset.v)));
+            s.addEventListener('mouseout', () => renderEditStars(parseInt(document.getElementById('edit-rating-stars-val').value || 0)));
+        });
+    });
+
+    function submitEditRating() {
+        const rating  = parseInt(document.getElementById('edit-rating-stars-val').value);
+        const content = document.getElementById('edit-rating-content').value.trim();
+        if (!rating) { alert('별점을 선택해주세요.'); return; }
+        fetch(`/book/rating/${editingRatingId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `rating=${rating}&content=${encodeURIComponent(content)}`
+        })
+        .then(r => r.json())
+        .then(data => {
+            closeEditRating();
+            if (data.result === 1) {
+                showMypageToast('✅ 후기가 수정되었습니다.');
+                loadMyRatings();
+            } else {
+                showMypageToast('⚠️ ' + data.msg);
+            }
+        });
     }
 
     function showMypageToast(msg) {
@@ -774,5 +883,22 @@
         showTab('profile');
     }
 </script>
+
+<!-- 후기 수정 모달 -->
+<div id="edit-rating-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:20px;padding:32px 36px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(67,97,238,.18);">
+        <p style="font-weight:700;font-size:16px;margin-bottom:16px;">✏️ 후기 수정</p>
+        <input type="hidden" id="edit-rating-stars-val" value="0">
+        <div id="edit-star-row" style="display:flex;gap:6px;justify-content:center;margin-bottom:12px;font-size:30px;cursor:pointer;">
+            <span data-v="1">☆</span><span data-v="2">☆</span><span data-v="3">☆</span><span data-v="4">☆</span><span data-v="5">☆</span>
+        </div>
+        <textarea id="edit-rating-content" class="form-control" rows="4" maxlength="300"
+                  placeholder="후기 내용을 수정하세요." style="margin-bottom:16px;resize:vertical;font-size:14px;"></textarea>
+        <div style="display:flex;gap:10px;">
+            <button onclick="submitEditRating()" class="btn btn-primary" style="flex:1;">저장</button>
+            <button onclick="closeEditRating()" class="btn" style="flex:1;border:1.5px solid #ddd;color:#888;">취소</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>

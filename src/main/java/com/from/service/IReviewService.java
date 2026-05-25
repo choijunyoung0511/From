@@ -5,7 +5,6 @@ import com.from.domain.BookReviewDocument;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 
 /**
  * AI 독후감 생성 서비스 인터페이스.
@@ -38,14 +37,6 @@ public interface IReviewService {
      */
     ReviewResult generateAndSave(String userId, Long bookId, String emphasis, String tone,
                                   LocalDate deliveryDate, LocalTime deliveryTime, int paperId);
-
-    /**
-     * 유저의 독서 이력을 기반으로 GPT가 책 5권을 추천한다.
-     *
-     * @param userId 요청 사용자의 로그인 ID
-     * @return [{title, author, reason, cover}] 형태의 추천 책 목록
-     */
-    List<Map<String, String>> getAiRecommendations(String userId);
 
     /**
      * 유저의 독후감 이력을 조회한다 (마이페이지용).

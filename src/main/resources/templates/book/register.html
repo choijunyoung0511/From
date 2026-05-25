@@ -809,6 +809,26 @@
 
         const btn = document.getElementById('review-submit-btn');
         btn.disabled = true;
+        const isEdit = !!editingRatingId;
+
+        // 수정 모드
+        if (isEdit) {
+            fetch(`/book/rating/${editingRatingId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `rating=${selectedRating}&content=${encodeURIComponent(document.getElementById('review-content').value.trim())}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false; btn.textContent = '등록';
+                editingRatingId = null;
+                closeReviewModal();
+                showToast(data.result === 1 ? '✅ 후기가 수정되었습니다.' : ('⚠️ ' + data.msg), '');
+                if (data.result === 1 && currentBookTitle) showRatings(currentBookTitle, currentBookAuthor);
+            });
+            return;
+        }
+
         btn.textContent = '등록 중...';
 
         fetch('/book/rating', {
@@ -873,6 +893,13 @@
                         </div>
                         <div style="font-size:15px;color:#f59e0b;margin-bottom:6px;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
                         ${r.content ? `<div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:8px;">${r.content}</div>` : ''}
+                        ${r.isOwn ? `
+                        <div style="display:flex;gap:6px;margin-bottom:8px;">
+                            <button onclick="openEditFromModal(${r.id},${r.rating},\`${(r.content||'').replace(/`/g,'\\`')}\`)"
+                                style="padding:4px 10px;border:1px solid #6071E3;border-radius:6px;background:none;color:#6071E3;font-size:11px;cursor:pointer;font-family:inherit;">수정</button>
+                            <button onclick="deleteRatingFromModal(${r.id})"
+                                style="padding:4px 10px;border:1px solid #e74c3c;border-radius:6px;background:none;color:#e74c3c;font-size:11px;cursor:pointer;font-family:inherit;">삭제</button>
+                        </div>` : ''}
                         <div style="display:flex;align-items:center;gap:14px;">
                             <button id="like-btn-${r.id}" onclick="toggleLike(${r.id})"
                                 style="background:none;border:none;cursor:pointer;font-size:13px;color:${r.liked ? '#e74c3c' : '#bbb'};padding:0;font-family:inherit;">
@@ -954,6 +981,34 @@
     }
 
     function closeRatingsModal() { document.getElementById('ratings-modal').classList.remove('show'); }
+
+    function deleteRatingFromModal(ratingId) {
+        if (!confirm('이 후기를 삭제하시겠습니까?')) return;
+        fetch(`/book/rating/${ratingId}`, { method: 'DELETE' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.result === 1) {
+                    document.getElementById(`review-card-${ratingId}`)?.remove();
+                    showToast('🗑️ 후기가 삭제되었습니다.', '');
+                } else {
+                    showToast('⚠️ ' + data.msg, '');
+                }
+            });
+    }
+
+    function openEditFromModal(ratingId, rating, content) {
+        // 후기 작성 모달을 수정 모드로 재사용
+        currentBookId   = null; // 수정 모드 표시 (bookId 불필요)
+        editingRatingId = ratingId;
+        selectedRating  = rating;
+        document.getElementById('review-content').value = content;
+        document.getElementById('review-book-title').textContent = '후기 수정';
+        document.getElementById('review-rating-error').style.display = 'none';
+        renderStars(rating);
+        document.getElementById('review-submit-btn').textContent = '수정 완료';
+        document.getElementById('review-modal').classList.add('show');
+    }
+    let editingRatingId = null;
 
     /* ── 초기화 ── */
     renderSuggest();

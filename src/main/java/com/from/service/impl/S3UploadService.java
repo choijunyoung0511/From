@@ -25,6 +25,7 @@ public class  S3UploadService implements IS3UploadService {
     private String region;
 
     @Override
+    //s3에 이미지 업로드 before,after폴더로 나눠서 구분
     public String upload(byte[] data, String contentType, String folder) {
         log.info("{}.upload Start! - folder:{}, contentType:{}, size:{}bytes",
                 this.getClass().getName(), folder, contentType, data.length);

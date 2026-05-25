@@ -101,9 +101,7 @@ public class AladinService implements IAladinService {
             result = parseItems(json);
 
         } catch (Exception e) {
-
-            // API 호출 실패 로그
-            log.error("알라딘 검색 오류", e);
+            log.error("알라딘 검색 오류 - query:{}, type:{}, error:{}", cleanedQuery, queryType, e.getMessage());
         }
 
         log.info("{}.searchBooks End! - {}건", this.getClass().getName(), result.size());
