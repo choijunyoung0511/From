@@ -1,8 +1,8 @@
 package com.from.service.impl;
 
 import com.from.client.ClaudePromptClient;
-import com.from.client.NanoBananaImageClient;
-import com.from.dto.nano.NanoBananaRequest;
+import com.from.client.GeminiImageClient;
+import com.from.dto.gemini.GeminiImageRequest;
 import com.from.domain.ImageResult;
 import com.from.dto.ImageRequestDto;
 import com.from.dto.ImageResponseDto;
@@ -40,7 +40,7 @@ public class ImageService implements IImageService {
     //클로드 전용 클라이언트(영문으로 작성 하여 재미나이에 던짐)
     private final ClaudePromptClient claudePromptClient;
     //재미나이 사용 클라이언트
-    private final NanoBananaImageClient nanoBananaImageClient;
+    private final GeminiImageClient geminiImageClient;
     //이미지 생성 후 저장소
     private final ImageResultRepository imageResultRepository;
     //책 정보 조회
@@ -76,8 +76,8 @@ public class ImageService implements IImageService {
         String base64Photo = java.util.Base64.getEncoder().encodeToString(photoBytes);
         String safeType    = (photoType != null) ? photoType : "image/jpeg";
 
-        NanoBananaRequest imageRequest = new NanoBananaRequest(generatedPrompt, base64Photo, safeType);
-        String generatedImage = nanoBananaImageClient.generateImage(imageRequest);
+        GeminiImageRequest imageRequest = new GeminiImageRequest(generatedPrompt, base64Photo, safeType);
+        String generatedImage = geminiImageClient.generateImage(imageRequest);
 
         // Step 4: 생성된 이미지 결과 처리 (URL 또는 base64 Data URL)
         String imageUrl;

@@ -183,8 +183,12 @@
         .db-legend-cell { width:13px; height:13px; border-radius:3px; }
         .db-chart-container { position:relative; height:210px; }
         .db-book-list { display:flex; flex-direction:column; gap:10px; }
-        .db-book-item { display:flex; align-items:center; gap:12px; padding:12px; background:var(--db-bg); border-radius:10px; border:1px solid var(--border); transition:border-color 0.2s; }
-        .db-book-item:hover { border-color:var(--accent); }
+        .db-book-item { display:flex; align-items:center; gap:12px; padding:12px; background:var(--db-bg); border-radius:10px; border:1px solid var(--border); cursor:pointer; transition:transform 0.18s,border-color 0.18s,box-shadow 0.18s; }
+        .db-book-item:hover { transform:scale(1.015); border-color:var(--accent); box-shadow:0 4px 14px rgba(91,124,248,.14); }
+        .db-book-item:hover .db-book-cover { transform:scale(1.08); }
+        .db-book-cover { transition:transform 0.18s; }
+        .db-review-link { font-size:11px; color:var(--accent); text-decoration:none; padding:3px 8px; border:1px solid var(--accent); border-radius:99px; white-space:nowrap; flex-shrink:0; opacity:0; transition:opacity 0.18s; }
+        .db-book-item:hover .db-review-link { opacity:1; }
         .db-book-cover { width:36px; height:50px; border-radius:4px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:18px; background:var(--accent-light); }
         .db-book-info { flex:1; min-width:0; }
         .db-book-title { font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
@@ -211,6 +215,28 @@
         .db-genre-pct { font-family:monospace; color:var(--text3); font-size:12px; }
         .db-empty { text-align:center; padding:40px 20px; color:var(--text3); font-size:14px; }
         .db-tooltip { position:fixed; background:#1a1d2e; border-radius:8px; padding:8px 12px; font-size:12px; color:white; font-family:monospace; pointer-events:none; z-index:999; display:none; white-space:nowrap; }
+        /* ① 인사 카드 */
+        .db-greeting { background:linear-gradient(135deg,#5b7cf8,#7c9cff); border-radius:14px; padding:22px 26px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:16px; box-shadow:0 8px 24px rgba(91,124,248,.28); }
+        .db-greeting .hi { font-size:18px; font-weight:700; color:white; margin-bottom:3px; }
+        .db-greeting .sub { font-size:12px; color:rgba(255,255,255,.8); }
+        .db-chips { display:flex; gap:8px; flex-wrap:wrap; }
+        .db-chip { background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.25); border-radius:99px; padding:7px 14px; font-size:12px; font-weight:700; color:white; }
+        /* ② 성향 배지 */
+        .db-tendency { margin-top:14px; padding:12px 14px; background:linear-gradient(135deg,#eef1fe,#f0f4ff); border-radius:10px; border:1px solid rgba(91,124,248,.14); display:none; align-items:flex-start; gap:10px; }
+        .db-tendency-icon { font-size:24px; flex-shrink:0; }
+        .db-tendency-title { font-size:13px; font-weight:700; color:var(--accent); margin-bottom:2px; }
+        .db-tendency-desc  { font-size:11px; color:var(--text2); line-height:1.5; }
+        /* ④ 목표 동기 */
+        .db-goal-msg { font-size:11px; color:var(--accent); font-weight:600; margin-top:3px; min-height:14px; }
+        /* ⑤ 추천 카드 */
+        .db-rec { margin-top:16px; }
+        .db-rec-books { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px; }
+        .db-rec-book { background:var(--db-bg); border:1px solid var(--border); border-radius:10px; padding:12px 14px; transition:border-color .18s,box-shadow .18s,transform .18s; }
+        .db-rec-book:hover { border-color:var(--accent); box-shadow:0 4px 12px rgba(91,124,248,.12); transform:translateY(-2px); }
+        .db-rec-emoji { font-size:20px; margin-bottom:6px; }
+        .db-rec-title  { font-size:12px; font-weight:700; color:var(--text); margin-bottom:2px; }
+        .db-rec-author { font-size:11px; color:var(--text3); }
+        .db-rec-reason { font-size:10px; color:var(--accent); margin-top:4px; }
 
         /* ── 이미지 갤러리 탭 ── */
         .gallery-grid {
@@ -252,7 +278,7 @@
         <button class="tab-btn"         onclick="showTab('images')">내 이미지</button>
         <button class="tab-btn"         onclick="showTab('reviews')">독후감 기록</button>
         <button class="tab-btn"         onclick="showTab('my-ratings'); loadMyRatings();">독서 후기</button>
-        <button class="tab-btn"         onclick="showTab('dashboard')">독서 대시보드</button>
+        <button class="tab-btn"         onclick="showTab('dashboard'); dbLoad();">독서 대시보드</button>
         <button class="tab-btn"         onclick="showTab('password')">비밀번호 변경</button>
     </div>
 
@@ -303,7 +329,7 @@
             <ul class="menu-list">
                 <li><button onclick="showTab('images')">🎭 내 AI 이미지 작품 보기</button></li>
                 <li><button onclick="showTab('reviews')">📖 내 독후감 기록 조회</button></li>
-                <li><button onclick="location.href='/user/dashboard'">📊 독서 대시보드</button></li>
+                <li><button onclick="showTab('dashboard'); dbLoad();">📊 독서 대시보드</button></li>
                 <li><button onclick="showTab('password')">🔒 비밀번호 변경</button></li>
                 <li><button class="danger" onclick="showDeleteModal()">⚠️ 회원 탈퇴</button></li>
             </ul>
@@ -361,6 +387,18 @@
 
     <!-- ── 탭 2: 독서 대시보드 ── -->
     <div id="dashboard-tab" class="tab-content db">
+        <!-- ① 인사 카드 -->
+        <div class="db-greeting">
+            <div>
+                <div class="hi">안녕하세요, <span th:text="${session.SS_USER_NAME}">사용자</span>님 👋</div>
+                <div class="sub">오늘도 독서를 이어가볼까요?</div>
+            </div>
+            <div class="db-chips">
+                <div class="db-chip">🔥 <span id="db-g-streak">-</span>일 연속</div>
+                <div class="db-chip">📚 이번 달 <span id="db-g-month">-</span>권</div>
+                <div class="db-chip">🏆 상위 <span id="db-g-rank">-</span>%</div>
+            </div>
+        </div>
         <div class="db-grid" style="margin-bottom:16px;">
             <div class="db-stat-grid">
                 <div class="db-stat-item"><div class="num" id="db-totalBooks">0</div><div class="lbl">등록한 책</div></div>
@@ -394,10 +432,18 @@
                 <div class="db-chart-container"><canvas id="db-monthChart"></canvas></div>
             </div>
             <div class="db-card">
-                <div class="db-card-title">장르 분포</div>
+                <div class="db-card-title">장르 분포 &amp; 독서 성향</div>
                 <div class="db-genre-wrap">
                     <div class="db-genre-chart"><canvas id="db-genreChart"></canvas></div>
                     <div class="db-genre-legend" id="db-genreLegend"></div>
+                </div>
+                <!-- ② 독서 성향 배지 -->
+                <div class="db-tendency" id="db-tendency">
+                    <div class="db-tendency-icon" id="db-tend-icon">📚</div>
+                    <div>
+                        <div class="db-tendency-title" id="db-tend-title">종합 독서가</div>
+                        <div class="db-tendency-desc"  id="db-tend-desc">다양한 분야를 넘나드는 폭넓은 독서가예요.</div>
+                    </div>
                 </div>
             </div>
             <div class="db-card">
@@ -406,6 +452,7 @@
                     <div class="db-goal-item">
                         <div class="db-goal-header"><span class="db-goal-label">주간 목표</span><span class="db-goal-val" id="db-weeklyVal">0 / 0권</span></div>
                         <div class="db-progress-bar"><div class="db-progress-fill" id="db-weeklyBar"></div></div>
+                        <div class="db-goal-msg" id="db-weeklyMsg"></div>
                         <div class="db-goal-input-row">
                             <input class="db-goal-input" type="number" id="db-weeklyGoalInput" placeholder="주간 목표 권수" min="1" max="30">
                             <button class="db-goal-btn" onclick="dbSetGoal('weekly')">설정</button>
@@ -414,6 +461,7 @@
                     <div class="db-goal-item">
                         <div class="db-goal-header"><span class="db-goal-label">월간 목표</span><span class="db-goal-val" id="db-monthlyVal">0 / 0권</span></div>
                         <div class="db-progress-bar"><div class="db-progress-fill" id="db-monthlyBar"></div></div>
+                        <div class="db-goal-msg" id="db-monthlyMsg"></div>
                         <div class="db-goal-input-row">
                             <input class="db-goal-input" type="number" id="db-monthlyGoalInput" placeholder="월간 목표 권수" min="1" max="100">
                             <button class="db-goal-btn" onclick="dbSetGoal('monthly')">설정</button>
@@ -424,6 +472,15 @@
             <div class="db-card">
                 <div class="db-card-title">최근 독서</div>
                 <div class="db-book-list" id="db-bookList"></div>
+            </div>
+
+            <!-- ⑤ 추천 카드 -->
+            <div class="db-card db-card-full db-rec" id="db-recSection" style="display:none;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <div class="db-card-title" style="margin-bottom:0;">📚 취향 기반 추천</div>
+                    <div style="font-size:11px;color:var(--text3);" id="db-recSubtitle"></div>
+                </div>
+                <div class="db-rec-books" id="db-recBooks"></div>
             </div>
         </div>
         <div id="db-tooltip" class="db-tooltip"></div>
@@ -682,7 +739,9 @@
             .then(data => {
                 DB_BOOKS = (data.books || []).map(b => ({ ...b, genre: dbGuessGenre(b.title), emoji: dbEmoji(b.title) }));
                 dbReadDates = new Set(DB_BOOKS.map(b => b.date).filter(Boolean));
-                dbUpdateStats(); dbBuildGrass(); dbBuildMonthChart(); dbBuildGenreChart(); dbBuildBookList(); dbUpdateGoals();
+                dbUpdateStats(); dbBuildGreetingChips(); dbBuildGrass();
+                dbBuildMonthChart(); dbBuildGenreChart();
+                dbBuildBookList(); dbUpdateGoals(); dbBuildRecommendCards();
             })
             .catch(err => console.error('대시보드 로딩 실패', err));
     }
@@ -778,7 +837,14 @@
     function dbBuildBookList() {
         const list=document.getElementById('db-bookList'); list.innerHTML='';
         if(DB_BOOKS.length===0){ list.innerHTML='<div class="db-empty">등록된 책이 없습니다.<br>책을 등록하고 독서 기록을 시작해보세요!</div>'; return; }
-        DB_BOOKS.slice(0,5).forEach(b=>{ const item=document.createElement('div'); item.className='db-book-item'; item.innerHTML=`<div class="db-book-cover">${b.emoji}</div><div class="db-book-info"><div class="db-book-title">${b.title}</div><div class="db-book-author">${b.author}</div></div><div class="db-book-date">${b.date||''}</div>`; list.appendChild(item); });
+        DB_BOOKS.slice(0,5).forEach(b=>{
+            const item=document.createElement('div'); item.className='db-book-item';
+            item.innerHTML=`<div class="db-book-cover">${b.emoji}</div>
+                <div class="db-book-info"><div class="db-book-title">${b.title}</div><div class="db-book-author">${b.author}</div></div>
+                <div class="db-book-date">${b.date||''}</div>
+                <a href="/review/create" class="db-review-link">✍️ 독후감</a>`;
+            list.appendChild(item);
+        });
     }
 
     function dbSetGoal(type) {
@@ -791,7 +857,96 @@
         const monthlyRead=DB_BOOKS.filter(b=>{ if(!b.date)return false; const d=new Date(b.date); return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth(); }).length;
         document.getElementById('db-weeklyVal').textContent=weeklyRead+' / '+dbGoals.weekly+'권';
         document.getElementById('db-monthlyVal').textContent=monthlyRead+' / '+dbGoals.monthly+'권';
+        // ④ 동기부여 메시지
+        document.getElementById('db-weeklyMsg').textContent  = dbGoalMsg(weeklyRead, dbGoals.weekly);
+        document.getElementById('db-monthlyMsg').textContent = dbGoalMsg(monthlyRead, dbGoals.monthly);
         setTimeout(()=>{ document.getElementById('db-weeklyBar').style.width=Math.min(weeklyRead/dbGoals.weekly*100,100)+'%'; document.getElementById('db-monthlyBar').style.width=Math.min(monthlyRead/dbGoals.monthly*100,100)+'%'; },300);
+    }
+    function dbGoalMsg(read, goal) {
+        const rem = goal - read;
+        if (rem <= 0)  return '🎉 목표 달성! 정말 대단해요!';
+        if (read === 0) return '📖 오늘 첫 책을 시작해볼까요?';
+        if (rem === 1)  return '🔥 목표까지 딱 1권 남았어요!';
+        return `📚 ${read}권 읽었어요 — 조금만 더 힘내요!`;
+    }
+
+    // ① 인사 칩 — 실데이터 (streak: 로컬 계산, 월독서량: 로컬, 상위%: Redis 랭킹 API)
+    function dbBuildGreetingChips() {
+        const streak = dbCalcStreak();
+        const now = new Date();
+        const monthBooks = DB_BOOKS.filter(b => {
+            if (!b.date) return false;
+            const d = new Date(b.date);
+            return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth();
+        }).length;
+
+        document.getElementById('db-g-streak').textContent = streak;
+        document.getElementById('db-g-month').textContent  = monthBooks;
+
+        // 실제 Redis 랭킹에서 상위 % 계산
+        fetch('/ranking/my-rank')
+            .then(r => r.json())
+            .then(data => {
+                const pct = data.pct;
+                document.getElementById('db-g-rank').textContent = pct > 0 ? pct : '-';
+            })
+            .catch(() => {
+                document.getElementById('db-g-rank').textContent = '-';
+            });
+    }
+
+    // ② + ⑤ 성향 분석 & 추천 카드
+    const DB_TENDENCY_MAP = {
+        '소설':    {icon:'📖', title:'소설 몰입형 독서가',  desc:'이야기 속으로 깊이 빠져드는 스타일이에요.'},
+        '에세이':  {icon:'☕', title:'감성 힐링형 독서가',  desc:'잔잔한 감성과 일상의 이야기를 선호해요.'},
+        '자기계발':{icon:'🚀', title:'성장 중심 독서가',   desc:'실용적 지식과 자기 성장을 위한 독서를 즐겨요.'},
+        '역사':    {icon:'🏛️',title:'탐구형 독서가',      desc:'역사와 사실에 기반한 깊이 있는 독서를 즐겨요.'},
+        '과학':    {icon:'🔬', title:'지식 탐구형 독서가', desc:'세상의 원리와 과학적 사고를 추구해요.'},
+        '철학':    {icon:'🤔', title:'사유형 독서가',      desc:'깊은 사유와 철학적 질문을 즐기는 독서가예요.'},
+        '경제':    {icon:'💡', title:'전략적 독서가',      desc:'경제와 투자, 비즈니스 인사이트를 추구해요.'},
+        '심리':    {icon:'💭', title:'공감 중심 독서가',   desc:'인간의 심리와 감정, 관계에 깊은 관심을 가져요.'},
+    };
+    function dbBuildRecommendCards() {
+        if (DB_BOOKS.length === 0) return;
+
+        // ② 성향 배지 (장르 기반, 로컬 계산)
+        const genreCount = {};
+        DB_BOOKS.forEach(b => { genreCount[b.genre]=(genreCount[b.genre]||0)+1; });
+        const topGenre = Object.entries(genreCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || '';
+        const t = DB_TENDENCY_MAP[topGenre] || {icon:'📚',title:'종합 독서가',desc:'다양한 분야를 넘나드는 폭넓은 독서가예요.'};
+        document.getElementById('db-tend-icon').textContent  = t.icon;
+        document.getElementById('db-tend-title').textContent = t.title;
+        document.getElementById('db-tend-desc').textContent  = t.desc;
+        document.getElementById('db-tendency').style.display = 'flex';
+
+        // ⑤ 추천 카드 — Aladin API 호출
+        document.getElementById('db-recSubtitle').textContent = '불러오는 중...';
+        document.getElementById('db-recSection').style.display = 'block';
+        document.getElementById('db-recBooks').innerHTML =
+            '<p style="color:var(--text3);font-size:13px;padding:12px 0;">추천 도서를 가져오는 중...</p>';
+
+        fetch('/book/ai-recommend')
+            .then(r => r.json())
+            .then(list => {
+                if (!list || list.length === 0) {
+                    document.getElementById('db-recBooks').innerHTML =
+                        '<p style="color:var(--text3);font-size:13px;padding:12px 0;">추천 결과가 없습니다.</p>';
+                    return;
+                }
+                document.getElementById('db-recSubtitle').textContent =
+                    topGenre ? `'${topGenre}' 카테고리 기반 · 알라딘 API` : '독서 이력 기반 · 알라딘 API';
+                document.getElementById('db-recBooks').innerHTML = list.slice(0, 3).map(r => `
+                    <div class="db-rec-book">
+                        ${r.cover ? `<img src="${r.cover}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;margin-bottom:6px;">` : '<div class="db-rec-emoji">📚</div>'}
+                        <div class="db-rec-title">${r.title}</div>
+                        <div class="db-rec-author">${r.author}</div>
+                        <div class="db-rec-reason">✦ ${r.reason}</div>
+                    </div>`).join('');
+            })
+            .catch(() => {
+                document.getElementById('db-recBooks').innerHTML =
+                    '<p style="color:var(--text3);font-size:13px;padding:12px 0;">추천을 불러올 수 없습니다.</p>';
+            });
     }
 
     function showDeleteModal() { document.getElementById('deleteModal').classList.add('show'); }

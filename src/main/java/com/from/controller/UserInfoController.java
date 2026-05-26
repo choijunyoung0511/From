@@ -516,30 +516,8 @@ public class UserInfoController {
         return "user/mypage";
     }
 
-    /**
-     * 독서 대시보드 화면을 반환한다.
-     * 유저 이름을 Model에 담아 대시보드 제목에 표시한다.
-     * 실제 통계 데이터는 dashboardStats() AJAX API로 별도 요청한다.
-     */
-    @GetMapping("/dashboard")
-    public String dashboard(HttpSession session, Model model) throws Exception {
-        log.info("{}.dashboard Start!", this.getClass().getName());
 
-        String userId = (String) session.getAttribute("SS_USER_ID");
-        if (userId == null) return "redirect:/user/login";
-
-        model.addAttribute("userName", session.getAttribute("SS_USER_NAME"));
-
-        log.info("{}.dashboard End!", this.getClass().getName());
-        return "user/dashboard";
-    }
-
-    /**
-     * 대시보드 독서 통계 데이터를 JSON으로 반환한다 (비동기 AJAX).
-     * dashboard.html의 Chart.js가 이 API를 호출하여 그래프를 그린다.
-     *
-     * @return {userName, books: [{title, author, date}]} 형태의 통계 데이터
-     */
+    // 대시보드 독서통계 데이터를 json반환
     @GetMapping("/dashboard/stats")
     @ResponseBody
     public ResponseEntity<?> dashboardStats(HttpSession session) {
@@ -571,10 +549,8 @@ public class UserInfoController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * 마이페이지 - 독후감 이력 화면을 반환한다.
-     * MongoDB에서 현재 유저의 독후감 목록을 조회하여 Model에 담는다.
-     */
+
+    //독후감 이력 화면 반환,model에 담는다
     @GetMapping("/mypage/reviews")
     public String mypageReviews(HttpSession session, Model model) {
         log.info("{}.mypageReviews Start!", this.getClass().getName());
@@ -589,10 +565,8 @@ public class UserInfoController {
         return "user/mypage-reviews";
     }
 
-    /**
-     * 마이페이지 - 비밀번호를 변경한다 (비동기 AJAX).
-     * 현재 비밀번호를 먼저 검증(로그인 시도)한 후 새 비밀번호로 변경한다.
-     */
+
+    //비밀번호 변경
     @ResponseBody
     @PostMapping("/mypage/changePassword")
     public MsgDTO changePasswordMypage(HttpServletRequest request, HttpSession session) throws Exception {
@@ -643,10 +617,8 @@ public class UserInfoController {
         }
     }
 
-    /**
-     * 회원 탈퇴를 처리한다 (비동기 AJAX).
-     * 비밀번호를 확인한 후 DB에서 유저를 삭제하고 세션을 무효화한다.
-     */
+
+    //회원탈퇴
     @ResponseBody
     @PostMapping("/mypage/delete")
     public MsgDTO deleteAccount(HttpServletRequest request, HttpSession session) throws Exception {
