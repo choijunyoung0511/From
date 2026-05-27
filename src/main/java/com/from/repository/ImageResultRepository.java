@@ -1,6 +1,6 @@
 package com.from.repository;
 
-import com.from.domain.ImageResult;
+import com.from.repository.entity.ImageResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

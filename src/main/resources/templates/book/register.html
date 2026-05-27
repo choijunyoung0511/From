@@ -813,6 +813,8 @@
 
         // 수정 모드
         if (isEdit) {
+            const savedTitle  = currentBookTitle;
+            const savedAuthor = currentBookAuthor;
             fetch(`/book/rating/${editingRatingId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -824,7 +826,8 @@
                 editingRatingId = null;
                 closeReviewModal();
                 showToast(data.result === 1 ? '✅ 후기가 수정되었습니다.' : ('⚠️ ' + data.msg), '');
-                if (data.result === 1 && currentBookTitle) showRatings(currentBookTitle, currentBookAuthor);
+                // 수정 후 ratings 모달 갱신 (currentBookTitle이 있을 때만)
+                if (data.result === 1 && savedTitle) setTimeout(() => showRatings(savedTitle, savedAuthor), 400);
             });
             return;
         }
@@ -862,6 +865,8 @@
 
     /* ── 후기 보기 + 좋아요 + 댓글 ── */
     function showRatings(title, author) {
+        currentBookTitle  = title;   // 수정 후 재조회에 사용
+        currentBookAuthor = author;
         document.getElementById('ratings-book-title').textContent = title;
         document.getElementById('ratings-list').innerHTML =
             '<p style="text-align:center;color:#ccc;padding:20px 0;">불러오는 중...</p>';
@@ -997,8 +1002,8 @@
     }
 
     function openEditFromModal(ratingId, rating, content) {
-        // 후기 작성 모달을 수정 모드로 재사용
-        currentBookId   = null; // 수정 모드 표시 (bookId 불필요)
+        closeRatingsModal(); // ratings 모달 먼저 닫기 (뒤에 깔리는 문제 방지)
+        currentBookId   = null;
         editingRatingId = ratingId;
         selectedRating  = rating;
         document.getElementById('review-content').value = content;

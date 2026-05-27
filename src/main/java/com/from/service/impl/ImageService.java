@@ -2,8 +2,9 @@ package com.from.service.impl;
 
 import com.from.client.ClaudePromptClient;
 import com.from.client.GeminiImageClient;
-import com.from.dto.gemini.GeminiImageRequest;
-import com.from.domain.ImageResult;
+import com.from.dto.GeminiImageRequestDto;
+import com.from.repository.entity.ImageResult;
+import com.from.dto.ImageDetailDto;
 import com.from.dto.ImageRequestDto;
 import com.from.dto.ImageResponseDto;
 import com.from.dto.ImageResultDto;
@@ -19,20 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-/**
- * 이미지 생성 비즈니스 로직 서비스.
- *
- * 생성 흐름:
- *  1. 사용자 사진 → S3 inputs/ 폴더에 업로드 (원본 보관)
- *  2. ClaudePromptClient → 책/장면/스타일 기반 영어 프롬프트 생성
- *  3. NanoBananaImageClient → 사진 + 프롬프트로 이미지 생성
- *  4. 결과 이미지 → S3 outputs/ 폴더에 업로드 (base64 방식인 경우)
- *  5. imge_results 테이블에 결과 저장
- */
+//이미지 생성 서비스
+// 사용자가 사진 업로드 -> s3inputs 폴더에 업로드 -> 클로드로 영어 프롬프트 생성 -> 재미나이로 이미지생성 -> 결과이미지 s3outputs에 업로드후 image_results에 결과 저장
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -76,7 +67,7 @@ public class ImageService implements IImageService {
         String base64Photo = java.util.Base64.getEncoder().encodeToString(photoBytes);
         String safeType    = (photoType != null) ? photoType : "image/jpeg";
 
-        GeminiImageRequest imageRequest = new GeminiImageRequest(generatedPrompt, base64Photo, safeType);
+        GeminiImageRequestDto imageRequest = new GeminiImageRequestDto(generatedPrompt, base64Photo, safeType);
         String generatedImage = geminiImageClient.generateImage(imageRequest);
 
         // Step 4: 생성된 이미지 결과 처리 (URL 또는 base64 Data URL)
@@ -146,21 +137,21 @@ public class ImageService implements IImageService {
 
     // 이미지 상세 정보를 조회한다 (결과화면 상세 API)
     @Override
-    public Map<String, Object> getImageDetail(Long imageId) {
+    public ImageDetailDto getImageDetail(Long imageId) {
         log.info("{}.getImageDetail Start! - imageId:{}", this.getClass().getName(), imageId);
 
         return imageResultRepository.findById(imageId)
                 .map(img -> {
                     String bookTitle = bookService.findById(img.getBookId())
                             .map(b -> b.title()).orElse("-");
-                    Map<String, Object> body = new HashMap<>();
-                    body.put("imageUrl",      img.getImageUrl());
-                    body.put("inputImageUrl", img.getInputImageUrl());
-                    body.put("style",         img.getStyle());
-                    body.put("bookId",        img.getBookId());
-                    body.put("bookTitle",     bookTitle);
                     log.info("{}.getImageDetail End!", this.getClass().getName());
-                    return body;
+                    return new ImageDetailDto(
+                            img.getImageUrl(),
+                            img.getInputImageUrl(),
+                            img.getStyle(),
+                            img.getBookId(),
+                            bookTitle
+                    );
                 })
                 .orElse(null);
     }

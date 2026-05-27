@@ -1,7 +1,7 @@
 package com.from.service.impl;
 
 import com.from.config.EncryptUtil;          // SHA-256(단방향), AES-256(양방향) 암호화 유틸
-import com.from.dto.UserInfoDTO;             // 컨트롤러 ↔ 서비스 간 데이터 전달 객체 (Record)
+import com.from.dto.UserInfoDto;             // 컨트롤러 ↔ 서비스 간 데이터 전달 객체 (Record)
 import com.from.repository.UserInfoRepository; // JPA Repository (DB 접근)
 import com.from.repository.entity.UserInfoEntity; // DB 테이블과 매핑되는 Entity
 import com.from.service.IEmailService;       // 이메일 발송 인터페이스
@@ -18,6 +18,7 @@ import java.util.Random;        // 인증번호 난수 생성
  *  · 비밀번호 : SHA-256  (단방향 – 복호화 불가, 비교만 가능)
  *  · 이메일   : AES-256  (양방향 – 복호화하여 화면에 표시 가능)
  */
+//sha 단방향 비밀번호, aes 양방향 이메일 화면에도 표시해야됨
 @Slf4j               // private static final Logger log = LoggerFactory.getLogger(UserInfoService.class); 와 동일
 @RequiredArgsConstructor // 아래 두 final 필드를 생성자로 자동 주입 (= @Autowired 대체)
 @Service             // 스프링 컨텍스트에 서비스 빈으로 등록
@@ -32,9 +33,9 @@ public class UserInfoService implements IUserInfoService {
 
     @Override
     public String checkUsernameExists(String username) throws Exception {
-        log.info("{}.checkUsernameExists Start! username={}", this.getClass().getName(), username);
+        log.info("{}.checkUsernameExists Start! username={}", this.getClass().getName(), username); //아이디 중복체크 시작
         String res = userInfoRepository.findByUserId(username).isPresent() ? "Y" : "N";
-        log.info("{}.checkUsernameExists End! exists={}", this.getClass().getName(), res);
+        log.info("{}.checkUsernameExists End! exists={}", this.getClass().getName(), res); //아이디 중복체크 종료
         return res;
     }
 
@@ -69,25 +70,19 @@ public class UserInfoService implements IUserInfoService {
 
     //사용자 회원가입 처리 로직, 저장성공시 로그 짝음
     @Override
-    public boolean signup(UserInfoDTO pDTO) throws Exception {
+    public boolean signup(UserInfoDto pDTO) throws Exception {
         log.info("{}.signup Start! userId={}, username={}", this.getClass().getName(), pDTO.userId(), pDTO.username());
 
-        /*
-         * DTO → Entity 변환
-         * Builder 패턴을 사용하는 이유:
-         *  - 어떤 필드에 어떤 값이 들어가는지 명시적으로 보임
-         *  - 생성자 파라미터 순서 실수 방지
-         *  - 일부 필드만 세팅할 때 유연함
-         */
+         //DTO -> 엔터티 반환 Builder 패턴을 사용하는 이유: 어떤 값이 들어가는지 명시적으로 보임,생성자 파라미터 순서 실수 방지, 일부 필드만 세팅할떄 유연함
         UserInfoEntity pEntity = UserInfoEntity.builder()
-                .userId(pDTO.userId())
-                .username(pDTO.username())
-                .password(EncryptUtil.encryptSHA256(pDTO.password()))
-                .name(pDTO.name())
+                .userId(pDTO.userId()) //아이디
+                .username(pDTO.username()) //유저 이름
+                .password(EncryptUtil.encryptSHA256(pDTO.password())) //비밀번호 단방향
+                .name(pDTO.name()) //이름
                 .email(EncryptUtil.encryptAES(pDTO.email()))
                 .profileImageUrl(pDTO.profileImageUrl())          // 프로필 이미지 URL (null이면 기본 아바타) 나머지는 아마존 s3에다가 프로필 사진 저장
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(LocalDateTime.now()) // 생성 시각
+                .updatedAt(LocalDateTime.now()) // 수정된 시각
                 .build();
 
         // JPA save(): Entity에 @Id 값이 있으면 INSERT, 이미 존재하면 UPDATE
@@ -105,7 +100,7 @@ public class UserInfoService implements IUserInfoService {
     //  4. 로그인
 
     @Override
-    public UserInfoDTO login(String username, String password) throws Exception {
+    public UserInfoDto login(String username, String password) throws Exception {
         log.info("{}.login Start!", this.getClass().getName());
 
         // 1단계: 아이디로 DB 조회 → 없는 아이디면 즉시 null 반환
@@ -118,7 +113,8 @@ public class UserInfoService implements IUserInfoService {
         if (!EncryptUtil.encryptSHA256(password).equals(user.getPassword())) return null;
 
         // 3단계: 로그인 성공 → 이메일 복호화 후 DTO 반환
-        UserInfoDTO rDTO = UserInfoDTO.builder()
+        // 위와 똑같이 빌더 반환
+        UserInfoDto rDTO = UserInfoDto.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())
                 .name(user.getName())
@@ -150,14 +146,14 @@ public class UserInfoService implements IUserInfoService {
          * 기존 Entity에서 그대로 복사하고, password와 updatedAt만 새 값으로 교체한다.
          */
         UserInfoEntity pEntity = UserInfoEntity.builder()
-                .userId(user.getUserId())                              // 기존 값 유지 (PK)
-                .username(user.getUsername())                          // 기존 값 유지
-                .password(EncryptUtil.encryptSHA256(newPassword))      //  새 비밀번호 SHA-256 단방향 암호화
-                .name(user.getName())                                  // 기존 값 유지
-                .email(user.getEmail())                                // 기존 값 유지 (이미 암호화된 상태)
-                .createdAt(user.getCreatedAt())                        // 기존 가입일 유지
-                .updatedAt(LocalDateTime.now())                        //  수정 시각 갱신
-
+                .userId(user.getUserId())
+                .username(user.getUsername())
+                .password(EncryptUtil.encryptSHA256(newPassword))
+                .name(user.getName())
+                .email(user.getEmail())
+                .profileImageUrl(user.getProfileImageUrl())  // 프로필 이미지 유지 (누락 시 null로 덮어쓰기 방지)
+                .createdAt(user.getCreatedAt())
+                .updatedAt(LocalDateTime.now())
                 .build();
 
         userInfoRepository.save(pEntity); // PK 동일 → UPDATE 실행
@@ -223,7 +219,7 @@ public class UserInfoService implements IUserInfoService {
 
         // 유저 확인 완료 → 인증번호 생성 및 발송
         String code = generateCode();
-        emailService.sendVerificationCode(email, code, "FIND_ID"); // "FIND_ID" 타입으로 템플릿 구분
+        emailService.sendVerificationCode(email, code, "FIND_ID"); // 아이디 찾기 email서비스 로직에서 기능 별로 분리해둠
 
         log.info("{}.findIdSendCode End!", this.getClass().getName());
         return code; // 컨트롤러가 세션(findIdCode)에 저장
@@ -270,7 +266,7 @@ public class UserInfoService implements IUserInfoService {
 
         // 3단계: 인증번호 생성 및 발송
         String code = generateCode();
-        emailService.sendVerificationCode(email, code, "FIND_PASSWORD");
+        emailService.sendVerificationCode(email, code, "FIND_PASSWORD"); //비밀번호 찾기
 
         log.info("{}.findPasswordSendCode End!", this.getClass().getName());
         return code;
@@ -280,7 +276,7 @@ public class UserInfoService implements IUserInfoService {
 
 
     @Override
-    public Optional<UserInfoDTO> getUserInfo(String userId) throws Exception {
+    public Optional<UserInfoDto> getUserInfo(String userId) throws Exception {
         log.info("{}.getUserInfo Start!", this.getClass().getName());
 
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
@@ -288,8 +284,8 @@ public class UserInfoService implements IUserInfoService {
 
         UserInfoEntity user = rEntity.get();
 
-        // Entity → DTO 변환 (이메일 복호화 포함)
-        UserInfoDTO rDTO = UserInfoDTO.builder()
+        // Entity → DTO 변환 (이메일 복호화 포함) 빌더 로직
+        UserInfoDto rDTO = UserInfoDto.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())
                 .name(user.getName())
@@ -313,7 +309,7 @@ public class UserInfoService implements IUserInfoService {
 
 
     private String generateCode() {
-        // 100000 ~ 999999 범위로 고정하여 0으로 시작하는 5자리 코드 방지
+        // 100000 ~ 999999 범위로 고정하여 0으로 시작하는 5자리 코드 방지, 랜덤 인증번호임!
         return String.valueOf(100000 + new Random().nextInt(900000));
     }
 }

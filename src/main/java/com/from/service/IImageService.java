@@ -1,12 +1,12 @@
 package com.from.service;
 
+import com.from.dto.ImageDetailDto;
 import com.from.dto.ImageRequestDto;
 import com.from.dto.ImageResponseDto;
 import com.from.dto.ImageResultDto;
 import com.from.dto.ImageStyleOptionDto;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 이미지 생성 서비스 인터페이스.
@@ -24,7 +24,7 @@ public interface IImageService {
     List<ImageResponseDto> getUserImages(String userId);
 
 
-    Map<String, Object> getImageDetail(Long imageId);
+    ImageDetailDto getImageDetail(Long imageId);
 
 
     // 스타일 목록

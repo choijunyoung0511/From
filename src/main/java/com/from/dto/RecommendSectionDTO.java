@@ -1,15 +1,13 @@
 package com.from.dto;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
 import java.util.List;
 
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public record RecommendSectionDTO(
+public record RecommendSectionDto(
         String type,
         String label,
         String icon,
-        List<BookSearchDTO> books
+        List<BookSearchDto> books
 ) {}

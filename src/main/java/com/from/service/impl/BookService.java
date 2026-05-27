@@ -1,7 +1,11 @@
 package com.from.service.impl;
 
 // 책 검색 결과 DTO
-import com.from.dto.BookSearchDTO;
+import com.from.dto.BookCommentDto;
+import com.from.dto.BookRatingDto;
+import com.from.dto.BookSearchDto;
+import com.from.dto.LikeToggleDto;
+import com.from.dto.MyRatingDto;
 
 // Repository 계층 (DB 접근)
 import com.from.repository.BookRatingRepository;
@@ -34,9 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -65,7 +67,7 @@ public class BookService implements IBookService {
 
 
     @Override
-    public Optional<BookSearchDTO> findByTitleAndAuthor(String title, String author) {
+    public Optional<BookSearchDto> findByTitleAndAuthor(String title, String author) {
 
         // Repository → Entity 반환
         // Service → DTO 변환
@@ -77,7 +79,7 @@ public class BookService implements IBookService {
 
 
     @Override
-    public BookSearchDTO save(String title, String author, String coverImage, String description, String category) {
+    public BookSearchDto save(String title, String author, String coverImage, String description, String category) {
 
         BookEntity entity = BookEntity.builder()
                 .title(title)
@@ -127,7 +129,7 @@ public class BookService implements IBookService {
 
     //아이디로 조회
     @Override
-    public Optional<BookSearchDTO> findById(Long bookId) {
+    public Optional<BookSearchDto> findById(Long bookId) {
 
         return bookRepository
                 .findById(bookId)
@@ -138,7 +140,7 @@ public class BookService implements IBookService {
 
   //사용자 책 목록 조회
     @Override
-    public List<BookSearchDTO> findByUserId(String userId) {
+    public List<BookSearchDto> findByUserId(String userId) {
 
         return bookRepository
                 .findByUserId(userId)
@@ -167,48 +169,43 @@ public class BookService implements IBookService {
     }
 
     @Override
-    public List<Map<String, Object>> getRatings(Long bookId, String currentUserId) {
-        return bookRatingRepository.findByBookIdOrderByCreatedAtDesc(bookId).stream()
+    public List<BookRatingDto> getRatings(Long bookId, String currentUserId) {
+        return bookRatingRepository.findByBookIdOrderByUpdatedAtDesc(bookId).stream()
             .map(r -> {
-                Map<String, Object> m = new HashMap<>();
                 String uid = r.getUserId();
                 String maskedId = uid.length() <= 2 ? "***" : uid.charAt(0) + "***" + uid.charAt(uid.length() - 1);
-                // 실제 username과 profileImageUrl 조회
-                userInfoRepository.findByUserId(uid).ifPresent(user -> {
-                    m.put("displayName", user.getUsername() != null ? user.getUsername() : maskedId);
-                    m.put("profileImageUrl", user.getProfileImageUrl());
-                });
-                m.put("id", r.getId());
-                m.put("userId", maskedId);
-                if (!m.containsKey("displayName")) m.put("displayName", maskedId);
-                m.put("rating", r.getRating());
-                m.put("content", r.getContent() == null ? "" : r.getContent());
-                m.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate().toString() : "");
-                m.put("likeCount", bookReviewLikeRepository.countByRatingId(r.getId()));
-                m.put("commentCount", bookReviewCommentRepository.countByRatingId(r.getId()));
-                m.put("liked", currentUserId != null && bookReviewLikeRepository.existsByRatingIdAndUserId(r.getId(), currentUserId));
-                m.put("isOwn", currentUserId != null && r.getUserId().equals(currentUserId));
-                return m;
+                var userOpt = userInfoRepository.findByUserId(uid);
+                String displayName = userOpt.map(u -> u.getUsername() != null ? u.getUsername() : maskedId).orElse(maskedId);
+                String profileImageUrl = userOpt.map(com.from.repository.entity.UserInfoEntity::getProfileImageUrl).orElse(null);
+                return new BookRatingDto(
+                    r.getId(),
+                    maskedId,
+                    displayName,
+                    profileImageUrl,
+                    r.getRating(),
+                    r.getContent() == null ? "" : r.getContent(),
+                    r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate().toString() : "",
+                    bookReviewLikeRepository.countByRatingId(r.getId()),
+                    bookReviewCommentRepository.countByRatingId(r.getId()),
+                    currentUserId != null && bookReviewLikeRepository.existsByRatingIdAndUserId(r.getId(), currentUserId),
+                    currentUserId != null && r.getUserId().equals(currentUserId)
+                );
             })
             .collect(Collectors.toList());
     }
 
     @Override
-    public Map<String, Object> toggleLike(Long ratingId, String userId) {
-        //좋아요
-        Map<String, Object> result = new HashMap<>();
-        bookReviewLikeRepository.findByRatingIdAndUserId(ratingId, userId).ifPresentOrElse(
-            like -> {
-                bookReviewLikeRepository.delete(like);
-                result.put("liked", false);
-            },
-            () -> {
-                bookReviewLikeRepository.save(BookReviewLikeEntity.builder().ratingId(ratingId).userId(userId).build());
-                result.put("liked", true);
-            }
-        );
-        result.put("count", bookReviewLikeRepository.countByRatingId(ratingId));
-        return result;
+    public LikeToggleDto toggleLike(Long ratingId, String userId) {
+        var existing = bookReviewLikeRepository.findByRatingIdAndUserId(ratingId, userId);
+        boolean liked;
+        if (existing.isPresent()) {
+            bookReviewLikeRepository.delete(existing.get());
+            liked = false;
+        } else {
+            bookReviewLikeRepository.save(BookReviewLikeEntity.builder().ratingId(ratingId).userId(userId).build());
+            liked = true;
+        }
+        return new LikeToggleDto(liked, bookReviewLikeRepository.countByRatingId(ratingId));
     }
 
     @Override
@@ -219,15 +216,16 @@ public class BookService implements IBookService {
     }
 
     @Override
-    public List<Map<String, Object>> getComments(Long ratingId) {
+    public List<BookCommentDto> getComments(Long ratingId) {
         return bookReviewCommentRepository.findByRatingIdOrderByCreatedAtAsc(ratingId).stream()
             .map(c -> {
-                Map<String, Object> m = new HashMap<>();
                 String uid = c.getUserId();
-                m.put("userId", uid.length() <= 2 ? "***" : uid.charAt(0) + "***" + uid.charAt(uid.length() - 1));
-                m.put("content", c.getContent());
-                m.put("createdAt", c.getCreatedAt() != null ? c.getCreatedAt().toLocalDate().toString() : "");
-                return m;
+                String masked = uid.length() <= 2 ? "***" : uid.charAt(0) + "***" + uid.charAt(uid.length() - 1);
+                return new BookCommentDto(
+                    masked,
+                    c.getContent(),
+                    c.getCreatedAt() != null ? c.getCreatedAt().toLocalDate().toString() : ""
+                );
             })
             .collect(Collectors.toList());
     }
@@ -246,35 +244,36 @@ public class BookService implements IBookService {
             .map(r -> {
                 bookRatingRepository.save(BookRatingEntity.builder()
                     .id(r.getId()).userId(r.getUserId()).bookId(r.getBookId())
-                    .rating(rating).content(content).createdAt(r.getCreatedAt()).build());
+                    .rating(rating).content(content)
+                    .createdAt(r.getCreatedAt())
+                    .updatedAt(java.time.LocalDateTime.now()) // 수정 시 갱신 → 목록 맨 위로
+                    .build());
                 return true;
             }).orElse(false);
     }
 
     @Override
-    public List<Map<String, Object>> getMyRatings(String userId) {
+    public List<MyRatingDto> getMyRatings(String userId) {
         return bookRatingRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
             .map(r -> {
-                Map<String, Object> m = new HashMap<>();
-                m.put("id", r.getId());
-                m.put("bookId", r.getBookId());
-                m.put("rating", r.getRating());
-                m.put("content", r.getContent() == null ? "" : r.getContent());
-                m.put("createdAt", r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate().toString() : "");
-                // 책 제목 조회
-                bookRepository.findById(r.getBookId()).ifPresent(b -> {
-                    m.put("bookTitle", b.getTitle());
-                    m.put("bookAuthor", b.getAuthor());
-                });
-                return m;
+                Optional<BookEntity> bookOpt = bookRepository.findById(r.getBookId());
+                return new MyRatingDto(
+                    r.getId(),
+                    r.getBookId(),
+                    bookOpt.map(BookEntity::getTitle).orElse(""),
+                    bookOpt.map(BookEntity::getAuthor).orElse(""),
+                    r.getRating(),
+                    r.getContent() == null ? "" : r.getContent(),
+                    r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate().toString() : ""
+                );
             }).collect(Collectors.toList());
     }
 
     //빌더로 DTO반환
-    private BookSearchDTO toDTO(BookEntity entity) {
+    private BookSearchDto toDTO(BookEntity entity) {
         // 빌더로 저장후에 DTO로 저장
 
-        return BookSearchDTO.builder()
+        return BookSearchDto.builder()
 
                 .bookId(entity.getBookId())
 

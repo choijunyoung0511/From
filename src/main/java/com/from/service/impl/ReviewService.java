@@ -2,8 +2,8 @@ package com.from.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.from.domain.BookReviewDocument;
-import com.from.dto.BookSearchDTO;
+import com.from.repository.document.BookReviewDocument;
+import com.from.dto.BookSearchDto;
 import com.from.repository.BookReviewMongoRepository;
 import com.from.service.IBookService;
 import com.from.service.IReviewService;
@@ -22,6 +22,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+//독후감 생성 서비스
 public class ReviewService implements IReviewService {
     @Value("${openai.api.key}")
     private String openaiApiKey;
@@ -37,8 +38,7 @@ public class ReviewService implements IReviewService {
             미래의 나에게 보내는 편지를 쓸 때, 단순한 줄거리 요약이 아닌 책이 남긴 울림을 전달합니다.
             요청받은 문체 지침과 편지 구조를 반드시 따릅니다.
             """;
-
-    /** description을 프롬프트에 주입할 최대 글자 수 (토큰 절약) */
+    //토큰 절약을 위해서 글자수 제한
     private static final int DESC_MAX_LENGTH = 500;
 
 
@@ -51,7 +51,7 @@ public class ReviewService implements IReviewService {
                 this.getClass().getName(), userId, bookId, tone, deliveryDate);
 
         // #1 유저가 등록한 책 목록에서 해당 bookId의 책 정보를 찾는다
-        BookSearchDTO book = bookService.findByUserId(userId).stream()
+        BookSearchDto book = bookService.findByUserId(userId).stream()
                 .filter(b -> b.bookId().equals(bookId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("책 정보를 찾을 수 없습니다."));
@@ -61,19 +61,20 @@ public class ReviewService implements IReviewService {
         String content    = callGpt(REVIEW_SYSTEM_PROMPT, userPrompt, 1500);
 
         // #3 생성된 독후감을 MongoDB에 저장 (이메일 예약 발송 대기 상태)
-        BookReviewDocument doc = new BookReviewDocument();
-        doc.setUserId(userId);
-        doc.setBookId(bookId);
-        doc.setPaperId(paperId);
-        doc.setEmphasisContent(emphasis);
-        doc.setTone(tone);
-        doc.setDeliveryDate(deliveryDate);
-        doc.setDeliveryTime(deliveryTime);
-        doc.setAiContent(content);
-        doc.setGenerationStatus("COMPLETED");
-        doc.setIsSent(0); // 0 = 미발송 (ReviewScheduler가 예약 시각에 1로 변경)
-        doc.setBookTitle(book.title());
-        doc.setBookAuthor(book.author());
+        BookReviewDocument doc = BookReviewDocument.builder()
+                .userId(userId)
+                .bookId(bookId)
+                .paperId(paperId)
+                .emphasisContent(emphasis)
+                .tone(tone)
+                .deliveryDate(deliveryDate)
+                .deliveryTime(deliveryTime)
+                .aiContent(content)
+                .generationStatus("COMPLETED")
+                .isSent(0)
+                .bookTitle(book.title())
+                .bookAuthor(book.author())
+                .build();
         bookReviewMongoRepository.save(doc);
 
         log.info("{}.generateAndSave End!", this.getClass().getName());
@@ -81,9 +82,7 @@ public class ReviewService implements IReviewService {
     }
 
 
-    /**
-     * 유저의 독후감 이력을 MongoDB에서 조회한다.
-     */
+    //독후감 이력 조회
     @Override
     public List<BookReviewDocument> getReviewsByUserId(String userId) {
         log.info("{}.getReviewsByUserId Start! - userId:{}", this.getClass().getName(), userId);
@@ -92,9 +91,9 @@ public class ReviewService implements IReviewService {
         return result;
     }
 
-  //독후감 생성용
-    private String buildReviewUserPrompt(BookSearchDTO book, String emphasis, String tone) {
-        // 줄거리가 있으면 500자로 truncate하여 삽입, 없으면 빈 문자열
+
+    private String buildReviewUserPrompt(BookSearchDto book, String emphasis, String tone) {
+        // 줄거리가 있으면 500자로 truncate(커팅)하여 삽입, 없으면 빈 문자열
         String descSection = "";
         if (book.description() != null && !book.description().isBlank()) {
             descSection = "\n책 소개: " + truncate(book.description(), DESC_MAX_LENGTH);
@@ -126,16 +125,7 @@ public class ReviewService implements IReviewService {
                 """.formatted(book.title(), book.author(), descSection, emphasis, toneGuide);
     }
 
-    /**
-     * 영문 톤 코드를 구체적인 문체 지침 문자열로 변환한다.
-     *
-     * <p>기존: "작성 톤: 감성적으로" 한 줄<br>
-     * 개선: 표현 방식, 문장 구조, 사용할 수사 기법까지 명시하여
-     * GPT가 톤을 더 일관성 있게 유지하도록 유도한다.</p>
-     *
-     * @param tone 영문 톤 코드
-     * @return 문체 지침 문자열
-     */
+    //톤코드
     private String buildToneGuide(String tone) {
         return switch (tone) {
             case "FORMAL" -> """
@@ -164,16 +154,7 @@ public class ReviewService implements IReviewService {
 
     // ── GPT API 호출 ─────────────────────────────────────────────────────────
 
-    /**
-     * OpenAI GPT API를 호출하여 텍스트 응답을 받는다.
-     *
-     * <p>system 프롬프트가 null이면 user 메시지만 전송한다 (추천 프롬프트 등).</p>
-     *
-     * @param systemPrompt GPT 페르소나 지시 (null 허용 — null이면 system 메시지 생략)
-     * @param userPrompt   GPT에게 전달할 실제 요청 내용
-     * @param maxTokens    최대 응답 토큰 수 (1토큰 ≈ 한글 0.5자)
-     * @return GPT의 텍스트 응답
-     */
+    //gpt 호출하여 텍스트 응답을 받는다.
     private String callGpt(String systemPrompt, String userPrompt, int maxTokens) {
         try {
             // system 메시지 유무에 따라 messages 배열 구성
@@ -216,14 +197,7 @@ public class ReviewService implements IReviewService {
         }
     }
 
-
-    /**
-     * 문자열을 maxLength 이하로 자른다. 초과 시 "..." 을 붙인다.
-     *
-     * @param text      원본 문자열
-     * @param maxLength 최대 글자 수
-     * @return truncate된 문자열
-     */
+    // 문자열 초과시 maxLength 이하로 자른다
     private String truncate(String text, int maxLength) {
         if (text == null || text.length() <= maxLength) return text == null ? "" : text;
         return text.substring(0, maxLength) + "...";

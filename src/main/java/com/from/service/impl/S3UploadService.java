@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor //final 필드 생성자 주입
 public class  S3UploadService implements IS3UploadService {
 
     private final S3Client s3Client;

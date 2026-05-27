@@ -271,6 +271,8 @@
 <body>
 
 <div th:replace="~{layout/navbar :: navbar}"></div>
+<!-- JS에서 userId 사용을 위한 숨김 요소 -->
+<div id="__userId" th:data-id="${session.SS_USER_ID}" style="display:none;"></div>
 
 <div class="mypage-container">
     <div class="tab-menu">
@@ -589,14 +591,18 @@
         const fd = new FormData();
         fd.append('profileImage', file);
         fetch('/user/mypage/profile', { method: 'POST', body: fd })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(r.status);
+                return r.json();
+            })
             .then(data => {
                 if (data.result === 1) {
                     showMypageToast('✅ 프로필이 변경되었습니다.');
                 } else {
                     showMypageToast('⚠️ ' + (data.msg || '변경에 실패했습니다.'));
                 }
-            });
+            })
+            .catch(err => showMypageToast('⚠️ 업로드 실패 (파일 크기를 확인해주세요)'));
     }
 
     /* ── 독서 후기 탭 ── */
@@ -728,8 +734,15 @@
 
     // ── 독서 대시보드 ──────────────────────────────────────────────────────────
     let dbLoaded = false, DB_BOOKS = [], dbReadDates = new Set();
-    let dbGoals = { weekly: 3, monthly: 10 };
     let dbMonthChart = null, dbGenreChart = null;
+
+    // 독서 목표: localStorage에 사용자별로 영속 저장
+    const _uid = document.getElementById('__userId')?.dataset.id || 'guest';
+    const GOAL_KEY = `from_goals_${_uid}`;
+    let dbGoals = (() => {
+        try { return JSON.parse(localStorage.getItem(GOAL_KEY)) || { weekly: 3, monthly: 10 }; }
+        catch(e) { return { weekly: 3, monthly: 10 }; }
+    })();
 
     function dbLoad() {
         if (dbLoaded) return;
@@ -849,7 +862,12 @@
 
     function dbSetGoal(type) {
         const input=document.getElementById('db-'+type+'GoalInput'); const val=parseInt(input.value);
-        if(!val||val<1)return; dbGoals[type]=val; input.value=''; dbUpdateGoals();
+        if(!val||val<1)return;
+        dbGoals[type]=val;
+        localStorage.setItem(GOAL_KEY, JSON.stringify(dbGoals)); // localStorage에 저장
+        input.value='';
+        dbUpdateGoals();
+        showMypageToast('✅ 목표가 저장되었습니다.');
     }
     function dbUpdateGoals() {
         const now=new Date(); const weekStart=new Date(now); weekStart.setDate(now.getDate()-now.getDay());

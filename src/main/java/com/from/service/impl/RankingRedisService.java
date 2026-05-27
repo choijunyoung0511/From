@@ -15,17 +15,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Redis Sorted Set을 이용한 주간 랭킹 핵심 서비스.
- *
- * Redis 키: ranking:weekly:{yyyy-MM-dd} (이번 주 월요일 날짜)
- * member  : userId
- * score   : 이번 주 읽은 책 수
- */
+
+//레디스 랭킹 sorted set을 이용한 주간 랭킹 서비스
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RankingRedisService {
+public class RankingRedisService implements com.from.service.IRankingService {
 
     private final StringRedisTemplate redisTemplate;
     private final JdbcTemplate jdbcTemplate;
@@ -59,11 +54,10 @@ public class RankingRedisService {
     public void setScore(String key, String userId, int score) {
         redisTemplate.opsForZSet().add(key, userId, score);
     }
-
+    // 래디스 키 제거 로직
     public void deleteKey(String key) {
         redisTemplate.delete(key);
         log.info("[RankingRedisService] DELETE key={}", key);
-        // 래디스 키 제거 로직
     }
 
     public List<RankingDto> getWeeklyRankings() {
@@ -98,6 +92,7 @@ public class RankingRedisService {
         try {
             return jdbcTemplate.queryForObject(SELECT_USERNAME, String.class, userId);
         } catch (Exception e) {
+            //예외처리
             log.warn("[RankingRedisService] username 조회 실패 userId={}", userId);
             return userId;
         }
@@ -105,6 +100,7 @@ public class RankingRedisService {
 
     private String findProfileImageUrl(String userId) {
         try {
+            //이미지 프로필 조회
             return jdbcTemplate.queryForObject(SELECT_PROFILE, String.class, userId);
         } catch (Exception e) {
             return null;
@@ -119,10 +115,10 @@ public class RankingRedisService {
                 (rs, rowNum) -> rs.getDate("read_date").toLocalDate(),
                 userId
         );
-
+        //연속n일 계산 로직
         int streak = 0;
         LocalDate expected = LocalDate.now();
-        //reading_log 테이블에서 독서날짜를 최신순으로 조회한 뒤, 오늘 날짜부터 하루씩 감소시키며 연속여부를 검사했습니다.
+        //reading_log 테이블에서 독서날짜를 최신순으로 조회한 뒤, 오늘 날짜부터 하루씩 감소시키며 연속여부를 검사함.
         // 날짜가 끊기는 순간 break 로 반복문을 종료해서 연속 독서일을 계산함
         for (LocalDate date : dates) {
             if (date.equals(expected)) {

@@ -52,6 +52,37 @@
         .paper-preview { height: 80px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
         .paper-name { text-align: center; font-size: 11px; color: #555; font-weight: 600; padding: 6px 4px; background: white; }
 
+        /* ── AI 입력창 Glassmorphism ── */
+        .ai-input-wrap {
+            background: linear-gradient(135deg, #EAF3FF 0%, #DDEEFF 100%);
+            border-radius: 20px; padding: 20px; margin-bottom: 4px;
+        }
+        .ai-textarea {
+            width: 100%; min-height: 110px;
+            background: rgba(255,255,255,0.65);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(96,145,227,0.22);
+            border-radius: 16px;
+            padding: 16px 18px;
+            font-size: 14px; font-family: 'Jua', sans-serif;
+            color: #1A1A2E; resize: vertical;
+            box-shadow: 0 2px 12px rgba(67,97,238,0.08);
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+            outline: none;
+        }
+        .ai-textarea::placeholder { color: #9999C8; }
+        .ai-textarea:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(67,97,238,0.14); }
+        .ai-textarea:focus {
+            border-color: rgba(96,145,227,0.55);
+            box-shadow: 0 0 0 4px rgba(67,97,238,0.10), 0 4px 18px rgba(67,97,238,0.12);
+        }
+        .ai-input-label {
+            font-size: 12px; font-weight: 700; color: #6071E3;
+            letter-spacing: .4px; margin-bottom: 10px;
+            display: flex; align-items: center; gap: 6px;
+        }
+
         .loading-wrap { text-align: center; padding: 60px 20px; }
         .loading-spinner { width: 48px; height: 48px; border: 4px solid #E0D5CC; border-top-color: #6071E3; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -119,9 +150,11 @@
             <div class="book-author" id="selected-book-author"></div>
         </div>
         <div class="form-group">
-            <label>강조할 내용을 입력하세요.</label>
-            <textarea id="emphasis" class="form-control" rows="4"
-                      placeholder="강조하고 싶은 내용, 인상 깊은 구절 등을 자유롭게 입력하세요." style="resize:vertical;"></textarea>
+            <div class="ai-input-wrap">
+                <div class="ai-input-label">✨ AI 프롬프트</div>
+                <textarea id="emphasis" class="ai-textarea"
+                          placeholder="이 책을 읽고 느낀 점을 자유롭게 적어보세요&#10;기억에 남는 장면이나 감정을 입력해주세요&#10;AI가 독후감을 더 자연스럽게 도와드릴게요"></textarea>
+            </div>
             <span class="error-msg" id="emphasis-error"></span>
         </div>
         <div class="form-group">

@@ -48,16 +48,34 @@
             padding:8px 18px;border-radius:100px;margin-bottom:28px;
         }
 
-        /* ── Scene ── */
+        /* ── Scene (Glassmorphism AI 입력창) ── */
         .section-label{font-size:13px;font-weight:700;color:#555577;margin-bottom:10px;display:block;letter-spacing:.3px}
         .scene-wrap{position:relative;margin-bottom:28px}
-        .scene-textarea{
-            width:100%;padding:14px 16px;border:1.5px solid #E4E1F0;border-radius:12px;
-            font-size:14px;color:#1A1A2E;resize:none;font-family:inherit;
-            transition:border-color .2s,box-shadow .2s;background:#FAFAFF;
+        .scene-outer{
+            background:linear-gradient(135deg,#EAF3FF 0%,#DDEEFF 100%);
+            border-radius:20px;padding:16px;
         }
-        .scene-textarea:focus{outline:none;border-color:#6071E3;box-shadow:0 0 0 3px rgba(96,113,227,.1)}
-        .char-cnt{position:absolute;bottom:10px;right:14px;font-size:12px;color:#B0B0C8}
+        .scene-inner-label{
+            font-size:11px;font-weight:700;color:#6071E3;
+            letter-spacing:.4px;margin-bottom:10px;
+            display:flex;align-items:center;gap:5px;
+        }
+        .scene-textarea{
+            width:100%;padding:14px 18px;
+            background:rgba(255,255,255,0.65);
+            backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+            border:1.5px solid rgba(96,145,227,0.22);border-radius:16px;
+            font-size:14px;color:#1A1A2E;resize:none;font-family:inherit;
+            box-shadow:0 2px 12px rgba(67,97,238,0.08);
+            transition:border-color .2s,box-shadow .2s,transform .2s;outline:none;
+        }
+        .scene-textarea::placeholder{color:#9999C8}
+        .scene-textarea:hover{transform:translateY(-1px);box-shadow:0 4px 18px rgba(67,97,238,0.14)}
+        .scene-textarea:focus{
+            border-color:rgba(96,145,227,0.55);
+            box-shadow:0 0 0 4px rgba(67,97,238,0.10),0 4px 18px rgba(67,97,238,0.12);
+        }
+        .char-cnt{position:absolute;bottom:24px;right:28px;font-size:12px;color:#B0B0C8}
 
         /* ── Style Grid ── */
         .style-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
@@ -166,8 +184,11 @@
     <!-- Scene -->
     <label class="section-label">✍️ 책 속 장면을 묘사해주세요</label>
     <div class="scene-wrap">
-        <textarea id="sceneInput" class="scene-textarea" rows="3" maxlength="300"
-                  placeholder="예) 주인공이 비 내리는 거리에서 우산을 들고 걷는 장면..."></textarea>
+        <div class="scene-outer">
+            <div class="scene-inner-label">✨ AI 프롬프트</div>
+            <textarea id="sceneInput" class="scene-textarea" rows="3" maxlength="300"
+                      placeholder="주인공의 분위기나 원하는 스타일을 입력해주세요&#10;판타지, 수채화, 감성 일러스트 등 원하는 느낌을 적어보세요&#10;책 속 인물을 당신만의 스타일로 상상해보세요"></textarea>
+        </div>
         <span class="char-cnt"><span id="charCnt">0</span>/300</span>
     </div>
 

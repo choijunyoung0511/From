@@ -1,6 +1,6 @@
 package com.from.repository;
 
-import com.from.domain.BookReviewDocument;
+import com.from.repository.document.BookReviewDocument;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;

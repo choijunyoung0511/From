@@ -4,7 +4,7 @@ package com.from.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.from.dto.BookSearchDTO;
+import com.from.dto.BookSearchDto;
 import com.from.service.IAladinService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class AladinService implements IAladinService {
     }
 
     @Override
-    public List<BookSearchDTO> searchBooks(String query, String type) {
+    public List<BookSearchDto> searchBooks(String query, String type) {
         String cleanedQuery = cleanQuery(query);
         log.info("{}.searchBooks Start! - query:{}, type:{}", this.getClass().getName(), cleanedQuery, type);
 
@@ -55,7 +55,7 @@ public class AladinService implements IAladinService {
             default       -> "Keyword";
         };
 
-        List<BookSearchDTO> result = new ArrayList<>();
+        List<BookSearchDto> result = new ArrayList<>();
 
         try {
 
@@ -75,7 +75,7 @@ public class AladinService implements IAladinService {
                             .queryParam("QueryType", queryType)
 
                             // 최대 결과 수
-                            .queryParam("MaxResults", 10)
+                            .queryParam("MaxResults", 100)
 
                             // 검색 대상
                             .queryParam("SearchTarget", "Book")
@@ -111,11 +111,11 @@ public class AladinService implements IAladinService {
 
     //베스트 셀러
     @Override
-    public List<BookSearchDTO> getBestseller() {
+    public List<BookSearchDto> getBestseller() {
 
         log.info("{}.getBestseller Start!", this.getClass().getName());
 
-        List<BookSearchDTO> result = new ArrayList<>();
+        List<BookSearchDto> result = new ArrayList<>();
 
         try {
 
@@ -129,7 +129,7 @@ public class AladinService implements IAladinService {
                             // 베스트셀러 조회
                             .queryParam("QueryType", "Bestseller")
 
-                            .queryParam("MaxResults", 10)
+                            .queryParam("MaxResults", 100)
 
                             .queryParam("SearchTarget", "Book")
 
@@ -193,7 +193,7 @@ public class AladinService implements IAladinService {
                     .block();
 
             //json -> dto반환
-            List<BookSearchDTO> items = parseItems(json);
+            List<BookSearchDto> items = parseItems(json);
 
             //첫번째 표지
             if (!items.isEmpty())
@@ -207,16 +207,16 @@ public class AladinService implements IAladinService {
         return "";
     }
 
-    //JSON 데이터를 BookSearchDTO 리스트로 변환하는 메서드
+    //JSON 데이터를 BookSearchDto 리스트로 변환하는 메서드
     // {
     //            "title":"책 제목",
     //            "author":"저자",
     //            "cover":"이미지 URL",
     //            "isbn13":"ISBN국제번호"
     //         }
-    private List<BookSearchDTO> parseItems(String json) throws Exception {
+    private List<BookSearchDto> parseItems(String json) throws Exception {
 
-        List<BookSearchDTO> result = new ArrayList<>();
+        List<BookSearchDto> result = new ArrayList<>();
 
         // JSON 문자열 → JSON 트리 구조 변환
         JsonNode root = objectMapper.readTree(json);
@@ -228,7 +228,7 @@ public class AladinService implements IAladinService {
         for (JsonNode item : items) {
 
             // DTO 생성
-            result.add(BookSearchDTO.builder()
+            result.add(BookSearchDto.builder()
 
                     .title(item.path("title").asText(""))
 

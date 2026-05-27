@@ -1,6 +1,6 @@
 package com.from.service;
 
-import com.from.domain.BookReviewDocument;
+import com.from.repository.document.BookReviewDocument;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

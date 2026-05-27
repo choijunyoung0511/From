@@ -1,7 +1,7 @@
 package com.from.scheduler;
 
 import com.from.config.EncryptUtil;
-import com.from.domain.BookReviewDocument;
+import com.from.repository.document.BookReviewDocument;
 import com.from.repository.BookReviewMongoRepository;
 import com.from.repository.UserInfoRepository;
 import com.from.repository.entity.UserInfoEntity;

@@ -1,6 +1,6 @@
 package com.from.service;
 
-import com.from.dto.UserInfoDTO;
+import com.from.dto.UserInfoDto;
 
 import java.util.Optional;
 
@@ -13,10 +13,10 @@ public interface IUserInfoService {
     String checkEmailAndSendCode(String email) throws Exception;
 
     // 회원가입
-    boolean signup(UserInfoDTO pDTO) throws Exception;
+    boolean signup(UserInfoDto pDTO) throws Exception;
 
     // 로그인 (아이디·비밀번호 불일치 시 null)
-    UserInfoDTO login(String username, String password) throws Exception;
+    UserInfoDto login(String username, String password) throws Exception;
 
     // 비밀번호 변경 (마이페이지)
     boolean changePassword(String userId, String newPassword) throws Exception;
@@ -37,7 +37,7 @@ public interface IUserInfoService {
     String findPasswordSendCode(String username, String email) throws Exception;
 
     // 유저 정보 조회 (마이페이지·대시보드용, 유저 없으면 empty)
-    Optional<UserInfoDTO> getUserInfo(String userId) throws Exception;
+    Optional<UserInfoDto> getUserInfo(String userId) throws Exception;
 
     // 프로필 이미지 URL 업데이트
     void updateProfileImage(String userId, String imageUrl) throws Exception;
