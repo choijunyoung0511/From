@@ -2,7 +2,7 @@
 // 비로그인 사용자가 보호 페이지에 접근했을 때 리다이렉트되는 진입점
 package com.from.controller;
 
-import jakarta.servlet.http.HttpSession; // HTTP 세션 (로그인 상태 확인용)
+import jakarta.servlet.http.HttpSession; // HTTP 80 세션 (로그인 상태 확인용)
 import lombok.RequiredArgsConstructor;   // final 필드 기반 생성자 자동 생성
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;             // 템플릿에 데이터 전달용

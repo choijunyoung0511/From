@@ -805,11 +805,12 @@
             err.style.display = 'block';
             return;
         }
-        if (!currentBookId) { closeReviewModal(); return; }
+
+        const isEdit = !!editingRatingId;
+        if (!isEdit && !currentBookId) { closeReviewModal(); return; }
 
         const btn = document.getElementById('review-submit-btn');
         btn.disabled = true;
-        const isEdit = !!editingRatingId;
 
         // 수정 모드
         if (isEdit) {

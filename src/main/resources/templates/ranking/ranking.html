@@ -247,7 +247,7 @@
             <div class="my-rank-pos" th:text="${r.rankPosition}">-<span>위</span></div>
             <span style="font-size:14px;color:#6071E3;font-weight:700;">위</span>
         </th:block>
-        <th:block th:if="${!rankings.stream().anyMatch(r -> r.userId().equals(session.SS_USER_ID))}">
+        <th:block th:if="${!myRankFound}">
             <span style="font-size:13px;color:#999;">이번 주 아직 책을 등록하지 않았습니다.</span>
         </th:block>
     </div>

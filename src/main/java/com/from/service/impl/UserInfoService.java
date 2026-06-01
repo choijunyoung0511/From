@@ -226,7 +226,7 @@ public class UserInfoService implements IUserInfoService {
     }
 
 
-    //  9. 아이디 찾기 – 아이디 반환
+    //  9 . 아이디 찾기 – 아이디 반환
 
 
     @Override
@@ -242,6 +242,7 @@ public class UserInfoService implements IUserInfoService {
         log.info("{}.findUsername End!", this.getClass().getName());
         return result;
     }
+
 
 
     //  10. 비밀번호 찾기 – 인증번호 발송

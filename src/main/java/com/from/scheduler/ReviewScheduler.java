@@ -110,11 +110,11 @@ public class ReviewScheduler {
         mailSender.send(message);
     }
 
-   //html반환
+   //html반환 — result.html 의 letter-wrap / letter-date / letter-body 와 동일한 구조·색상
     private String buildHtmlContent(String name, BookReviewDocument review) {
         int paperId = review.getPaperId() != null ? review.getPaperId() : 1;
 
-        // 편지지 테마별 배경 그라데이션
+        // result.html paper-N 배경 그라데이션과 동일
         String bg = switch (paperId) {
             case 1  -> "linear-gradient(135deg, #FFF8F0 0%, #F5E6D3 100%)";
             case 2  -> "linear-gradient(135deg, #FFE4E8 0%, #FFBFCC 100%)";
@@ -131,11 +131,21 @@ public class ReviewScheduler {
             default -> "linear-gradient(135deg, #FFF8F0 0%, #F5E6D3 100%)";
         };
 
-        // 어두운 배경(3번, 11번)은 흰 글씨, 나머지는 기본 글씨
+        // result.html paper-N { color: ... } 과 정확히 동일
         String textColor = switch (paperId) {
-            case 3, 11 -> "#ffffff";
-            case 8     -> "#5D2E0C";
-            default    -> "#333333";
+            case 1  -> "#4A3B31";
+            case 2  -> "#5A3D45";
+            case 3  -> "#F8FBFF";
+            case 4  -> "#355850";
+            case 5  -> "#5B4A39";
+            case 6  -> "#5B3E4A";
+            case 7  -> "#214865";
+            case 8  -> "#5D2E0C";
+            case 9  -> "#35506D";
+            case 10 -> "#5A3F4A";
+            case 11 -> "#F7FAFD";
+            case 12 -> "#35513A";
+            default -> "#4A3B31";
         };
 
         // 편지지 테마별 왼쪽 테두리 색상
@@ -155,25 +165,8 @@ public class ReviewScheduler {
             default -> "#D4956A";
         };
 
-        // 편지지 테마별 대표 이모지
-        String emoji = switch (paperId) {
-            case 1  -> "🕯️";
-            case 2  -> "🌸";
-            case 3  -> "🌙";
-            case 4  -> "🌿";
-            case 5  -> "📜";
-            case 6  -> "🌷";
-            case 7  -> "🌊";
-            case 8  -> "🍂";
-            case 9  -> "❄️";
-            case 10 -> "💕";
-            case 11 -> "🌌";
-            case 12 -> "🌱";
-            default -> "✉️";
-        };
-
-        // 어두운 배경에서는 라벨 텍스트를 반투명 흰색으로 처리
-        String labelColor = (paperId == 3 || paperId == 11) ? "rgba(255,255,255,0.6)" : "#888888";
+        // result.html letter-date 와 동일한 날짜 형식
+        String today = LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy년 MM월 dd일"));
 
         // AI 생성 콘텐츠의 % 문자를 이스케이프 (String.format 오동작 방지)
         String safeContent = review.getAiContent()
@@ -186,14 +179,14 @@ public class ReviewScheduler {
                     <h1 style="color:white; margin:0; font-size:26px; font-style:italic; letter-spacing:2px;">from</h1>
                     <p style="color:#c5cbf7; margin:6px 0 0; font-size:13px;">미래의 나에게 보내는 독서 편지</p>
                 </div>
-                <div style="background:%s; padding:40px 36px; border-left:4px solid %s; line-height:2.2; color:%s; font-size:15px; word-break:keep-all;">
-                    <div style="text-align:right; font-size:13px; color:%s; margin-bottom:20px;">%s %s님께</div>
-                    %s
+                <div style="background:%s; padding:56px 42px; border-left:4px solid %s; color:%s; word-break:keep-all; border-radius:0 0 12px 12px;">
+                    <p style="margin:0 0 28px; font-size:14px; font-weight:500; opacity:0.9;">%s</p>
+                    <p style="margin:0; font-size:16px; line-height:2.05; letter-spacing:-0.01em;">%s</p>
                 </div>
                 <p style="text-align:center; color:#999; font-size:12px; margin-top:16px; padding-bottom:8px;">
                     FROM | 책을 읽고 미래의 나에게 편지를 보내세요
                 </p>
             </div>
-            """).formatted(bg, borderColor, textColor, labelColor, emoji, name, safeContent);
+            """).formatted(bg, borderColor, textColor, today, safeContent);
     }
 }

@@ -61,11 +61,7 @@ public class BookController {
         return "book/recommend"; // templates/book/recommend.html 반환
     }
 
-    /**
-     * [GET] /book/section-recommend - 섹션형 맞춤 추천 (JSON 반환)
-     * 읽은 책의 작가·카테고리를 분석 후 알라딘 API를 병렬 호출하여 섹션 목록을 반환
-     * 반환: List<RecommendSectionDto>
-     */
+
     @GetMapping("/section-recommend")
     @ResponseBody // 반환값을 JSON으로 직렬화하여 응답 body에 담음
     public ResponseEntity<?> getSectionRecommend(HttpSession session) {
@@ -89,7 +85,7 @@ public class BookController {
         // 최근 등록 순으로 정렬 후 작가 상위 2명 추출
         List<String> topAuthors = readBooks.stream()
                 .sorted(Comparator.comparing(BookSearchDto::createdAt,
-                        Comparator.nullsLast(Comparator.reverseOrder()))) // 등록일 내림차순 (null은 맨 뒤)
+                        Comparator.nullsLast(Comparator.reverseOrder()))) // 등록일 내림차순
                 .map(b -> cleanAuthor(b.author()))  // "(지은이)" 등 괄호 제거 → 순수 이름만 추출
                 .filter(a -> !a.isBlank())          // 빈 문자열 제외
                 .distinct()                         // 중복 작가 제거
@@ -160,13 +156,12 @@ public class BookController {
         return ResponseEntity.ok(sections); // 완성된 섹션 목록 JSON으로 반환
     }
 
-    /**
-     * [GET] /book/ai-recommend - 카테고리 기반 맞춤 추천 (JSON 반환)
-     * GPT 미사용, 알라딘 키워드 검색만 사용 → 비용 절감 + 빠른 응답
-     * 반환: List<BookRecommendDto> (최대 5권)
-     */
+
+
+
     @GetMapping("/ai-recommend")
     @ResponseBody
+    // 로긍니 실패시 에는 MsgDTO 정상시에는 추천도서 리스트 반환, 타입 처리를 유연하게 하기위해서 <?>사용
     public ResponseEntity<?> getAiRecommend(HttpSession session) {
         log.info("{}.getAiRecommend Start!", this.getClass().getName());
 
@@ -235,7 +230,7 @@ public class BookController {
         return result;
     }
 
-    // [GET] /book/bestseller - 알라딘 베스트셀러 목록 조회 (JSON 반환)
+    // [GET] /book/bestseller - 알라딘 베스트셀러 목록 조회 (JSON 반환) TOP10
     @GetMapping("/bestseller")
     @ResponseBody
     public List<BookSearchDto> getBestseller() {
@@ -302,11 +297,10 @@ public class BookController {
 
         String userId = (String) session.getAttribute("SS_USER_ID");
         if (userId == null) return MsgDto.builder().result(0).msg("로그인이 필요합니다.").build();
-        if (rating < 1 || rating > 5) return MsgDto.builder().result(0).msg("별점은 1~5 사이여야 합니다.").build(); // 별점 유효성 검사
+        if (rating < 1 || rating > 5) return MsgDto.builder().result(0).msg("별점은 1~5 사이여야 합니다.").build(); // 별점 유효성
 
         try {
-            String safeContent = content.length() > 300 ? content.substring(0, 300) : content; // 후기 300자 초과 시 잘라냄
-            bookService.saveRating(userId, bookId, rating, safeContent); // 별점/후기 저장
+            String safeContent = content.length() > 300 ? content.substring(0, 300) : content; // 후기 300자 초과 시 잘라냄,300글자가 적당하다고 판단 가독성 + 사용자 경험고려            bookService.saveRating(userId, bookId, rating, safeContent); // 별점/후기 저장
             log.info("{}.saveRating End!", this.getClass().getName());
             return MsgDto.builder().result(1).msg("후기가 등록되었습니다.").build();
         } catch (Exception e) {
@@ -355,7 +349,7 @@ public class BookController {
     }
 
     // [PATCH] /book/rating/{ratingId} - 내 후기 수정
-    // 본인 후기만 수정 가능
+    // 본인 후기만 수정 가능 Update
     @PatchMapping("/rating/{ratingId}")
     @ResponseBody
     public MsgDto updateMyRating(
@@ -398,7 +392,7 @@ public class BookController {
     }
 
     // [POST] /book/rating/{ratingId}/comment - 후기에 댓글 등록
-    // 내용 공백 검사, 500자 초과 시 자동 절삭
+    // 내용 공백 검사, 500자 초과 시 자동 절삭,500글자가 적당하다고 판단  UI깨짐 + 개판남 500글자 이상일시
     @PostMapping("/rating/{ratingId}/comment")
     @ResponseBody
     public MsgDto addComment(
@@ -422,6 +416,7 @@ public class BookController {
     }
 
     // [유틸] cleanAuthor - 저자명 정제
+    // 지저분한 데이터를 보기좋게 정리하는 로직
     // 예: "김훈 (지은이), 박영선 (옮긴이)" → "김훈"
     private String cleanAuthor(String raw) {
         if (raw == null || raw.isBlank()) return ""; // null 또는 빈 문자열이면 빈 문자열 반환

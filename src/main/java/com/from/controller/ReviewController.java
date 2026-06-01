@@ -137,6 +137,7 @@ public class ReviewController {
     // 독후감 작성 화면의 책 선택 드롭다운에 사용
     // 책 제목에 따라 이모지를 자동으로 매핑하여 UI 를 풍성하게 함
     // 반환: [{title, author, emoji}] 형태의 책 목록
+    //성공 실패시 반환 DTO가 다르다!
     @GetMapping("/books")
     @ResponseBody
     public ResponseEntity<?> getUserBooks(HttpSession session) {

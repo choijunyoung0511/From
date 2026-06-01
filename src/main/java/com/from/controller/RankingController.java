@@ -5,7 +5,7 @@ package com.from.controller;
 
 import com.from.dto.RankingDto;                          // 랭킹 데이터 DTO
 import com.from.service.impl.RankingRedisService;        // Redis Sorted Set 기반 랭킹 서비스
-import jakarta.servlet.http.HttpSession;                 // HTTP 세션 (로그인 사용자 확인용)
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;                   // final 필드 기반 생성자 자동 생성
 import lombok.extern.slf4j.Slf4j;                        // SLF4J 로거 자동 생성
 import org.springframework.http.ResponseEntity;          // HTTP 상태코드 포함 응답 객체
@@ -30,21 +30,25 @@ public class RankingController {
     // [GET] /ranking - 주간 랭킹 페이지 반환
     // Redis 에서 이번 주 랭킹 목록을 조회하고 주간 날짜 범위 라벨을 생성하여 템플릿에 전달
     @GetMapping("/ranking")
-    public String ranking(Model model) {
+    public String ranking(Model model, HttpSession session) {
         log.info("{}.ranking Start!", this.getClass().getName());
 
-        List<RankingDto> rankings = rankingRedisService.getWeeklyRankings(); // Redis 에서 이번 주 랭킹 목록 조회
+        List<RankingDto> rankings = rankingRedisService.getWeeklyRankings();
 
-        LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY); // 이번 주 월요일 날짜 계산
-        LocalDate sunday = monday.plusDays(6);                      // 이번 주 일요일 날짜 계산 (월요일 + 6일)
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM.dd"); // 날짜 포맷 "월.일" 형식으로 지정
-        String weekLabel = monday.format(fmt) + " ~ " + sunday.format(fmt) + " 주간 랭킹"; // 예: "05.26 ~ 06.01 주간 랭킹"
+        LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
+        LocalDate sunday = monday.plusDays(6);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM.dd");
+        String weekLabel = monday.format(fmt) + " ~ " + sunday.format(fmt) + " 주간 랭킹";
 
-        model.addAttribute("rankings",  rankings);  // 템플릿에 랭킹 목록 전달
-        model.addAttribute("weekLabel", weekLabel); // 템플릿에 주간 날짜 범위 라벨 전달
+        String userId = (String) session.getAttribute("SS_USER_ID");
+        boolean myRankFound = userId != null && rankings.stream().anyMatch(r -> r.userId().equals(userId));
+
+        model.addAttribute("rankings",    rankings);
+        model.addAttribute("weekLabel",   weekLabel);
+        model.addAttribute("myRankFound", myRankFound);
 
         log.info("{}.ranking End! - {}명", this.getClass().getName(), rankings.size());
-        return "ranking/ranking"; // templates/ranking/ranking.html 반환
+        return "ranking/ranking";
     }
 
     // [GET] /ranking/my-rank - 내 주간 랭킹 순위 + 상위 몇 % 인지 반환
