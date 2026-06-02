@@ -3,16 +3,7 @@ package com.from.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
-/**
- * 이미지 생성 결과를 담는 DTO.
- * ImageService → ImageController → 브라우저(step2-style.html)로 JSON 응답된다.
- *
- * 성공 시: success=true, imageId·imageUrl 포함
- * 실패 시: success=false, errorMessage 포함
- *
- * @JsonInclude(NON_DEFAULT): false(boolean 기본값)인 success 필드가 생략되지 않도록
- *  NON_DEFAULT를 사용하지만, 실제로 false일 때도 포함시키기 위해 명시적으로 빌더에서 설정한다.
- */
+//이미지 결과 담는 DTO
 @Builder
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record ImageResponseDto(

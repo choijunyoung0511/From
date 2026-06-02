@@ -4,6 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record UserInfoDto(
+        //회원가입
         String userId,
         String username,
         String password,
