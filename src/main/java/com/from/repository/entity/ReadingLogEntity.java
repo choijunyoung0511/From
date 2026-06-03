@@ -22,20 +22,21 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ReadingLogEntity {
 
-    /** 로그 고유 ID (AUTO_INCREMENT) */
+    //로그 고유 ID
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /** 독서한 사용자의 로그인 ID */
+    //사용자ID
     @Column(name = "user_id")
     private String userId;
 
-    /** 읽은 책의 ID */
+    //책ID
     @Column(name = "book_id")
     private Long bookId;
 
-    /** 독서(책 등록) 날짜. LocalDate.now()로 설정된다. */
+    //독서 날짜
     @Column(name = "read_date")
     private LocalDate readDate;
 }
