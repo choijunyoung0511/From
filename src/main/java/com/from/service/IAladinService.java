@@ -6,6 +6,8 @@ import java.util.List;
 
 
 
+//서비스 코드의 뼈대 이름만 있음
+
 public interface IAladinService {
 
 
