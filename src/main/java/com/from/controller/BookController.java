@@ -11,7 +11,7 @@ import com.from.dto.RecommendSectionDto; // 섹션형 추천 데이터 DTO (type
 import com.from.service.IAladinService;  // 알라딘 API 연동 서비스 인터페이스
 import com.from.service.IBookService;    // 도서 비즈니스 로직 서비스 인터페이스
 
-import com.from.service.impl.RankingRedisService; // Redis 기반 독서량 랭킹 서비스
+import com.from.service.IRankingService; // 랭킹 서비스 인터페이스
 
 import jakarta.servlet.http.HttpSession; // HTTP 세션 (로그인 사용자 확인용)
 import lombok.RequiredArgsConstructor;   // final 필드 기반 생성자 자동 생성
@@ -39,7 +39,7 @@ public class BookController {
 
     private final IBookService bookService;                // 도서 DB 처리 서비스
     private final IAladinService aladinService;            // 알라딘 외부 API 서비스
-    private final RankingRedisService rankingRedisService; // Redis 독서량 랭킹 서비스
+    private final IRankingService rankingService; // 랭킹 서비스
 
     // [GET] /book/register - 도서 등록 페이지 이동
     // 비로그인 사용자는 로그인 페이지로 리다이렉트
@@ -268,7 +268,7 @@ public class BookController {
             boolean registered = bookService.saveUserBook(userId, book.bookId()); // 사용자 - 도서 연결 (이미 등록된 경우 false 반환)
 
             if (registered) {
-                rankingRedisService.incrementBookCount(userId); // Redis 독서량 +1
+                rankingService.incrementBookCount(userId); // Redis 독서량 +1
                 dto = MsgDto.builder().result(1).msg("등록되었습니다.").bookId(book.bookId()).build();
             } else {
                 dto = MsgDto.builder().result(0).msg("이미 등록된 책입니다.").bookId(book.bookId()).build(); // 이미 이 사용자가 등록한 책인 경우

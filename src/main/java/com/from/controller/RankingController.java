@@ -1,10 +1,8 @@
 // RankingController.java - 주간 랭킹 화면을 처리하는 컨트롤러
-// Redis Sorted Set 기반 RankingRedisService 를 직접 사용
-// IRankingService 래퍼 제거 — 불필요한 위임 계층 단순화
 package com.from.controller;
 
 import com.from.dto.RankingDto;                          // 랭킹 데이터 DTO
-import com.from.service.impl.RankingRedisService;        // Redis Sorted Set 기반 랭킹 서비스
+import com.from.service.IRankingService;                 // 랭킹 서비스 인터페이스
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;                   // final 필드 기반 생성자 자동 생성
 import lombok.extern.slf4j.Slf4j;                        // SLF4J 로거 자동 생성
@@ -25,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor // final 필드를 인자로 받는 생성자 자동 생성 (의존성 주입)
 public class RankingController {
 
-    private final RankingRedisService rankingRedisService; // Redis 기반 주간 랭킹 서비스
+    private final IRankingService rankingService; // 주간 랭킹 서비스
 
     // [GET] /ranking - 주간 랭킹 페이지 반환
     // Redis 에서 이번 주 랭킹 목록을 조회하고 주간 날짜 범위 라벨을 생성하여 템플릿에 전달
@@ -33,7 +31,7 @@ public class RankingController {
     public String ranking(Model model, HttpSession session) {
         log.info("{}.ranking Start!", this.getClass().getName());
 
-        List<RankingDto> rankings = rankingRedisService.getWeeklyRankings();
+        List<RankingDto> rankings = rankingService.getWeeklyRankings();
 
         LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
         LocalDate sunday = monday.plusDays(6);
@@ -59,7 +57,7 @@ public class RankingController {
         String userId = (String) session.getAttribute("SS_USER_ID"); // 세션에서 로그인 사용자 ID 추출
         if (userId == null) return ResponseEntity.status(401).build(); // 비로그인 시 401 반환
 
-        List<RankingDto> rankings = rankingRedisService.getWeeklyRankings(); // 전체 주간 랭킹 목록 조회
+        List<RankingDto> rankings = rankingService.getWeeklyRankings(); // 전체 주간 랭킹 목록 조회
         int total = rankings.size(); // 전체 랭킹 참여 인원 수
 
         return rankings.stream()

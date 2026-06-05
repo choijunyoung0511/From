@@ -511,21 +511,6 @@ public class UserInfoController {
         return ResponseEntity.ok(result); // 통계 데이터 JSON 반환
     }
 
-    // [GET] /user/mypage/reviews - 독후감 이력 화면 반환
-    // MongoDB 에서 유저의 독후감 이력을 조회하여 Model 에 담아 전달
-    @GetMapping("/mypage/reviews")
-    public String mypageReviews(HttpSession session, Model model) {
-        log.info("{}.mypageReviews Start!", this.getClass().getName());
-
-        String userId = (String) session.getAttribute("SS_USER_ID"); // 세션에서 로그인 사용자 ID 추출
-
-        List<BookReviewDocument> reviews = reviewService.getReviewsByUserId(userId); // MongoDB 에서 유저의 독후감 이력 조회
-        model.addAttribute("reviews", reviews); // 템플릿에 독후감 이력 전달
-
-        log.info("{}.mypageReviews End!", this.getClass().getName());
-        return "user/mypage-reviews"; // templates/user/mypage-reviews.html 반환
-    }
-
     // [POST] /user/mypage/changePassword - 마이페이지 비밀번호 변경 (비동기 AJAX)
     // 현재 비밀번호 검증 후 새 비밀번호로 변경
     @ResponseBody

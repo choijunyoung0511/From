@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -157,15 +158,17 @@ public class BookService implements IBookService {
 
     @Override
     public void saveRating(String userId, Long bookId, int rating, String content) {
-        //후기 작성
-        if (bookRatingRepository.findByUserIdAndBookId(userId, bookId).isPresent()) {
-            // 이미 작성한 후기 → JPQL UPDATE (Setter 없이 필드만 변경)
-            bookRatingRepository.updateRating(userId, bookId, rating, content);
-        } else {
-            // 최초 작성 → INSERT
-            bookRatingRepository.save(BookRatingEntity.builder()
-                .userId(userId).bookId(bookId).rating(rating).content(content).build());
-        }
+        bookRatingRepository.findByUserIdAndBookId(userId, bookId)
+            .ifPresentOrElse(
+                existing -> bookRatingRepository.save(BookRatingEntity.builder()
+                    .id(existing.getId()).userId(userId).bookId(bookId)
+                    .rating(rating).content(content)
+                    .createdAt(existing.getCreatedAt())
+                    .updatedAt(LocalDateTime.now())
+                    .build()),
+                () -> bookRatingRepository.save(BookRatingEntity.builder()
+                    .userId(userId).bookId(bookId).rating(rating).content(content).build())
+            );
     }
 
     @Override
