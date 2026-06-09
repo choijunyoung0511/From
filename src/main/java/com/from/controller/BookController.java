@@ -161,6 +161,7 @@ public class BookController {
 
     @GetMapping("/ai-recommend")
     @ResponseBody
+
     // 로긍니 실패시 에는 MsgDTO 정상시에는 추천도서 리스트 반환, 타입 처리를 유연하게 하기위해서 <?>사용
     public ResponseEntity<?> getAiRecommend(HttpSession session) {
         log.info("{}.getAiRecommend Start!", this.getClass().getName());

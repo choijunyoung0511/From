@@ -6,19 +6,19 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 //DB테이블을 자바 객체로 표현한 클래스(객체중심 개발)
-//영속화 = JPA가 객체를 DB와 연결해서 관리하는
+//영속화 = JPA가 객체를 DB와 연결해서 관리하는것
 //books테이블과 매핑되는 엔터티 알라딘 API로 검색한 책 정보를 저장, 같은책은 저장하지 않고 여러 유저가 공유
-@Entity
-@Table(name = "books")
+@Entity//DB테이블과 매핑되는 Entity로 인식
+@Table(name = "books") //DB
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookEntity {
 
-    //ID,DB가 자동으로 증가
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id //PK
+    @GeneratedValue(strategy = GenerationType.IDENTITY)     //ID,DB가 자동으로 증가
+
     @Column(name = "book_id")
     private Long bookId;
 

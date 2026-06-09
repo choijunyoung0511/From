@@ -7,31 +7,22 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
 
-/**
- * 암호화 유틸리티 클래스.
- *
- * SHA-256 (단방향): 비밀번호 저장에 사용. 솔트(FROM_SALT_2025)를 붙여 레인보우 테이블 공격을 방어한다.
- * AES-128-CBC (양방향): 이메일 저장에 사용. 키 길이 16바이트(=128bit). DB에는 암호화된 값을 저장하고, 화면 표시 시 복호화한다.
- */
+
+//암호화 유틸리티 클래스
+// 비번 재사용 = sha-256(단방향), 이메일 저장 = aes-128(양방향)
 public class EncryptUtil {
 
-    /** SHA-256 해시 시 비밀번호 뒤에 붙이는 솔트값 */
+    //비밀번호 해싱할떄 뒤에 붙이는 문자열, 비밀번호 + 비밀 문자열 합침
     private static final String ADD_MESSAGE = "FROM_SALT_2025";
 
-    /** AES-CBC 초기화 벡터 (16바이트 고정) */
+    //벡터 초기화
     private static final String IV = "1234567890123456";
 
-    /** AES-128 비밀키 (16바이트 = 128bit, 프로젝트 고정값) */
+    // 비밀키 고정값
     private static final String KEY = "FromProjectKey16";
 
-    /**
-     * SHA-256으로 비밀번호를 단방향 암호화한다.
-     * 원래 문자열에 솔트를 붙인 뒤 해시하여 16진수 문자열로 반환한다.
-     * 단방향이므로 복호화가 불가능하며, 로그인 시 동일 방식으로 암호화하여 비교한다.
-     *
-     * @param str 암호화할 평문 비밀번호
-     * @return 64자리 16진수 해시 문자열
-     */
+
+
     public static String encryptSHA256(String str) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -49,13 +40,8 @@ public class EncryptUtil {
         }
     }
 
-    /**
-     * AES-128-CBC 방식으로 문자열을 암호화한다.
-     * 이메일처럼 나중에 복호화가 필요한 값에 사용한다.
-     *
-     * @param str 암호화할 평문 (예: "user@email.com")
-     * @return Base64 인코딩된 암호문
-     */
+
+    //이메일처럼 나중에 복호화가 필요한 값에 사용한다
     public static String encryptAES(String str) {
         try {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -69,13 +55,8 @@ public class EncryptUtil {
         }
     }
 
-    /**
-     * AES-128-CBC 방식으로 암호문을 복호화한다.
-     * DB에서 꺼낸 암호화된 이메일을 화면 표시용 평문으로 되돌릴 때 사용한다.
-     *
-     * @param str Base64 인코딩된 암호문
-     * @return 복호화된 평문 (예: "user@email.com")
-     */
+
+    //암호문 복호화한다 AES128 방식으로 암호문을 복호화
     public static String decryptAES(String str) {
         try {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
