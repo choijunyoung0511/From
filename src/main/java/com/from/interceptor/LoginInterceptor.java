@@ -8,6 +8,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 // 로그인 인증검사 인터셉터
 // 컨트롤러 실행전에 자동으로 호출 비로그인시  get요청 메인페이지 / 로 리다이렉트
+//로그인 후 브라우저에는 SESSION이라는 랜덤 쿠키만 내려가고, 실제 사용자 정보(SS_USER_ID, SS_USER_NAME)는 Redis 세션에 저장됩니다.
+// 요청마다 해당 쿠키로 Redis 세션을 조회하고, LoginInterceptor에서 로그인 여부를 확인하는 구조입니다.
 public class LoginInterceptor implements HandlerInterceptor {
 
     // 참을 반환화면 다음단계 컨트롤러로 진행 -> 거짓을 반환하면 요청처리를 중단한다

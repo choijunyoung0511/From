@@ -214,6 +214,12 @@ public class AladinService implements IAladinService {
     //            "cover":"이미지 URL",
     //            "isbn13":"ISBN국제번호"
     //         }
+
+
+
+
+
+    //json문자열을 트리구조로 파싱 한 뒤ㅔ 필요한 경로를 따라가서 값을 꺼낸다
     private List<BookSearchDto> parseItems(String json) throws Exception {
 
         List<BookSearchDto> result = new ArrayList<>();
