@@ -31,6 +31,18 @@ import java.util.concurrent.CompletableFuture; // 비동기 병렬 처리
 import java.util.concurrent.TimeUnit;          // 타임아웃 단위 설정
 import java.util.stream.Collectors;
 
+//화면 이동은 View(컨트롤러)를 반환하고, 비동기 요청(Ajax/fetch)은 (레스트 컨트롤러)JSON 데이터를 반환하도록 구분하여 사용했습니다.
+// 예시는 북 컨트롤러 164번쨰줄
+
+
+//**GET:** 데이터를 URL에 이어붙여서 보내기 때문에 사용자가 내용을 쉽게 볼 수 있습니다.
+// 주로 게시판 목록 보기나 검색 기능에 사용됩니다.
+
+
+//**POST:** 데이터를 Body 안에 숨겨서 전송하므로 GET에 비해 눈에 덜 띌 뿐이지,
+// 그 자체로 보안성이 완벽한 것은 아닙니다. 로그인, 회원가입, 파일 업로드 등에 사용됩니다.
+
+
 @Slf4j                       // log.info(), log.error() 등 로거 사용 가능하게 해주는 어노테이션
 @Controller                  // Spring MVC 컨트롤러로 등록 (View 이름 반환 가능)
 @RequestMapping("/book")     // 이 컨트롤러의 모든 URL은 /book 으로 시작
@@ -158,7 +170,7 @@ public class BookController {
 
 
 
-
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     @GetMapping("/ai-recommend")
     @ResponseBody
 
@@ -301,7 +313,8 @@ public class BookController {
         if (rating < 1 || rating > 5) return MsgDto.builder().result(0).msg("별점은 1~5 사이여야 합니다.").build(); // 별점 유효성
 
         try {
-            String safeContent = content.length() > 300 ? content.substring(0, 300) : content; // 후기 300자 초과 시 잘라냄,300글자가 적당하다고 판단 가독성 + 사용자 경험고려            bookService.saveRating(userId, bookId, rating, safeContent); // 별점/후기 저장
+            String safeContent = content.length() > 300 ? content.substring(0, 300) : content; // 후기 300자 초과 시 잘라냄, 300글자가 적당하다고 판단 가독성 + 사용자 경험고려
+            bookService.saveRating(userId, bookId, rating, safeContent); // 별점/후기 저장
             log.info("{}.saveRating End!", this.getClass().getName());
             return MsgDto.builder().result(1).msg("후기가 등록되었습니다.").build();
         } catch (Exception e) {

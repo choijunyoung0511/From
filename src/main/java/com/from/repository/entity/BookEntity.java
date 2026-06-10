@@ -8,6 +8,9 @@ import java.time.LocalDateTime;
 //DB테이블을 자바 객체로 표현한 클래스(객체중심 개발)
 //영속화 = JPA가 객체를 DB와 연결해서 관리하는것
 //books테이블과 매핑되는 엔터티 알라딘 API로 검색한 책 정보를 저장, 같은책은 저장하지 않고 여러 유저가 공유
+//BookEntity는 책 정보를 객체 중심으로 관리하기 위해 사용한 Entity이며, JPA 영속화를 통해 DB의 books 테이블과 연결되어 동작합니다.
+//민감한 정보 방지. db와 직접 연결할떄는 엔터티 데이터를 전달할떄는 DTO
+
 @Entity//DB테이블과 매핑되는 Entity로 인식
 @Table(name = "books") //DB
 @Getter

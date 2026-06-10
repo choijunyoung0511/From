@@ -78,7 +78,7 @@ public class BookService implements IBookService {
     }
 
 
-
+//6번문제 비즈니스로직문제
     @Override
     public BookSearchDto save(String title, String author, String coverImage, String description, String category) {
 

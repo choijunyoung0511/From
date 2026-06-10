@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 //books테이블에 접근 하는 JPA
+//repository는 각 Entity와 연결되어 DB 접근을 담당하며, Service 계층에서 호출하여 사용합니다
+//JPA와 Spring Data JPA가 자동으로 구현체를 생성해주기 때문입니다.
+//개발자가 직접 SQL이나 구현 클래스를 작성하지 않아도 Spring Data JPA가 메서드 이름을 해석하여 자동으로 DB 조회를 수행하기 때문에 구현 코드가 없어도 동작합니다
 public interface BookRepository extends JpaRepository<BookEntity, Long> {
 
     //제목과 저자로 책을 찾음
