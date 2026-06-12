@@ -83,6 +83,15 @@ public class ReviewService implements IReviewService {
 
 
     //독후감 이력 조회
+
+    //12번 답
+    // bookReviewMongoRepository.findByUserId()가 반환한
+    // BookReviewDocument(MongoDB 영속성 객체, JPA의 @Entity에 대응되는 역할)를 DTO로 변환하는 과정 없이 그대로 리턴하고 있습니다.
+
+
+
+
+
     @Override
     public List<BookReviewDocument> getReviewsByUserId(String userId) {
         log.info("{}.getReviewsByUserId Start! - userId:{}", this.getClass().getName(), userId);

@@ -44,5 +44,6 @@ public interface IReviewService {
      * @param userId 요청 사용자의 로그인 ID
      * @return MongoDB aireviews 컬렉션의 독후감 목록
      */
+    //이곳을 호출하는 메서드도 그대로 받음
     List<BookReviewDocument> getReviewsByUserId(String userId);
 }

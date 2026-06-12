@@ -53,6 +53,53 @@ public class BookController {
     private final IAladinService aladinService;            // 알라딘 외부 API 서비스
     private final IRankingService rankingService; // 랭킹 서비스
 
+    // 후기 별점 허용 범위
+    private static final int RATING_MIN = 1;
+    private static final int RATING_MAX = 5;
+
+    // 후기 내용 최대 글자수 (300글자가 적당하다고 판단 - 가독성 + 사용자 경험 고려)
+    private static final int RATING_CONTENT_MAX_LENGTH = 300;
+
+    // 댓글 내용 최대 글자수 (500글자 이상이면 UI 깨짐 방지)
+    private static final int COMMENT_MAX_LENGTH = 500;
+
+    // AI 추천 도서 최대 권수
+    private static final int AI_RECOMMEND_LIMIT = 5;
+
+    // 추천 섹션당 최대 도서 권수
+    private static final int SECTION_BOOK_LIMIT = 6;
+
+    // 섹션 추천 시 사용할 상위 작가/카테고리 개수
+    private static final int SECTION_TOP_COUNT = 2;
+
+    // AI 추천 시 사용할 상위 카테고리 개수
+    private static final int AI_RECOMMEND_CATEGORY_LIMIT = 3;
+
+    // 비동기 추천 섹션 조회 타임아웃 (초)
+    private static final int ASYNC_TIMEOUT_SECONDS = 30;
+
+    // 사용자가 등록한 카테고리가 없을 때 사용할 기본 추천 카테고리
+    private static final List<String> DEFAULT_CATEGORIES = List.of("소설", "자기계발", "에세이");
+
+    // [유틸] cleanAuthor - 저자명 정제
+    // 지저분한 데이터를 보기좋게 정리하는 로직
+    // 예: "김훈 (지은이), 박영선 (옮긴이)" → "김훈"
+    private String cleanAuthor(String raw) {
+        if (raw == null || raw.isBlank()) return ""; // null 또는 빈 문자열이면 빈 문자열 반환
+        int parenIdx = raw.indexOf('(');                                         // '(' 위치 탐색
+        String name = (parenIdx > 0 ? raw.substring(0, parenIdx) : raw).trim(); // 괄호 앞부분만 추출
+        int commaIdx = name.indexOf(',');                                        // ',' 위치 탐색 (여러 저자 구분자)
+        return (commaIdx > 0 ? name.substring(0, commaIdx) : name).trim();      // 첫 번째 저자만 반환
+    }
+
+    // [유틸] extractLeafCategory - 말단 카테고리 추출
+    // 예: "국내도서>소설/시/희곡>한국소설" → "한국소설"
+    private String extractLeafCategory(String categoryName) {
+        if (categoryName == null || categoryName.isBlank()) return ""; // null 방어 처리
+        String[] parts = categoryName.split(">");   // '>' 구분자로 분리
+        return parts[parts.length - 1].trim();      // 가장 구체적인 마지막 카테고리 반환
+    }
+
     // [GET] /book/register - 도서 등록 페이지 이동
     // 비로그인 사용자는 로그인 페이지로 리다이렉트
     @GetMapping("/register")
@@ -101,7 +148,7 @@ public class BookController {
                 .map(b -> cleanAuthor(b.author()))  // "(지은이)" 등 괄호 제거 → 순수 이름만 추출
                 .filter(a -> !a.isBlank())          // 빈 문자열 제외
                 .distinct()                         // 중복 작가 제거
-                .limit(2)                           // 상위 2명만 선택
+                .limit(SECTION_TOP_COUNT)           // 상위 2명만 선택
                 .toList();
 
         // 카테고리 빈도 분석 후 상위 2개 추출
@@ -111,7 +158,7 @@ public class BookController {
                 .collect(Collectors.groupingBy(c -> c, Collectors.counting())) // 카테고리별 카운트
                 .entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed()) // 많이 읽은 카테고리 우선 정렬
-                .limit(2)                                    // 상위 2개 선택
+                .limit(SECTION_TOP_COUNT)                    // 상위 2개 선택
                 .map(Map.Entry::getKey)
                 .toList();
 
@@ -123,7 +170,7 @@ public class BookController {
                 List<BookSearchDto> results = aladinService.searchBooks(author, "Author"); // 작가명으로 알라딘 API 검색
                 List<BookSearchDto> filtered = results.stream()
                         .filter(b -> !readTitles.contains(b.title().toLowerCase().trim())) // 이미 읽은 책 제외
-                        .limit(6)  // 섹션당 최대 6권
+                        .limit(SECTION_BOOK_LIMIT)  // 섹션당 최대 6권
                         .toList();
                 return RecommendSectionDto.builder()
                         .type("author")                    // 섹션 타입: 작가
@@ -140,7 +187,7 @@ public class BookController {
                 List<BookSearchDto> results = aladinService.searchBooks(category, "Keyword"); // 키워드로 알라딘 API 검색
                 List<BookSearchDto> filtered = results.stream()
                         .filter(b -> !readTitles.contains(b.title().toLowerCase().trim())) // 이미 읽은 책 제외
-                        .limit(6) // 섹션당 최대 6권
+                        .limit(SECTION_BOOK_LIMIT) // 섹션당 최대 6권
                         .toList();
                 return RecommendSectionDto.builder()
                         .type("category")           // 섹션 타입: 카테고리
@@ -155,7 +202,7 @@ public class BookController {
         List<RecommendSectionDto> sections = futures.stream()
                 .map(f -> {
                     try {
-                        return f.get(30, TimeUnit.SECONDS); // 30초 초과 시 예외 발생
+                        return f.get(ASYNC_TIMEOUT_SECONDS, TimeUnit.SECONDS); // 30초 초과 시 예외 발생
                     } catch (Exception e) {
                         log.error("섹션 추천 조회 오류", e); // 실패 시 로그만 남기고 null 반환
                         return null;
@@ -199,21 +246,21 @@ public class BookController {
                 .collect(Collectors.groupingBy(c -> c, Collectors.counting())) // 카테고리별 빈도 집계
                 .entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed()) // 빈도 내림차순 정렬
-                .limit(3) // 상위 3개 선택
+                .limit(AI_RECOMMEND_CATEGORY_LIMIT) // 상위 3개 선택
                 .map(Map.Entry::getKey)
                 .toList();
 
-        if (topCategories.isEmpty()) topCategories = List.of("소설", "자기계발", "에세이"); // 카테고리 없으면 기본값 사용
+        if (topCategories.isEmpty()) topCategories = DEFAULT_CATEGORIES; // 카테고리 없으면 기본값 사용
 
         // 카테고리별 알라딘 검색 후 읽지 않은 책 최대 5권 수집
         List<BookRecommendDto> result = new ArrayList<>();
         for (String category : topCategories) {
-            if (result.size() >= 5) break; // 5권 채우면 종료
+            if (result.size() >= AI_RECOMMEND_LIMIT) break; // 5권 채우면 종료
 
             List<BookSearchDto> found = aladinService.searchBooks(category, "Keyword"); // 키워드로 알라딘 검색
 
             for (BookSearchDto b : found) {
-                if (result.size() >= 5) break; // 5권 채우면 내부 루프도 종료
+                if (result.size() >= AI_RECOMMEND_LIMIT) break; // 5권 채우면 내부 루프도 종료
                 if (!readTitles.contains(b.title().toLowerCase().trim())) { // 이미 읽은 책이 아닌 경우만 추가
                     result.add(new BookRecommendDto(
                             b.title(),                                    // 책 제목
@@ -310,10 +357,10 @@ public class BookController {
 
         String userId = (String) session.getAttribute("SS_USER_ID");
         if (userId == null) return MsgDto.builder().result(0).msg("로그인이 필요합니다.").build();
-        if (rating < 1 || rating > 5) return MsgDto.builder().result(0).msg("별점은 1~5 사이여야 합니다.").build(); // 별점 유효성
+        if (rating < RATING_MIN || rating > RATING_MAX) return MsgDto.builder().result(0).msg("별점은 1~5 사이여야 합니다.").build(); // 별점 유효성
 
         try {
-            String safeContent = content.length() > 300 ? content.substring(0, 300) : content; // 후기 300자 초과 시 잘라냄, 300글자가 적당하다고 판단 가독성 + 사용자 경험고려
+            String safeContent = content.length() > RATING_CONTENT_MAX_LENGTH ? content.substring(0, RATING_CONTENT_MAX_LENGTH) : content; // 후기 300자 초과 시 잘라냄, 300글자가 적당하다고 판단 가독성 + 사용자 경험고려
             bookService.saveRating(userId, bookId, rating, safeContent); // 별점/후기 저장
             log.info("{}.saveRating End!", this.getClass().getName());
             return MsgDto.builder().result(1).msg("후기가 등록되었습니다.").build();
@@ -417,7 +464,7 @@ public class BookController {
         String userId = (String) session.getAttribute("SS_USER_ID");
         if (userId == null) return MsgDto.builder().result(0).msg("로그인이 필요합니다.").build();
         if (content == null || content.isBlank()) return MsgDto.builder().result(0).msg("댓글 내용을 입력해주세요.").build(); // 빈 댓글 방지
-        String safe = content.length() > 500 ? content.substring(0, 500) : content; // 500자 초과 시 절삭
+        String safe = content.length() > COMMENT_MAX_LENGTH ? content.substring(0, COMMENT_MAX_LENGTH) : content; // 500자 초과 시 절삭
         bookService.addComment(ratingId, userId, safe); // 댓글 저장
         return MsgDto.builder().result(1).msg("댓글이 등록되었습니다.").build();
     }
@@ -427,24 +474,5 @@ public class BookController {
     @ResponseBody
     public ResponseEntity<?> getComments(@PathVariable Long ratingId) {
         return ResponseEntity.ok(bookService.getComments(ratingId)); // 댓글 목록 JSON 반환
-    }
-
-    // [유틸] cleanAuthor - 저자명 정제
-    // 지저분한 데이터를 보기좋게 정리하는 로직
-    // 예: "김훈 (지은이), 박영선 (옮긴이)" → "김훈"
-    private String cleanAuthor(String raw) {
-        if (raw == null || raw.isBlank()) return ""; // null 또는 빈 문자열이면 빈 문자열 반환
-        int parenIdx = raw.indexOf('(');                                         // '(' 위치 탐색
-        String name = (parenIdx > 0 ? raw.substring(0, parenIdx) : raw).trim(); // 괄호 앞부분만 추출
-        int commaIdx = name.indexOf(',');                                        // ',' 위치 탐색 (여러 저자 구분자)
-        return (commaIdx > 0 ? name.substring(0, commaIdx) : name).trim();      // 첫 번째 저자만 반환
-    }
-
-    // [유틸] extractLeafCategory - 말단 카테고리 추출
-    // 예: "국내도서>소설/시/희곡>한국소설" → "한국소설"
-    private String extractLeafCategory(String categoryName) {
-        if (categoryName == null || categoryName.isBlank()) return ""; // null 방어 처리
-        String[] parts = categoryName.split(">");   // '>' 구분자로 분리
-        return parts[parts.length - 1].trim();      // 가장 구체적인 마지막 카테고리 반환
     }
 }

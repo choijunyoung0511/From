@@ -31,12 +31,16 @@ public class RankingScheduler {
     // 레디스 sorted set 쓰기
     private final RankingRedisService rankingRedisService;
 
+    // 최근 1주일 동안 사용자별 읽은 책 수 집계
+// 같은 책을 여러 번 읽어도 1권으로 계산(DISTINCT)
+// 독서량 기준 내림차순 정렬하여 주간 랭킹 생성
+
     private static final String AGGREGATE_SQL =
             "SELECT user_id, COUNT(DISTINCT book_id) AS weekly_book_count " +
                     "FROM reading_logs " +
-                    "WHERE read_date >= ? " +
-                    "GROUP BY user_id " +
-                    "ORDER BY weekly_book_count DESC";
+                    "WHERE read_date >= ? " + // 최근 7일 데이터만 조회
+                    "GROUP BY user_id " +  // 사용자별 독서 기록 그룹화
+                    "ORDER BY weekly_book_count DESC";  // 많이 읽은 순 정렬
 
 
     // 매주 월요일 실행, 이번 주 redis 키를 초기화 재동기화 한다

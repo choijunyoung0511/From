@@ -77,7 +77,7 @@ public class ReviewScheduler {
                 if (email == null || email.isBlank()) {
                     log.warn("이메일 없음 - id: {}", review.getId());
                     // 발송 불가 항목은 완료 처리하여 무한 재시도 방지
-                    review.setIsSent(1);
+                    review.markAsSent();
                     bookReviewMongoRepository.save(review);
                     continue;
                 }
@@ -86,7 +86,7 @@ public class ReviewScheduler {
                 sendReviewMail(email, userEntity.getName(), review);
 
                 // 발송 완료 표시
-                review.setIsSent(1);
+                review.markAsSent();
                 bookReviewMongoRepository.save(review);
                 log.info("메일 발송 완료 - id: {}, to: {}", review.getId(), email);
 

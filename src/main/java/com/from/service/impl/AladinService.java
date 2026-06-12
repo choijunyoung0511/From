@@ -1,31 +1,43 @@
 package com.from.service.impl;
 
 // JSON 파싱을 위한 Jackson 라이브러리
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.from.dto.BookSearchDto;
 import com.from.service.IAladinService;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 // Spring Bean 등록
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 // 외부 API 호출용 HTTP 클라이언트
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 //책검색,베스트셀러,표지이미지 조회
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class AladinService implements IAladinService {
 
     @Value("${aladin.api.key}")
     private String apiKey;
+
+    // 베스트셀러 캐시용 (Redis는 이미 세션 저장소로 구성되어 있어 추가 인프라 없이 사용 가능)
+    private final StringRedisTemplate redisTemplate;
+
+    // 베스트셀러 캐시 키 / 캐시 유지 시간 (자주 바뀌지 않는 데이터이므로 1시간 캐싱)
+    private static final String BESTSELLER_CACHE_KEY = "aladin:bestseller";
+    private static final Duration BESTSELLER_CACHE_TTL = Duration.ofHours(1);
 
    //jackson
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -115,11 +127,24 @@ public class AladinService implements IAladinService {
 
         log.info("{}.getBestseller Start!", this.getClass().getName());
 
+        // 캐시 우선 조회: 캐시에 결과가 있으면 알라딘 API를 호출하지 않고 바로 반환
+        String cached = redisTemplate.opsForValue().get(BESTSELLER_CACHE_KEY);
+        if (cached != null) {
+            try {
+                List<BookSearchDto> cachedResult = objectMapper.readValue(cached, new TypeReference<List<BookSearchDto>>() {});
+                log.info("{}.getBestseller End! - 캐시 히트 {}건", this.getClass().getName(), cachedResult.size());
+                return cachedResult;
+            } catch (Exception e) {
+                log.warn("베스트셀러 캐시 파싱 실패 - API 재호출: {}", e.getMessage());
+            }
+        }
+
         List<BookSearchDto> result = new ArrayList<>();
 
         try {
 
-           //알라딘 api 호출
+           //WebClient호출
+
             String json = WebClient.create("https://www.aladin.co.kr").get()
 
                     .uri(b -> b.path("/ttb/api/ItemList.aspx")
@@ -148,6 +173,9 @@ public class AladinService implements IAladinService {
             //json -> dto
             result = parseItems(json);
 
+            // 조회 결과를 캐시에 저장 (TTL 1시간 동안 같은 요청은 캐시에서 응답)
+            redisTemplate.opsForValue().set(BESTSELLER_CACHE_KEY, objectMapper.writeValueAsString(result), BESTSELLER_CACHE_TTL);
+
         } catch (Exception e) {
 
             log.error("베스트셀러 API 오류", e);
@@ -175,8 +203,8 @@ public class AladinService implements IAladinService {
 
                             .queryParam("QueryType", "Title")
 
-                            // 결과 1개만
-                            .queryParam("MaxResults", 1)
+                            // 결과 10개만
+                            .queryParam("MaxResults", 10)
 
                             .queryParam("SearchTarget", "Book")
 
@@ -224,11 +252,14 @@ public class AladinService implements IAladinService {
 
         List<BookSearchDto> result = new ArrayList<>();
 
-        // JSON 문자열 → JSON 트리 구조 변환
+        // (API응답)JSON 문자열 → JSON 트리 구조 변환
         JsonNode root = objectMapper.readTree(json);
 
-        // item 배열 가져오기
+        // 알라딘이 주는 책 목록 item 배열 가져오기
         JsonNode items = root.path("item");
+
+        //API 응답은 JSON 문자열 형태로 오기 때문에 ObjectMapper.readTree()를 사용해 JsonNode 트리 구조로 변환한 뒤,
+        // path()를 이용해 필요한 필드를 탐색하여 값을 추출했습니다.
 
         // 각 책 데이터 반복
         for (JsonNode item : items) {
