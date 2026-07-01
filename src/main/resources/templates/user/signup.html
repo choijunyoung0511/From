@@ -294,8 +294,45 @@
 </div>
 
 <script>
-    let usernameChecked = false;
-    let emailVerified = false;
+    /*
+     * ── 회원가입 전체 흐름 ──────────────────────────────────────────
+     * [회원가입-1]  브라우저에서 GET /user/signup 요청
+     * [회원가입-2]  UserInfoController.signupForm() → signup.html 반환
+     * [회원가입-3]  아이디 중복확인 버튼 → checkUsername()
+     *               → AJAX POST /user/checkUsername
+     *               → UserInfoController.checkUsername()
+     *               → UserInfoService.checkUsernameExists() → DB findByUserId
+     *               → existsYn="N"이면 usernameChecked=true (중복확인 통과 플래그)
+     * [회원가입-4]  '인증메일 받기' 버튼 → sendEmailCode()
+     *               → AJAX POST /user/checkEmail
+     *               → UserInfoController.checkEmail()
+     *               → UserInfoService.checkEmailAndSendCode()
+     *                   → AES 암호화 후 DB 중복 확인
+     *                   → 신규 이메일이면 6자리 인증번호 생성 → 이메일 발송
+     *               → 컨트롤러가 세션에 emailCode·emailCodeTime·emailTarget 저장
+     * [회원가입-5]  인증번호 입력 후 '인증 확인' 버튼 → verifyEmailCode()
+     *               → AJAX POST /user/verifyEmailCode
+     *               → UserInfoController.verifyEmailCode()
+     *                   → 세션 코드 비교 + 5분 만료 검사
+     *                   → 일치하면 세션에 emailVerified=true 저장
+     *               → emailVerified=true (클라이언트 플래그)
+     * [회원가입-6]  '회원가입' 버튼 → doSignup()
+     *               → 클라이언트 전체 유효성 검사
+     *               → FormData 구성(multipart/form-data)
+     *               → AJAX POST /user/signup
+     *               → UserInfoController.signup()
+     *                   → 세션 emailVerified 확인 (서버 측 이중 검증)
+     *                   → 프로필 이미지 S3 업로드 (선택)
+     *                   → UserInfoService.signup()
+     *                       → SHA-256 비밀번호 + AES 이메일 암호화
+     *                       → UserInfoEntity 빌드 → JPA save() → DB INSERT
+     *                   → 세션의 이메일 인증 데이터 초기화
+     * [회원가입-7]  result=1 → 성공 모달 → 확인 클릭 시 /user/login 이동
+     * ───────────────────────────────────────────────────────────────
+     */
+
+    let usernameChecked = false; // [회원가입-3] 아이디 중복확인 통과 여부
+    let emailVerified = false;   // [회원가입-5] 이메일 인증 완료 여부
 
     function previewProfile(input) {
         const file = input.files[0];
@@ -311,6 +348,7 @@
         reader.readAsDataURL(file);
     }
 
+    // [회원가입-3] 아이디 중복확인: POST /user/checkUsername → existsYn="N"이면 usernameChecked=true
     function checkUsername() {
         const username = document.getElementById('username').value.trim();
         const error = document.getElementById('username-error');
@@ -330,7 +368,7 @@
                     usernameChecked = false;
                 } else {
                     success.textContent = '사용가능한 아이디입니다.';
-                    usernameChecked = true;
+                    usernameChecked = true; // 이후 doSignup()에서 이 플래그 확인
                 }
             });
     }
@@ -363,6 +401,7 @@
         }
     }
 
+    // [회원가입-4] 인증메일 발송: POST /user/checkEmail → 서버에서 인증번호 생성·발송, 세션에 저장
     function sendEmailCode() {
         const email = document.getElementById('email').value.trim();
         const error = document.getElementById('email-error');
@@ -378,12 +417,14 @@
                 if (data.existsYn === 'Y') {
                     error.textContent = '중복된 이메일입니다.';
                 } else {
+                    // 인증번호 발송 성공 → 인증번호 입력 필드 표시
                     document.getElementById('email-code-group').style.display = 'block';
                     showModal('메일로 전송된 인증번호를 입력해주세요.');
                 }
             });
     }
 
+    // [회원가입-5] 인증번호 확인: POST /user/verifyEmailCode → 세션 코드 비교, emailVerified=true
     function verifyEmailCode() {
         const code = document.getElementById('email-code').value.trim();
         const error = document.getElementById('email-code-error');
@@ -399,13 +440,14 @@
             .then(data => {
                 if (data.result === 1) {
                     success.textContent = '인증되었습니다.';
-                    emailVerified = true;
+                    emailVerified = true; // doSignup()에서 이 플래그 확인
                 } else {
                     error.textContent = '인증번호가 틀립니다.';
                 }
             });
     }
 
+    // [회원가입-6] 회원가입 제출: 전체 유효성 검사 후 FormData POST /user/signup
     function doSignup() {
         const name = document.getElementById('name').value.trim();
         const username = document.getElementById('username').value.trim();
@@ -433,9 +475,11 @@
         const profileFile = document.getElementById('profileInput').files[0];
         if (profileFile) fd.append('profileImage', profileFile);
 
+        // [회원가입-6] 멀티파트 FormData로 POST /user/signup 전송 (프로필 이미지 포함 가능)
         fetch('/user/signup', { method: 'POST', body: fd })
             .then(res => res.json())
             .then(data => {
+                // [회원가입-7] 응답 처리: result=1 → 성공 모달 → 로그인 페이지 이동
                 if (data.result === 1) {
                     document.getElementById('modal-msg').textContent = '회원가입 되셨습니다.';
                     document.getElementById('modal-btn').onclick = () => window.location.href = '/user/login';

@@ -44,8 +44,7 @@ public class UserInfoController {
     private final IImageService imageService;       // 이미지 생성 및 조회 서비스
     private final IS3UploadService s3UploadService; // S3 파일 업로드 서비스
 
-    // [GET] /user/signup - 회원가입 화면 반환
-    // GET: URL 에 데이터를 포함하지 않고 페이지만 요청하는 방식
+    // [회원가입-1·2] GET /user/signup 요청 수신 → signup.html 반환 (Thymeleaf 렌더링)
     @GetMapping("/signup")
     public String signupForm() {
         log.info("{}.user/signup Start!", this.getClass().getName());
@@ -53,8 +52,7 @@ public class UserInfoController {
         return "user/signup"; // templates/user/signup.html 반환
     }
 
-    // [POST] /user/checkUsername - 아이디 중복 체크 (비동기 AJAX)
-    // POST: 데이터를 HTTP 바디에 담아 전송하는 방식 (GET 보다 보안이 높음)
+    // [회원가입-3] POST /user/checkUsername 수신 → UserInfoService.checkUsernameExists() 호출
     // 반환: existsYn = "Y" (이미 사용 중) / "N" (사용 가능)
     @ResponseBody // 반환값을 JSON 으로 직렬화하여 응답 body 에 담음
     @PostMapping("/checkUsername")
@@ -74,8 +72,9 @@ public class UserInfoController {
         return rDTO;
     }
 
-    // [POST] /user/checkEmail - 이메일 중복 체크 + 인증번호 발송 (비동기 AJAX)
-    // 이미 가입된 이메일이면 existsYn="Y", 신규 이메일이면 인증번호를 발송하고 세션에 저장
+    // [회원가입-4] POST /user/checkEmail 수신
+    // → UserInfoService.checkEmailAndSendCode() 호출 (AES 암호화 → DB 중복확인 → 인증번호 발송)
+    // → 인증번호·발송시각·대상이메일을 세션에 저장 (5분 후 만료)
     @ResponseBody
     @PostMapping("/checkEmail")
     public UserInfoDto checkEmail(HttpServletRequest request, HttpSession session) throws Exception {
@@ -101,9 +100,9 @@ public class UserInfoController {
         return rDTO;
     }
 
-    // [POST] /user/verifyEmailCode - 이메일 인증번호 확인 (비동기 AJAX)
-    // 세션에 저장된 코드와 사용자가 입력한 코드를 비교
-    // 일치하면 emailVerified=true 를 세션에 저장하여 회원가입 가능 상태로 만듦
+    // [회원가입-5] POST /user/verifyEmailCode 수신
+    // → 세션 코드와 입력값 비교 + 5분 만료 검사
+    // → 일치하면 세션에 emailVerified=true 저장 (서버 측 인증 완료 플래그)
     @ResponseBody
     @PostMapping("/verifyEmailCode")
     public MsgDto verifyEmailCode(HttpServletRequest request, HttpSession session) throws Exception {
@@ -136,9 +135,10 @@ public class UserInfoController {
         return dto;
     }
 
-    // [POST] /user/signup - 회원가입 처리 (비동기 AJAX)
-    // 이메일 인증이 완료되지 않은 경우 회원가입을 차단
-    // 성공 시 이메일 인증 관련 세션 데이터를 초기화
+    // [회원가입-6] POST /user/signup 수신
+    // → 세션 emailVerified 이중 검증 → S3 프로필 업로드 (선택)
+    // → UserInfoService.signup() → DB INSERT
+    // → 성공 시 이메일 인증 세션 데이터 초기화 → result=1 반환
     @ResponseBody
     @PostMapping("/signup")
     public MsgDto signup(
@@ -202,7 +202,7 @@ public class UserInfoController {
         return dto;
     }
 
-    // [GET] /user/login - 로그인 화면 반환
+    // [로그인-1·2] GET /user/login 요청 수신 → login.html 반환 (Thymeleaf 렌더링)
     @GetMapping("/login")
     public String loginForm() {
         log.info("{}.user/login Start!", this.getClass().getName());
@@ -210,9 +210,10 @@ public class UserInfoController {
         return "user/login"; // templates/user/login.html 반환
     }
 
-    // [POST] /user/loginProc - 로그인 처리 (비동기 AJAX)
-    // 성공 시 세션에 SS_USER_ID(아이디) 와 SS_USER_NAME(이름) 을 저장
-    // LoginInterceptor 는 SS_USER_ID 세션 값으로 로그인 여부를 판단
+    // [로그인-6·7] POST /user/loginProc 수신
+    // → UserInfoService.login() 호출 (DB 조회 + SHA-256 비밀번호 비교)
+    // → 성공 시 세션에 SS_USER_ID·SS_USER_NAME 저장 → result=1 반환
+    // → 이후 LoginInterceptor 가 SS_USER_ID 로 로그인 여부 판단 (로그인-9)
     @ResponseBody
     @PostMapping("/loginProc")
     public MsgDto loginProc(HttpServletRequest request, HttpSession session) throws Exception {

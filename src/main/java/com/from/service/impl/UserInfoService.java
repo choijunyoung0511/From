@@ -29,20 +29,21 @@ public class UserInfoService implements IUserInfoService {
     private final IEmailService emailService;            // 이메일 발송 담당
 
 
-    //  1. 아이디 중복 체크
-
+    // [회원가입-3] 아이디 중복 체크
+    // signup.html checkUsername() → POST /user/checkUsername → 이 메서드
+    // DB에서 userId로 조회 → 존재하면 "Y"(중복), 없으면 "N"(사용 가능) 반환
     @Override
     public String checkUsernameExists(String username) throws Exception {
-        log.info("{}.checkUsernameExists Start! username={}", this.getClass().getName(), username); //아이디 중복체크 시작
+        log.info("{}.checkUsernameExists Start! username={}", this.getClass().getName(), username);
         String res = userInfoRepository.findByUserId(username).isPresent() ? "Y" : "N";
-        log.info("{}.checkUsernameExists End! exists={}", this.getClass().getName(), res); //아이디 중복체크 종료
+        log.info("{}.checkUsernameExists End! exists={}", this.getClass().getName(), res);
         return res;
     }
 
-    //  2. 이메일 중복 체크 + 인증번호 발송
-    //이메일 입력 후 AJAX호출 중복이메일이 아닌 경우 6자리 인증번호를 이메일로 발송하고 코드 자체를 반환한다.
-    // 반환된 코드를 세션에 저장하여 사용자 입력값과 일치하는지 비교
-
+    // [회원가입-4] 이메일 중복 체크 + 인증번호 발송
+    // signup.html sendEmailCode() → POST /user/checkEmail → 이 메서드
+    // AES로 이메일 암호화 → DB 중복 확인 → 신규이면 6자리 코드 생성·발송 → 코드 반환
+    // 반환된 코드는 컨트롤러에서 세션(emailCode)에 저장됨
     @Override
     public String checkEmailAndSendCode(String email) throws Exception {
         log.info("{}.checkEmailAndSendCode Start!", this.getClass().getName());
@@ -65,10 +66,9 @@ public class UserInfoService implements IUserInfoService {
         return code; // 컨트롤러가 이 값을 세션(emailCode)에 저장함
     }
 
-    //  3. 회원가입
-
-
-    //사용자 회원가입 처리 로직, 저장성공시 로그 짝음
+    // [회원가입-6] 회원가입 DB 저장
+    // UserInfoController.signup() → 이 메서드
+    // 비밀번호 SHA-256 + 이메일 AES 암호화 → UserInfoEntity 빌드 → JPA save() → DB INSERT
     @Override
     public boolean signup(UserInfoDto pDTO) throws Exception {
         log.info("{}.signup Start! userId={}, username={}", this.getClass().getName(), pDTO.userId(), pDTO.username());
@@ -97,23 +97,23 @@ public class UserInfoService implements IUserInfoService {
     }
 
 
-    //  4. 로그인
-
+    // [로그인-6] 로그인 검증
+    // login.html doLogin() → POST /user/loginProc → UserInfoController.loginProc() → 이 메서드
     @Override
     public UserInfoDto login(String username, String password) throws Exception {
         log.info("{}.login Start!", this.getClass().getName());
 
-        // 1단계: 아이디로 DB 조회 → 없는 아이디면 즉시 null 반환
+        // [로그인-6] 1단계: 아이디로 DB 조회 → 없는 아이디면 즉시 null 반환
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(username);
         if (rEntity.isEmpty()) return null;
 
         UserInfoEntity user = rEntity.get();
 
-        // 2단계: 비밀번호 SHA-256 암호화 후 DB 저장값과 비교
+        // [로그인-6] 2단계: 입력 비밀번호를 SHA-256 해시 후 DB 저장 해시와 비교
         if (!EncryptUtil.encryptSHA256(password).equals(user.getPassword())) return null;
 
-        // 3단계: 로그인 성공 → 이메일 복호화 후 DTO 반환
-        // 위와 똑같이 빌더 반환
+        // [로그인-7] 3단계: 검증 성공 → AES 이메일 복호화 후 UserInfoDto 반환
+        //            컨트롤러에서 이 DTO를 받아 세션에 SS_USER_ID·SS_USER_NAME 저장
         UserInfoDto rDTO = UserInfoDto.builder()
                 .userId(user.getUserId())
                 .username(user.getUsername())

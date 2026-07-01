@@ -191,6 +191,26 @@
 </div>
 
 <script>
+    /*
+     * ── 로그인 전체 흐름 ────────────────────────────────────────────
+     * [로그인-1] 브라우저에서 GET /user/login 요청
+     * [로그인-2] UserInfoController.loginForm() → login.html 반환 (Thymeleaf 렌더링)
+     * [로그인-3] 사용자가 아이디·비밀번호 입력 후 '로그인' 버튼 클릭 → doLogin() 호출
+     * [로그인-4] 클라이언트 유효성 검사 (빈 값 체크)
+     * [로그인-5] AJAX POST /user/loginProc — userId, password를 폼 인코딩으로 전송
+     * [로그인-6] UserInfoController.loginProc() 수신
+     *            → UserInfoService.login() 호출
+     *              → DB에서 userId로 유저 조회
+     *              → SHA-256(입력 비밀번호) vs DB 저장 해시 비교
+     *              → 일치하면 UserInfoDto 반환
+     * [로그인-7] 컨트롤러가 세션에 SS_USER_ID, SS_USER_NAME 저장 → MsgDto(result=1) 반환
+     * [로그인-8] result=1 → /user/service 이동 / 실패 → 에러 모달 표시
+     * [로그인-9] 이후 보호 경로(/book/**, /review/**, /ranking/** 등) 접근 시
+     *            LoginInterceptor.preHandle()이 세션의 SS_USER_ID 존재 여부를 검사
+     * ───────────────────────────────────────────────────────────────
+     */
+
+    // [로그인-3] 로그인 버튼 클릭 또는 Enter 키 → doLogin() 진입
     function doLogin() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
@@ -198,8 +218,12 @@
         const passwordError = document.getElementById('password-error');
         usernameError.textContent = '';
         passwordError.textContent = '';
+
+        // [로그인-4] 클라이언트 유효성 검사 — 빈 값이면 에러 메시지 표시 후 중단
         if (!username) { usernameError.textContent = '아이디를 입력해주세요.'; return; }
         if (!password) { passwordError.textContent = '비밀번호를 입력해주세요.'; return; }
+
+        // [로그인-5] AJAX POST /user/loginProc — 서버로 아이디·비밀번호 전송
         fetch('/user/loginProc', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -207,10 +231,11 @@
         })
             .then(res => res.json())
             .then(data => {
+                // [로그인-8] 서버 응답 처리
                 if (data.result === 1) {
-                    window.location.href = '/user/service';
+                    window.location.href = '/user/service'; // 로그인 성공 → 서비스 페이지 이동
                 } else {
-                    document.getElementById('errorModal').classList.add('show');
+                    document.getElementById('errorModal').classList.add('show'); // 실패 → 에러 모달
                 }
             });
     }
@@ -218,7 +243,7 @@
         document.getElementById('errorModal').classList.remove('show');
     }
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') doLogin();
+        if (e.key === 'Enter') doLogin(); // [로그인-3] Enter 키도 로그인 트리거
     });
 </script>
 </body>

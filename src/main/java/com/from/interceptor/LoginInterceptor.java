@@ -6,13 +6,19 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 
-// 로그인 인증검사 인터셉터
-// 컨트롤러 실행전에 자동으로 호출 비로그인시  get요청 메인페이지 / 로 리다이렉트
-//로그인 후 브라우저에는 SESSION이라는 랜덤 쿠키만 내려가고, 실제 사용자 정보(SS_USER_ID, SS_USER_NAME)는 Redis 세션에 저장됩니다.
-// 요청마다 해당 쿠키로 Redis 세션을 조회하고, LoginInterceptor에서 로그인 여부를 확인하는 구조입니다.
+/*
+ * [로그인-9] LoginInterceptor — 보호 경로 접근 시 세션 검사
+ *
+ * WebConfig 에서 /book/**, /ranking/**, /review/**, /user/mypage, /service 에 등록됨.
+ * 컨트롤러 실행 전 preHandle()이 자동 호출되어 로그인 여부를 검사한다.
+ *
+ * 로그인 성공 후 브라우저에는 JSESSIONID 쿠키만 내려가고,
+ * 실제 사용자 정보(SS_USER_ID, SS_USER_NAME)는 서버 세션에 저장된다.
+ * 요청마다 쿠키로 세션을 조회하고 SS_USER_ID 존재 여부로 로그인 상태를 판단한다.
+ */
 public class LoginInterceptor implements HandlerInterceptor {
 
-    // 참을 반환화면 다음단계 컨트롤러로 진행 -> 거짓을 반환하면 요청처리를 중단한다
+    // [로그인-9] true 반환 → 컨트롤러로 진행 / false 반환 → 요청 처리 중단
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
@@ -20,16 +26,15 @@ public class LoginInterceptor implements HandlerInterceptor {
 
         HttpSession session = request.getSession();
 
-        // 세션에 SS_USER_ID가 없으면 비로그인 상태
+        // [로그인-9] 세션에 SS_USER_ID 없음 = 비로그인 상태
         if (session.getAttribute("SS_USER_ID") == null) {
             if ("POST".equalsIgnoreCase(request.getMethod())) {
-                // AJAX POST 요청: JSON 형식으로 오류 응답
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // HTTP 401
+                // AJAX POST 요청: JSON 형식으로 401 오류 응답
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write("{\"result\":0,\"msg\":\"로그인이 필요합니다.\"}");
             } else {
-                // 일반 GET 페이지 요청: 메인으로 리다이렉트
-                // loginRequired 플래그를 세션에 저장 → 메인 페이지에서 로그인 유도 메시지 표시
+                // 일반 GET 요청: 메인 페이지로 리다이렉트 (loginRequired 플래그로 안내 메시지 표시)
                 session.setAttribute("loginRequired", true);
                 response.sendRedirect("/");
             }
@@ -41,6 +46,6 @@ public class LoginInterceptor implements HandlerInterceptor {
         response.setHeader("Pragma", "no-cache");
         response.setDateHeader("Expires", 0);
 
-        return true; // 로그인 확인 완료, Controller로 진행
+        return true; // [로그인-9] 로그인 확인 완료 → 컨트롤러로 진행
     }
 }
