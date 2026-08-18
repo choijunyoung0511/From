@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;     // log.info() 사용을 위한 Logger 자�
 import org.springframework.stereotype.Service; // 스프링 빈으로 등록 (서비스 계층 명시)
 import java.time.LocalDateTime; // 생성일·수정일 기록
 import java.util.Optional;      // null 대신 사용하는 안전한 래퍼 타입
-import java.util.Random;        // 인증번호 난수 생성
+import java.security.SecureRandom; // 인증번호 난수 생성 (암호학적으로 안전)
 
 /**
  * 암호화 정책
@@ -309,8 +309,10 @@ public class UserInfoService implements IUserInfoService {
     //  Private 헬퍼 메서드,인증번호 설정
 
 
+    private static final SecureRandom secureRandom = new SecureRandom();
+
     private String generateCode() {
         // 100000 ~ 999999 범위로 고정하여 0으로 시작하는 5자리 코드 방지, 랜덤 인증번호임!
-        return String.valueOf(100000 + new Random().nextInt(900000));
+        return String.valueOf(100000 + secureRandom.nextInt(900000));
     }
 }

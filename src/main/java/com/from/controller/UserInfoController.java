@@ -44,6 +44,36 @@ public class UserInfoController {
     private final IImageService imageService;       // 이미지 생성 및 조회 서비스
     private final IS3UploadService s3UploadService; // S3 파일 업로드 서비스
 
+    // 인증번호 brute-force 방어: 세션당 허용 시도 횟수
+    private static final int MAX_CODE_ATTEMPTS = 5;
+
+    // 입력값 형식 검증용 정규식
+    private static final java.util.regex.Pattern EMAIL_PATTERN =
+            java.util.regex.Pattern.compile("^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$");
+    private static final java.util.regex.Pattern USER_ID_PATTERN =
+            java.util.regex.Pattern.compile("^[a-zA-Z0-9]{4,20}$"); // 영문/숫자 4~20자
+    private static final java.util.regex.Pattern PASSWORD_PATTERN =
+            java.util.regex.Pattern.compile("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,20}$"); // signup.html 클라이언트 규칙과 동일: 영문+숫자+특수문자 포함 8~20자
+
+    // 시도 횟수 초과 여부 확인. 초과 시 인증 관련 세션 값을 모두 지워 재발송을 강제한다
+    private boolean isAttemptLimitExceeded(HttpSession session, String attemptKey, String... relatedKeys) {
+        Integer attempts = (Integer) session.getAttribute(attemptKey);
+        if (attempts != null && attempts >= MAX_CODE_ATTEMPTS) {
+            session.removeAttribute(attemptKey);
+            for (String key : relatedKeys) {
+                session.removeAttribute(key);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // 인증번호 불일치 시 시도 횟수 1 증가
+    private void increaseAttempt(HttpSession session, String attemptKey) {
+        Integer attempts = (Integer) session.getAttribute(attemptKey);
+        session.setAttribute(attemptKey, (attempts == null ? 0 : attempts) + 1);
+    }
+
     // [회원가입-1·2] GET /user/signup 요청 수신 → signup.html 반환 (Thymeleaf 렌더링)
     @GetMapping("/signup")
     public String signupForm() {
@@ -83,6 +113,11 @@ public class UserInfoController {
         String email = CmmUtil.nvl(request.getParameter("email")); // null 이면 빈 문자열로 안전하게 처리
         log.info("email : {}", email);
 
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            // 이메일 형식이 아니면 발송 없이 즉시 반환
+            return UserInfoDto.builder().existsYn("INVALID").build();
+        }
+
         String code = userInfoService.checkEmailAndSendCode(email); // 이메일 중복 확인 후 인증번호 발송
 
         UserInfoDto rDTO;
@@ -114,17 +149,23 @@ public class UserInfoController {
 
         int res;
         String msg;
-        if (sentTime == null || LocalDateTime.now().isAfter(sentTime.plusMinutes(5))) {
+        if (isAttemptLimitExceeded(session, "emailCodeAttempts", "emailCode", "emailCodeTime", "emailTarget")) {
+            // brute-force 방어: 시도 횟수 초과 시 인증번호를 무효화하고 재발송을 강제
+            res = 0;
+            msg = "인증 시도 횟수를 초과했습니다. 인증번호를 다시 요청해주세요.";
+        } else if (sentTime == null || LocalDateTime.now().isAfter(sentTime.plusMinutes(5))) {
             // 발송 시각이 없거나 5분 초과 시 만료 처리
             res = 0;
             msg = "인증번호가 만료되었습니다. 다시 요청해주세요.";
         } else if (sessionCode != null && sessionCode.equals(code)) {
             // 인증번호 일치: 이메일 인증 완료 플래그 세션에 저장
             session.setAttribute("emailVerified", true);
+            session.removeAttribute("emailCodeAttempts");
             res = 1;
             msg = "인증되었습니다.";
         } else {
             // 인증번호 불일치
+            increaseAttempt(session, "emailCodeAttempts");
             res = 0;
             msg = "인증번호가 틀립니다.";
         }
@@ -158,6 +199,17 @@ public class UserInfoController {
         Boolean verified = (Boolean) session.getAttribute("emailVerified");
         if (verified == null || !verified) {
             return MsgDto.builder().result(0).msg("이메일 인증을 완료해주세요.").build(); // 이메일 미인증 시 가입 차단
+        }
+
+        // 서버 측 형식 재검증 (클라이언트 검증은 우회 가능하므로 서버에서도 반드시 확인)
+        if (!USER_ID_PATTERN.matcher(userId).matches()) {
+            return MsgDto.builder().result(0).msg("아이디는 영문/숫자 4~20자여야 합니다.").build();
+        }
+        if (!PASSWORD_PATTERN.matcher(password).matches()) {
+            return MsgDto.builder().result(0).msg("비밀번호는 영문과 숫자를 포함해 8~20자여야 합니다.").build();
+        }
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            return MsgDto.builder().result(0).msg("올바른 이메일 형식이 아닙니다.").build();
         }
 
         log.info("userId : {}, username : {}, name : {}, email : {}", userId, username, name, email);
@@ -223,12 +275,16 @@ public class UserInfoController {
         String userId   = CmmUtil.nvl(request.getParameter("userId"));   // 입력한 아이디
         String password = CmmUtil.nvl(request.getParameter("password")); // 입력한 비밀번호
 
-        log.info("userId : {}, password : {}", userId, password);
+        log.info("userId : {}", userId);
 
         UserInfoDto rDTO = userInfoService.login(userId, password); // 아이디 + 비밀번호 검증
 
         int res;
         if (rDTO != null) {
+            // 세션 고정(session fixation) 공격 방지: 인증 성공 시 세션 ID를 새로 발급하고
+            // Redis에 저장된 기존 세션 데이터는 새 ID로 옮겨진다 (속성은 유지됨)
+            request.changeSessionId();
+
             // 로그인 성공: 세션에 사용자 정보 저장 (SS_ 접두사 = 세션 지속 데이터)
             session.setAttribute("SS_USER_ID",   userId);      // 로그인 아이디
             session.setAttribute("SS_USER_NAME", rDTO.name()); // 사용자 이름
@@ -327,7 +383,10 @@ public class UserInfoController {
         String email           = (String) session.getAttribute("findIdEmail"); // 세션에 저장된 이메일
 
         UserInfoDto rDTO;
-        if (sentTime == null || LocalDateTime.now().isAfter(sentTime.plusMinutes(5))) {
+        if (isAttemptLimitExceeded(session, "findIdCodeAttempts", "findIdCode", "findIdCodeTime", "findIdName", "findIdEmail")) {
+            // brute-force 방어: 시도 횟수 초과 시 인증번호를 무효화하고 재발송을 강제
+            rDTO = UserInfoDto.builder().existsYn("EXPIRED").build();
+        } else if (sentTime == null || LocalDateTime.now().isAfter(sentTime.plusMinutes(5))) {
             // 발송 시각이 없거나 5분 초과 시 만료 처리
             rDTO = UserInfoDto.builder().existsYn("EXPIRED").build();
         } else if (sessionCode != null && sessionCode.equals(code)) {
@@ -335,12 +394,14 @@ public class UserInfoController {
             String username = userInfoService.findUsername(name, email).orElse(""); // 이름+이메일로 아이디 조회
             session.removeAttribute("findIdCode");      // 인증번호 세션 초기화
             session.removeAttribute("findIdCodeTime");  // 발송 시각 세션 초기화
+            session.removeAttribute("findIdCodeAttempts");
             rDTO = UserInfoDto.builder()
                     .userId(username)   // 찾은 아이디
                     .existsYn("Y")      // 인증 성공
                     .build();
         } else {
             // 인증번호 불일치
+            increaseAttempt(session, "findIdCodeAttempts");
             rDTO = UserInfoDto.builder().existsYn("N").build();
         }
 
@@ -404,17 +465,23 @@ public class UserInfoController {
 
         int res;
         String msg;
-        if (sentTime == null || LocalDateTime.now().isAfter(sentTime.plusMinutes(5))) {
+        if (isAttemptLimitExceeded(session, "findPwCodeAttempts", "findPwCode", "findPwCodeTime", "findPwUserId")) {
+            // brute-force 방어: 시도 횟수 초과 시 인증번호를 무효화하고 재발송을 강제
+            res = 0;
+            msg = "인증 시도 횟수를 초과했습니다. 인증번호를 다시 요청해주세요.";
+        } else if (sentTime == null || LocalDateTime.now().isAfter(sentTime.plusMinutes(5))) {
             // 발송 시각이 없거나 5분 초과 시 만료 처리
             res = 0;
             msg = "인증번호가 만료되었습니다. 다시 요청해주세요.";
         } else if (sessionCode != null && sessionCode.equals(code)) {
             // 인증번호 일치: 비밀번호 변경 가능 플래그 세션에 저장
             session.setAttribute("findPwVerified", true);
+            session.removeAttribute("findPwCodeAttempts");
             res = 1;
             msg = "인증되었습니다.";
         } else {
             // 인증번호 불일치
+            increaseAttempt(session, "findPwCodeAttempts");
             res = 0;
             msg = "인증번호가 틀립니다.";
         }
@@ -435,11 +502,21 @@ public class UserInfoController {
 
         String newPassword = CmmUtil.nvl(request.getParameter("newPassword")); // 새 비밀번호
         String userId      = (String) session.getAttribute("findPwUserId");    // 비밀번호 변경 대상 아이디
-
-        boolean success = userInfoService.changePasswordByUsername(userId, newPassword); // 비밀번호 변경 서비스 호출
+        Boolean verified    = (Boolean) session.getAttribute("findPwVerified"); // 인증번호 검증 완료 여부
 
         int res;
         String msg;
+
+        if (verified == null || !verified) {
+            // 인증번호 검증 단계를 거치지 않고 change를 직접 호출하는 우회 시도 차단
+            return MsgDto.builder().result(0).msg("인증번호 확인을 먼저 완료해주세요.").build();
+        }
+        if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
+            return MsgDto.builder().result(0).msg("비밀번호는 영문과 숫자를 포함해 8~20자여야 합니다.").build();
+        }
+
+        boolean success = userInfoService.changePasswordByUsername(userId, newPassword); // 비밀번호 변경 서비스 호출
+
         if (success) {
             // 변경 성공: 비밀번호 찾기 관련 세션 데이터 초기화
             session.removeAttribute("findPwCode");
@@ -523,15 +600,20 @@ public class UserInfoController {
         String newPassword     = CmmUtil.nvl(request.getParameter("newPassword"));     // 새 비밀번호
         String userId          = (String) session.getAttribute("SS_USER_ID");          // 로그인 사용자 ID
 
-        UserInfoDto rDTO = userInfoService.login(userId, currentPassword); // login() 재사용하여 현재 비밀번호 일치 여부 확인
-
         int res;
         String msg;
+
+        if (!PASSWORD_PATTERN.matcher(newPassword).matches()) {
+            return MsgDto.builder().result(0).msg("비밀번호는 영문과 숫자를 포함해 8~20자여야 합니다.").build();
+        }
+
+        UserInfoDto rDTO = userInfoService.login(userId, currentPassword); // login() 재사용하여 현재 비밀번호 일치 여부 확인
+
         if (rDTO != null) {
             // 현재 비밀번호 일치: 새 비밀번호로 변경
             boolean success = userInfoService.changePassword(userId, newPassword);
             res = success ? 1 : 0;
-            msg = success ? "비밀번호가                                                                                                                              변경되었습니다." : "비밀번호 변경에 실패했습니다.";
+            msg = success ? "비밀번호가 변경되었습니다." : "비밀번호 변경에 실패했습니다.";
         } else {
             // 현재 비밀번호 불일치
             res = 0;

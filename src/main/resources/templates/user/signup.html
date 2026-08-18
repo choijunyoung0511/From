@@ -416,6 +416,8 @@
             .then(data => {
                 if (data.existsYn === 'Y') {
                     error.textContent = '중복된 이메일입니다.';
+                } else if (data.existsYn === 'INVALID') {
+                    error.textContent = '올바른 이메일 형식이 아닙니다.';
                 } else {
                     // 인증번호 발송 성공 → 인증번호 입력 필드 표시
                     document.getElementById('email-code-group').style.display = 'block';
