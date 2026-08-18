@@ -43,9 +43,15 @@ public class UserInfoController {
     private final IBookService bookService;         // 도서 DB 처리 서비스
     private final IImageService imageService;       // 이미지 생성 및 조회 서비스
     private final IS3UploadService s3UploadService; // S3 파일 업로드 서비스
+    private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate; // 로그인 시도 횟수 카운트용
 
     // 인증번호 brute-force 방어: 세션당 허용 시도 횟수
     private static final int MAX_CODE_ATTEMPTS = 5;
+
+    // 로그인 brute-force 방어: 아이디당 허용 시도 횟수와 잠금 시간
+    // 세션이 아닌 Redis(아이디 기준)로 카운트해야 함 — 세션은 쿠키만 지우면 초기화되어 우회 가능
+    private static final int MAX_LOGIN_ATTEMPTS = 5;
+    private static final long LOGIN_LOCK_MINUTES = 15;
 
     // 입력값 형식 검증용 정규식
     private static final java.util.regex.Pattern EMAIL_PATTERN =
@@ -72,6 +78,24 @@ public class UserInfoController {
     private void increaseAttempt(HttpSession session, String attemptKey) {
         Integer attempts = (Integer) session.getAttribute(attemptKey);
         session.setAttribute(attemptKey, (attempts == null ? 0 : attempts) + 1);
+    }
+
+    // 로그인 실패 횟수를 아이디 기준으로 Redis에서 관리 (세션과 달리 쿠키 삭제로 우회 불가)
+    private boolean isLoginLocked(String userId) {
+        String value = redisTemplate.opsForValue().get("login:fail:" + userId);
+        return value != null && Integer.parseInt(value) >= MAX_LOGIN_ATTEMPTS;
+    }
+
+    private void recordLoginFailure(String userId) {
+        String key = "login:fail:" + userId;
+        Long count = redisTemplate.opsForValue().increment(key);
+        if (count != null && count == 1L) {
+            redisTemplate.expire(key, LOGIN_LOCK_MINUTES, java.util.concurrent.TimeUnit.MINUTES);
+        }
+    }
+
+    private void clearLoginFailures(String userId) {
+        redisTemplate.delete("login:fail:" + userId);
     }
 
     // [회원가입-1·2] GET /user/signup 요청 수신 → signup.html 반환 (Thymeleaf 렌더링)
@@ -277,13 +301,25 @@ public class UserInfoController {
 
         log.info("userId : {}", userId);
 
+        int res;
+        if (isLoginLocked(userId)) {
+            // brute-force 방어: 아이디 기준 최근 실패 횟수 초과 시 비밀번호 확인 없이 즉시 차단
+            res = 0;
+            msg = "로그인 시도 횟수를 초과했습니다. " + LOGIN_LOCK_MINUTES + "분 후 다시 시도해주세요.";
+
+            MsgDto dto = MsgDto.builder().result(res).msg(msg).build();
+            log.info("{}.loginProc End! - locked", this.getClass().getName());
+            return dto;
+        }
+
         UserInfoDto rDTO = userInfoService.login(userId, password); // 아이디 + 비밀번호 검증
 
-        int res;
         if (rDTO != null) {
             // 세션 고정(session fixation) 공격 방지: 인증 성공 시 세션 ID를 새로 발급하고
             // Redis에 저장된 기존 세션 데이터는 새 ID로 옮겨진다 (속성은 유지됨)
             request.changeSessionId();
+
+            clearLoginFailures(userId); // 로그인 성공 시 실패 카운트 초기화
 
             // 로그인 성공: 세션에 사용자 정보 저장 (SS_ 접두사 = 세션 지속 데이터)
             session.setAttribute("SS_USER_ID",   userId);      // 로그인 아이디
@@ -292,6 +328,7 @@ public class UserInfoController {
             msg = "로그인이 성공했습니다.";
         } else {
             // 로그인 실패: 아이디 또는 비밀번호 불일치
+            recordLoginFailure(userId);
             res = 0;
             msg = "아이디와 비밀번호가 올바르지 않습니다.";
         }
