@@ -61,6 +61,30 @@
         }
         .header-logout-btn:hover { background: #4f5fd4 !important; transform: translateY(-2px); }
 
+        .weather-widget {
+            position: fixed;
+            top: 78px;
+            right: 30px;
+            z-index: 15;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.85);
+            border: 1px solid rgba(67,97,238,0.12);
+            box-shadow: 0 8px 24px rgba(67,97,238,0.14);
+            backdrop-filter: blur(10px);
+            font-family: 'Jua', sans-serif;
+        }
+        .weather-widget .weather-icon { font-size: 20px; line-height: 1; }
+        .weather-widget .weather-temp { font-size: 17px; font-weight: 700; color: #1A1A2E; }
+        .weather-widget .weather-desc { font-size: 13px; color: #7A7899; }
+
+        @media (max-width: 768px) {
+            .weather-widget { top: 66px; right: 16px; padding: 8px 14px; }
+        }
+
         .hero-content {
             display: flex;
             flex-direction: column;
@@ -312,6 +336,12 @@
 
 <div th:replace="~{layout/navbar :: navbar}"></div>
 
+<div id="weather-widget" class="weather-widget">
+    <span class="weather-icon" id="weather-icon">🌤️</span>
+    <span class="weather-temp" id="weather-temp">--</span>
+    <span class="weather-desc" id="weather-desc"></span>
+</div>
+
 <!-- 스파클 레이어 -->
 <div class="sparkle-layer">
     <span class="sp" style="top:14%;left:7%;animation-delay:0s;">✨</span>
@@ -404,6 +434,30 @@
         if (e && e.target !== document.getElementById('aiModal')) return;
         document.getElementById('aiModal').classList.remove('show');
     }
+
+    // 오늘 날씨(초단기예보 첫 시간대) 위젯 표시
+    (function loadWeatherWidget() {
+        const SKY_ICON = { "맑음": "☀️", "구름많음": "⛅", "흐림": "☁️" };
+        const PTY_ICON = { "비": "🌧️", "비/눈": "🌨️", "눈": "❄️", "소나기": "🌦️" };
+
+        fetch('/weather/forecast', { method: 'POST' })
+            .then((res) => res.ok ? res.json() : Promise.reject())
+            .then((forecasts) => {
+                if (!Array.isArray(forecasts) || forecasts.length === 0) return;
+
+                const now = forecasts[0];
+                const hasRain = now.precipitationType && now.precipitationType !== "없음";
+                const icon = hasRain ? (PTY_ICON[now.precipitationType] || "🌦️")
+                                     : (SKY_ICON[now.skyCondition] || "🌤️");
+
+                document.getElementById('weather-icon').textContent = icon;
+                document.getElementById('weather-temp').textContent = now.temperature + '°C';
+                document.getElementById('weather-desc').textContent =
+                    hasRain ? now.precipitationType : now.skyCondition;
+                document.getElementById('weather-widget').style.display = 'inline-flex';
+            })
+            .catch(() => {});
+    })();
 </script>
 
 </body>
