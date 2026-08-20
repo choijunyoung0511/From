@@ -30,7 +30,7 @@ public class WeatherService implements IWeatherService {
     @Value("${weather.api.base-url:https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0}")
     private String baseUrl;
 
-    // 격자좌표: 위도/경도가 아닌 기상청 전용 좌표계. 기본값 서울(60,127)
+    // 격자좌표: 위도/경도가 아닌 기상청 전용 좌표계. 기본값 서울(60,127) 임의값
     @Value("${weather.nx:60}")
     private int nx;
 
@@ -53,7 +53,6 @@ public class WeatherService implements IWeatherService {
             String json = WebClient.create(baseUrl).get()
                     .uri(b -> b.path("/getUltraSrtFcst")
                             // 기상청 API 허브는 인증 파라미터로 authKey를 사용
-                            // (구 공공데이터포털 serviceKey 방식이면 이 파라미터명만 바꾸면 됨)
                             .queryParam("authKey", apiKey)
                             .queryParam("pageNo", 1)
                             .queryParam("numOfRows", 1000)
