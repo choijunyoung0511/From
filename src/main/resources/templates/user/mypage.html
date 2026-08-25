@@ -308,6 +308,17 @@
                     <h3 style="font-size:22px;font-weight:800;color:#1E3A5F;margin-bottom:4px;"
                         th:text="${user != null ? user.username : session.SS_USER_NAME}">닉네임</h3>
                     <p style="font-size:14px;color:#888;" th:text="${user != null ? user.userId : session.SS_USER_ID}">아이디</p>
+                    <div style="display:flex;gap:16px;margin-top:10px;">
+                        <span style="font-size:14px;color:#555;">팔로워 <b id="followerCount" style="color:#6071E3;">-</b></span>
+                        <span style="font-size:14px;color:#555;">팔로잉 <b id="followingCount" style="color:#6071E3;">-</b></span>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:14px;">
+                        <input type="text" id="followTargetInput" placeholder="팔로우할 아이디 입력"
+                               style="flex:1;min-width:0;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;">
+                        <button id="followBtn" onclick="toggleFollow()"
+                                style="padding:8px 18px;border:none;border-radius:8px;background:#6071E3;color:white;
+                                       font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">팔로우</button>
+                    </div>
                 </div>
             </div>
 
@@ -576,6 +587,47 @@
 <script>
     /** 탭 전환. event.target 대신 탭 인덱스로 버튼을 찾아 active 처리한다 */
     const TAB_NAMES = ['profile', 'images', 'reviews', 'my-ratings', 'dashboard', 'password'];
+
+    /** 팔로워/팔로잉 수 조회 */
+    function loadFollowCounts() {
+        const uid = document.getElementById('__userId')?.dataset.id;
+        if (!uid) return;
+        fetch(`/user/${encodeURIComponent(uid)}/followCounts`)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('followerCount').textContent = data.followerCount ?? 0;
+                document.getElementById('followingCount').textContent = data.followingCount ?? 0;
+            })
+            .catch(() => {
+                document.getElementById('followerCount').textContent = '-';
+                document.getElementById('followingCount').textContent = '-';
+            });
+    }
+    document.addEventListener('DOMContentLoaded', loadFollowCounts);
+
+    /** 팔로우 토글 — 입력한 아이디를 팔로우/언팔로우 */
+    function toggleFollow() {
+        const input = document.getElementById('followTargetInput');
+        const targetId = input.value.trim();
+        if (!targetId) { showMypageToast('⚠️ 팔로우할 아이디를 입력해주세요.'); return; }
+
+        const btn = document.getElementById('followBtn');
+        btn.disabled = true;
+
+        fetch(`/user/${encodeURIComponent(targetId)}/follow`, { method: 'POST' })
+            .then(r => r.json().then(data => ({ ok: r.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) {
+                    showMypageToast('⚠️ ' + (data.msg || '팔로우 처리에 실패했습니다.'));
+                    return;
+                }
+                showMypageToast(data.following ? `✅ ${targetId}님을 팔로우했습니다.` : `✅ ${targetId}님 팔로우를 취소했습니다.`);
+                input.value = '';
+                loadFollowCounts();
+            })
+            .catch(() => showMypageToast('⚠️ 오류가 발생했습니다.'))
+            .finally(() => { btn.disabled = false; });
+    }
 
     function uploadProfile(input) {
         const file = input.files[0];
