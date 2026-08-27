@@ -34,4 +34,4 @@ build/
 .vscode/
 
 ### Application secrets ###
-src/main/resources/application.properties
+.env
