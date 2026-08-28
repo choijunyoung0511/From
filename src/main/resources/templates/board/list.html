@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시판 - FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        body { background: #F4F5F9; font-family: 'Jua', sans-serif; }
+        .board-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .board-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .page-title { font-size: 24px; font-weight: 700; color: #1E3A5F; font-family: 'Hi Melody', cursive; }
+        .board-list { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+        .board-row { display: flex; align-items: center; gap: 16px; padding: 18px 24px; text-decoration: none; border-bottom: 1px solid #f0ebe6; transition: background .15s; }
+        .board-row:last-child { border-bottom: none; }
+        .board-row:hover { background: #f8f9ff; }
+        .board-title { flex: 1; font-size: 16px; color: #333; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .board-writer { font-size: 13px; color: #6071E3; width: 100px; flex-shrink: 0; }
+        .board-date { font-size: 12px; color: #aaa; width: 140px; flex-shrink: 0; text-align: right; }
+        .empty-state { text-align: center; padding: 80px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+        .empty-state .icon { font-size: 56px; margin-bottom: 16px; }
+        .empty-state p { color: #aaa; font-size: 16px; }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout/navbar :: navbar}"></div>
+
+<div class="board-container">
+    <div class="board-header">
+        <div class="page-title">📋 독서 게시판</div>
+        <a th:href="@{/board/write}" class="btn btn-primary btn-sm">✏️ 글쓰기</a>
+    </div>
+
+    <div th:if="${boards != null and !boards.isEmpty()}" class="board-list">
+        <a class="board-row" th:each="b : ${boards}" th:href="@{'/board/' + ${b.id}}">
+            <span class="board-title" th:text="${b.title}">제목</span>
+            <span class="board-writer" th:text="${b.writer}">작성자</span>
+            <span class="board-date" th:text="${#temporals.format(b.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+        </a>
+    </div>
+
+    <div th:if="${boards == null or boards.isEmpty()}" class="empty-state">
+        <div class="icon">📭</div>
+        <p>아직 등록된 게시글이 없어요.<br>첫 게시글을 남겨보세요!</p>
+    </div>
+</div>
+</body>
+</html>

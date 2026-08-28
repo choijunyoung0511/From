@@ -16,6 +16,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(new LoginInterceptor())
                 .addPathPatterns(
                         "/book/**",           // 책 검색·등록·AI 추천
+                        "/board/**",          // 독서 게시판 (게시글 CRUD)
                         "/ranking/**",        // 주간 랭킹
                         "/review/**",         // AI 독후감 생성
                         "/image/**",          // 이미지 생성 (Step 1~3)

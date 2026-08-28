@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 작성 - FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        body { background: #F4F5F9; font-family: 'Jua', sans-serif; }
+        .board-container { max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .page-title { font-size: 24px; font-weight: 700; color: #1E3A5F; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid #6071E3; font-family: 'Hi Melody', cursive; }
+        textarea.form-control { resize: vertical; min-height: 220px; line-height: 1.7; }
+        .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout/navbar :: navbar}"></div>
+
+<div class="board-container">
+    <div class="card">
+        <div class="page-title">✏️ 게시글 작성</div>
+        <form th:action="@{/board/write}" method="post">
+            <div class="form-group">
+                <label for="title">제목</label>
+                <input type="text" id="title" name="title" class="form-control" maxlength="200" required placeholder="제목을 입력해주세요.">
+            </div>
+            <div class="form-group">
+                <label for="content">내용</label>
+                <textarea id="content" name="content" class="form-control" required placeholder="내용을 입력해주세요."></textarea>
+            </div>
+            <div class="form-actions">
+                <a th:href="@{/board}" class="btn btn-outline btn-sm">취소</a>
+                <button type="submit" class="btn btn-primary btn-sm">등록</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

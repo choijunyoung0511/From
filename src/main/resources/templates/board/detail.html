@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${board.title} + ' - FROM'">게시글 - FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        body { background: #F4F5F9; font-family: 'Jua', sans-serif; }
+        .board-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .board-card { background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .board-title { font-size: 24px; font-weight: 700; color: #1E3A5F; margin-bottom: 14px; padding-bottom: 16px; border-bottom: 2px solid #6071E3; font-family: 'Hi Melody', cursive; word-break: break-word; }
+        .board-meta { display: flex; gap: 16px; font-size: 13px; color: #999; margin-bottom: 24px; }
+        .board-meta strong { color: #6071E3; }
+        .board-content { font-size: 15px; color: #333; line-height: 1.8; white-space: pre-wrap; word-break: break-word; min-height: 120px; margin-bottom: 28px; }
+        .board-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .board-actions form { display: inline; }
+        .btn-list { display: inline-block; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout/navbar :: navbar}"></div>
+
+<div class="board-container">
+    <div class="board-card">
+        <div class="board-title" th:text="${board.title}">제목</div>
+        <div class="board-meta">
+            <span>작성자: <strong th:text="${board.writer}">작성자</strong></span>
+            <span th:text="'작성일: ' + ${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">작성일</span>
+            <span th:if="${board.updatedAt != null and !#temporals.format(board.updatedAt,'yyyyMMddHHmm').equals(#temporals.format(board.createdAt,'yyyyMMddHHmm'))}"
+                  th:text="'(수정일: ' + ${#temporals.format(board.updatedAt, 'yyyy-MM-dd HH:mm')} + ')'">수정일</span>
+        </div>
+        <div class="board-content" th:text="${board.content}">내용</div>
+
+        <div class="board-actions" th:if="${isOwner}">
+            <a th:href="@{'/board/' + ${board.id} + '/edit'}" class="btn btn-outline btn-sm">수정</a>
+            <form th:action="@{'/board/' + ${board.id} + '/delete'}" method="post"
+                  onsubmit="return confirm('이 게시글을 삭제하시겠습니까?');">
+                <button type="submit" class="btn btn-danger btn-sm">삭제</button>
+            </form>
+        </div>
+    </div>
+
+    <a th:href="@{/board}" class="btn-list" style="color:#888;font-size:14px;text-decoration:none;">← 목록으로</a>
+</div>
+</body>
+</html>
