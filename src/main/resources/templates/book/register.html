@@ -633,6 +633,7 @@
                     style="width:100%;margin-top:6px;padding:6px 0;font-size:12px;"
                     data-title="${t}" data-author="${a}" data-cover="${c}"
                     data-description="${d}" data-category="${g}"
+                    data-isbn="${(book.isbn||'').replace(/"/g,'&quot;')}"
                     onclick="registerBook(this)">+ 등록</button>
             </div>`;
         }).join('');
@@ -705,6 +706,10 @@
                             <button onclick="showRatings('${t}','${a}')"
                                 style="background:none;border:none;font-size:12px;color:#6071E3;cursor:pointer;padding:4px 0 0;font-family:inherit;">
                                 💬 후기 보기</button>
+                            ${book.isbn ? `<a href="/library/book-availability?isbn13=${encodeURIComponent(book.isbn)}&title=${encodeURIComponent(book.title||'')}&author=${encodeURIComponent(book.author||'')}"
+                                target="_blank" rel="noopener"
+                                style="display:inline-block;font-size:12px;color:#6071E3;padding:4px 0 0;">
+                                📚 도서관 소장 확인</a>` : ''}
                         </div>
                         <button class="register-btn"
                             data-title="${(book.title||'').replace(/"/g,'&quot;')}"
@@ -712,6 +717,7 @@
                             data-cover="${(book.cover||'').replace(/"/g,'&quot;')}"
                             data-description="${(book.description||'').replace(/"/g,'&quot;')}"
                             data-category="${(book.category||'').replace(/"/g,'&quot;')}"
+                            data-isbn="${(book.isbn||'').replace(/"/g,'&quot;')}"
                             onclick="registerBook(this)">등록하기</button>
                     </div>`;
                 }).join('');
@@ -748,6 +754,7 @@
                 'cover='       + encodeURIComponent(btn.dataset.cover),
                 'description=' + encodeURIComponent(btn.dataset.description),
                 'category='    + encodeURIComponent(btn.dataset.category),
+                'isbn13='      + encodeURIComponent(btn.dataset.isbn || ''),
             ].join('&')
         })
         .then(r => r.json())

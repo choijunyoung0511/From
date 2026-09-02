@@ -55,6 +55,9 @@ dependencies {
     // DevTools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+    // .env loader (local dev only; server uses systemd EnvironmentFile instead)
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.38'
     annotationProcessor 'org.projectlombok:lombok:1.18.38'

@@ -15,7 +15,7 @@ public interface IBookService {
     Optional<BookSearchDto> findByTitleAndAuthor(String title, String author);
 
     // 책 저장
-    BookSearchDto save(String title, String author, String coverImage, String description, String category);
+    BookSearchDto save(String title, String author, String coverImage, String description, String category, String isbn13);
 
     // 유저-책 연결 (이미 연결된 경우 false 반환)
     boolean saveUserBook(String userId, Long bookId);

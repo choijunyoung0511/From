@@ -87,7 +87,7 @@ public class BookService implements IBookService {
     // 알라딘 검색 결과를 books 테이블에 신규 저장 (book_id는 IDENTITY로 자동 채번)
     // findByTitleAndAuthor()에서 못 찾았을 때만 호출됨 (registerBook()의 orElseGet 분기)
     @Override
-    public BookSearchDto save(String title, String author, String coverImage, String description, String category) {
+    public BookSearchDto save(String title, String author, String coverImage, String description, String category, String isbn13) {
 
         BookEntity entity = BookEntity.builder()
                 .title(title)
@@ -95,6 +95,7 @@ public class BookService implements IBookService {
                 .coverImage(coverImage)
                 .description(description)
                 .category(category)
+                .isbn13(isbn13 == null || isbn13.isBlank() ? null : isbn13)
                 .build();
 
         return toDTO(bookRepository.save(entity));
@@ -387,11 +388,13 @@ public class BookService implements IBookService {
             // 5. 책 정보가 있으면 제목/저자 사용, 없으면 빈 문자열 처리(꺠짐 방지용도)
             String title = "";
             String author = "";
-            //책 정보가 있으면 제목/저자 넣음.
+            String isbn13 = "";
+            //책 정보가 있으면 제목/저자/isbn13 넣음. isbn13은 등록 당시 저장 안 됐으면 null일 수 있음
             if (bookOpt.isPresent()) {
                 BookEntity book = bookOpt.get();
                 title = CmmUtil.nvl(book.getTitle());
                 author = CmmUtil.nvl(book.getAuthor());
+                isbn13 = CmmUtil.nvl(book.getIsbn13());
             }
 
             // 6. content null 방지(널이면 빈 문자열로 처리 )
@@ -412,6 +415,7 @@ public class BookService implements IBookService {
                     .rating(r.getRating())
                     .content(content)
                     .createdAt(createdAt)
+                    .isbn13(isbn13)
                     .build();
 
             // 9. 결과 리스트에 추가
@@ -441,6 +445,8 @@ public class BookService implements IBookService {
                 .author(entity.getAuthor())
 
                 .cover(entity.getCoverImage())
+
+                .isbn(entity.getIsbn13())
 
                 .description(entity.getDescription())
 

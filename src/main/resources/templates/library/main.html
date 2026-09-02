@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도서관 소장 확인 - FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        body { background: #F4F5F9; font-family: 'Jua', sans-serif; }
+        .lib-container { max-width: 640px; margin: 40px auto; padding: 0 20px 60px; }
+        .lib-section-title {
+            font-size: 22px; font-weight: 700; color: #1E3A5F;
+            margin-bottom: 18px; padding-bottom: 10px;
+            border-bottom: 2px solid #6071E3;
+            font-family: 'Hi Melody', cursive;
+        }
+        .lib-step-label {
+            font-size: 13px; font-weight: 700; color: #6071E3;
+            margin-bottom: 10px;
+        }
+        .lib-card {
+            background: white; border-radius: 14px; padding: 22px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+
+        .lib-search-row { display: flex; gap: 8px; }
+        .lib-search-row input {
+            flex: 1; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; font-family: inherit; box-sizing: border-box;
+        }
+        .lib-btn {
+            padding: 0 18px; border: none; border-radius: 8px; background: #6071E3; color: #fff;
+            font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Jua', sans-serif; flex-shrink: 0;
+        }
+        .lib-btn:hover { background: #4f5fcb; }
+        .lib-btn-block { width: 100%; padding: 11px 0; margin-top: 4px; }
+
+        .lib-reset-link { font-size: 12px; color: #9999B8; text-decoration: none; }
+        .lib-reset-link:hover { color: #6071E3; }
+
+        /* 검색 결과: 책 카드 */
+        .lib-book-item {
+            display: flex; gap: 14px; align-items: flex-start;
+            padding: 14px 0; border-top: 1px solid #eee;
+        }
+        .lib-book-item:first-of-type { border-top: none; }
+        .lib-book-cover { width: 52px; height: 74px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: linear-gradient(135deg,#e8e0d5,#d4c9bd); }
+        .lib-book-cover-placeholder {
+            width: 52px; height: 74px; border-radius: 6px; flex-shrink: 0;
+            background: linear-gradient(135deg,#e8e0d5,#d4c9bd);
+            display: flex; align-items: center; justify-content: center; font-size: 22px;
+        }
+        .lib-book-info { flex: 1; min-width: 0; }
+        .lib-book-name { font-size: 14px; font-weight: 700; color: #1A1A2E; margin-bottom: 3px; }
+        .lib-book-meta { font-size: 12px; color: #7A7899; line-height: 1.6; }
+        .lib-select-btn {
+            padding: 7px 14px; border: 1.5px solid #6071E3; border-radius: 8px;
+            background: none; color: #6071E3; font-size: 12px; font-weight: 700;
+            cursor: pointer; font-family: 'Jua', sans-serif; white-space: nowrap; flex-shrink: 0;
+        }
+        .lib-select-btn:hover { background: #6071E3; color: #fff; }
+
+        /* 선택된 책 */
+        .lib-selected-title { font-size: 16px; font-weight: 700; color: #1A1A2E; margin-bottom: 4px; }
+        .lib-selected-meta { font-size: 13px; color: #7A7899; }
+
+        .lib-region-row { display: flex; gap: 8px; margin-top: 14px; }
+        .lib-region-row select {
+            flex: 1; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; font-family: inherit;
+        }
+
+        /* 소장 도서관 카드 */
+        .lib-holding-item { padding: 16px 0; border-top: 1px solid #eee; }
+        .lib-holding-item:first-of-type { border-top: none; }
+        .lib-holding-name { font-size: 15px; font-weight: 700; color: #1A1A2E; margin-bottom: 4px; }
+        .lib-holding-meta { font-size: 12px; color: #7A7899; line-height: 1.7; margin-bottom: 10px; }
+
+        .lib-result-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+        .lib-result-label { font-size: 13px; color: #7A7899; width: 90px; flex-shrink: 0; }
+        .lib-result-value { font-size: 15px; font-weight: 700; }
+        .lib-ok { color: #2e9e5b; }
+        .lib-no { color: #e15353; }
+
+        .lib-error {
+            background: #FFF3F3; border: 1px solid #f5c6c6; color: #c0392b;
+            border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.6;
+        }
+        .lib-notice { margin-top: 14px; font-size: 12px; color: #AAAABC; line-height: 1.6; }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout/navbar :: navbar}"></div>
+
+<div class="lib-container">
+    <div class="lib-section-title">📚 도서관 소장 확인</div>
+
+    <!-- ① 책 검색 -->
+    <div class="lib-card">
+        <div class="lib-step-label">① 책 검색</div>
+        <form method="get" th:action="@{/library}">
+            <div class="lib-search-row">
+                <input type="text" name="title" th:value="${title}" placeholder="책 제목을 입력하세요 (예: 데미안)">
+                <button type="submit" class="lib-btn">검색</button>
+            </div>
+        </form>
+        <div th:if="${title != null and !title.isEmpty()}" style="margin-top:10px;">
+            <a th:href="@{/library}" class="lib-reset-link">↺ 처음부터 다시 검색</a>
+        </div>
+    </div>
+
+    <!-- 검색 오류/결과 없음 -->
+    <div th:if="${searchError != null}" class="lib-card">
+        <div class="lib-error" th:text="${searchError}">검색 결과가 없습니다.</div>
+    </div>
+
+    <!-- ② 검색 결과 -->
+    <div th:if="${searchResults != null and !searchResults.isEmpty()}" class="lib-card">
+        <div class="lib-step-label">② 검색 결과 - 원하는 판본을 선택하세요</div>
+
+        <div class="lib-book-item" th:each="b : ${searchResults}">
+            <img th:if="${b.bookImageUrl() != null and !b.bookImageUrl().isEmpty()}"
+                 th:src="${b.bookImageUrl()}" class="lib-book-cover" alt="표지"
+                 onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'lib-book-cover-placeholder',textContent:'📚'}))">
+            <div th:unless="${b.bookImageUrl() != null and !b.bookImageUrl().isEmpty()}" class="lib-book-cover-placeholder">📚</div>
+
+            <div class="lib-book-info">
+                <div class="lib-book-name" th:text="${b.bookName()}">도서명</div>
+                <div class="lib-book-meta" th:text="${b.authors()}">저자</div>
+                <div class="lib-book-meta" th:text="${b.publisher()} + ' · ' + ${b.publicationYear()}">출판사 · 출판년도</div>
+                <div class="lib-book-meta" th:text="'ISBN ' + ${b.isbn13()}">ISBN</div>
+            </div>
+
+            <form method="get" th:action="@{/library}">
+                <input type="hidden" name="title" th:value="${title}">
+                <input type="hidden" name="isbn13" th:value="${b.isbn13()}">
+                <input type="hidden" name="bookName" th:value="${b.bookName()}">
+                <input type="hidden" name="bookAuthor" th:value="${b.authors()}">
+                <input type="hidden" name="bookPublisher" th:value="${b.publisher()}">
+                <button type="submit" class="lib-select-btn">이 책 선택</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ③ 지역 선택 (책 선택 완료 시) -->
+    <div th:if="${isbn13 != null and !isbn13.isEmpty()}" class="lib-card">
+        <div class="lib-step-label">선택한 책</div>
+        <div class="lib-selected-title" th:text="${bookName}">도서명</div>
+        <div class="lib-selected-meta" th:text="${bookAuthor} + ' · ' + ${bookPublisher}">저자 · 출판사</div>
+
+        <div class="lib-step-label" style="margin-top:18px;">③ 지역 선택</div>
+        <form method="get" th:action="@{/library}">
+            <input type="hidden" name="title" th:value="${title}">
+            <input type="hidden" name="isbn13" th:value="${isbn13}">
+            <input type="hidden" name="bookName" th:value="${bookName}">
+            <input type="hidden" name="bookAuthor" th:value="${bookAuthor}">
+            <input type="hidden" name="bookPublisher" th:value="${bookPublisher}">
+            <div class="lib-region-row">
+                <select name="region">
+                    <option value="">지역을 선택하세요</option>
+                    <option th:each="r : ${regions}"
+                            th:value="${r.displayName()}"
+                            th:text="${r.displayName()}"
+                            th:selected="${r.displayName()} == ${region}"></option>
+                </select>
+                <button type="submit" class="lib-btn">소장 도서관 찾기</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 소장 도서관 조회 오류/없음 -->
+    <div th:if="${holdingsError != null}" class="lib-card">
+        <div class="lib-error" th:text="${holdingsError}">선택한 지역에서 이 책을 소장한 도서관을 찾지 못했습니다.</div>
+    </div>
+
+    <!-- ④ 소장 도서관 목록 -->
+    <div th:if="${libraries != null and !libraries.isEmpty()}" class="lib-card">
+        <div class="lib-step-label" th:text="${region} + ' 지역 소장 도서관'">지역 소장 도서관</div>
+
+        <div class="lib-holding-item" th:each="lib : ${libraries}">
+            <div class="lib-holding-name" th:text="${lib.libName()}">도서관명</div>
+            <div class="lib-holding-meta">
+                <div th:text="${lib.address()}">주소</div>
+                <div th:if="${lib.operatingTime() != null and !lib.operatingTime().isEmpty()}"
+                     th:text="'운영시간: ' + ${lib.operatingTime()}">운영시간</div>
+                <div th:if="${lib.closed() != null and !lib.closed().isEmpty()}"
+                     th:text="'휴관일: ' + ${lib.closed()}">휴관일</div>
+            </div>
+
+            <form method="get" th:action="@{/library}">
+                <input type="hidden" name="title" th:value="${title}">
+                <input type="hidden" name="isbn13" th:value="${isbn13}">
+                <input type="hidden" name="bookName" th:value="${bookName}">
+                <input type="hidden" name="bookAuthor" th:value="${bookAuthor}">
+                <input type="hidden" name="bookPublisher" th:value="${bookPublisher}">
+                <input type="hidden" name="region" th:value="${region}">
+                <input type="hidden" name="libCode" th:value="${lib.libCode()}">
+                <input type="hidden" name="libName" th:value="${lib.libName()}">
+                <input type="hidden" name="libAddress" th:value="${lib.address()}">
+                <button type="submit" class="lib-btn">대출 가능 여부 확인</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 대출 가능 여부 확인 오류 -->
+    <div th:if="${availabilityError != null}" class="lib-card">
+        <div class="lib-error" th:text="${availabilityError}">현재 대출 정보를 불러올 수 없습니다.</div>
+    </div>
+
+    <!-- ⑤ 최종 결과 -->
+    <div th:if="${availability != null}" class="lib-card">
+        <div class="lib-selected-title" th:text="${selectedLibName}">도서관명</div>
+        <div class="lib-selected-meta" style="margin-bottom:14px;" th:text="${selectedLibAddress}">주소</div>
+
+        <div class="lib-selected-title" th:text="${bookName}">도서명</div>
+        <div class="lib-selected-meta" th:text="${bookAuthor}">저자</div>
+
+        <div class="lib-result-row">
+            <div class="lib-result-label">소장 여부</div>
+            <div class="lib-result-value" th:classappend="${availability.hasBook()} ? 'lib-ok' : 'lib-no'">
+                <span th:if="${availability.hasBook()}">O 소장 중</span>
+                <span th:unless="${availability.hasBook()}">X 소장하지 않는 책입니다</span>
+            </div>
+        </div>
+
+        <div class="lib-result-row" th:if="${availability.hasBook()}">
+            <div class="lib-result-label">대출 상태</div>
+            <div class="lib-result-value" th:classappend="${availability.loanAvailable()} ? 'lib-ok' : 'lib-no'">
+                <span th:if="${availability.loanAvailable()}">O 대출 가능</span>
+                <span th:unless="${availability.loanAvailable()}">X 현재 대출 불가</span>
+            </div>
+        </div>
+
+        <div class="lib-notice" th:if="${availability.hasBook()}">
+            ※ 대출 가능 여부는 도서관 정보나루의 전일 기준 데이터입니다.
+        </div>
+    </div>
+</div>
+</body>
+</html>

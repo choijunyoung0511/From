@@ -47,6 +47,10 @@ public class BookEntity {
     @Column(name = "category")
     private String category;
 
+    //ISBN13 (알라딘 검색 결과 등록 시 저장. 기존 데이터는 null일 수 있음 - 도서관 소장 조회에 사용)
+    @Column(name = "isbn13", length = 20)
+    private String isbn13;
+
     //최초 등록시 독서 날짜로 사용
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

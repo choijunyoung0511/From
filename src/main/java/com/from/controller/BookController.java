@@ -311,6 +311,7 @@ public class BookController {
             @RequestParam(required = false, defaultValue = "") String cover,       // 표지 이미지 URL
             @RequestParam(required = false, defaultValue = "") String description, // 책 소개
             @RequestParam(required = false, defaultValue = "") String category,    // 카테고리
+            @RequestParam(required = false, defaultValue = "") String isbn13,      // ISBN13 (알라딘 검색 결과에서 전달, 도서관 소장 조회에 사용)
             HttpSession session) {
 
         log.info("{}.registerBook Start!", this.getClass().getName());
@@ -322,7 +323,7 @@ public class BookController {
         try {
             Optional<BookSearchDto> existing = bookService.findByTitleAndAuthor(title, author); // 동일한 제목+저자의 책이 DB에 있는지 확인
             BookSearchDto book = existing.orElseGet(
-                    () -> bookService.save(title, author, cover, description, category) // 없으면 새로 저장, 있으면 기존 book 사용
+                    () -> bookService.save(title, author, cover, description, category, isbn13) // 없으면 새로 저장, 있으면 기존 book 사용
             );
 
             boolean registered = bookService.saveUserBook(userId, book.bookId()); // 사용자 - 도서 연결 (이미 등록된 경우 false 반환)

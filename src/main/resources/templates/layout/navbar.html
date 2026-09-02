@@ -9,6 +9,8 @@
         <nav class="main-nav" th:if="${session.SS_USER_ID != null}">
             <a th:href="@{/book/register}">책 등록</a>
             <a th:href="@{/board}">게시판</a>
+            <a th:href="@{/library/ranking}">인기도서</a>
+            <a th:href="@{/library}">도서관 소장 확인</a>
             <a th:href="@{/ranking}">랭킹</a>
             <a href="javascript:void(0)" onclick="openNavAiModal()">독서 스튜디오</a>
             <a th:href="@{/user/mypage}">마이페이지</a>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>도서관 소장 정보 - FROM</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        body { background: #F4F5F9; font-family: 'Jua', sans-serif; }
+        .lib-container { max-width: 560px; margin: 40px auto; padding: 0 20px 60px; }
+        .lib-section-title {
+            font-size: 22px; font-weight: 700; color: #1E3A5F;
+            margin-bottom: 18px; padding-bottom: 10px;
+            border-bottom: 2px solid #6071E3;
+            font-family: 'Hi Melody', cursive;
+        }
+        .lib-card {
+            background: white; border-radius: 14px; padding: 22px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            margin-bottom: 20px;
+        }
+        .lib-book-title { font-size: 16px; font-weight: 700; color: #1A1A2E; margin-bottom: 4px; }
+        .lib-book-author { font-size: 13px; color: #7A7899; margin-bottom: 18px; }
+
+        .lib-field { margin-bottom: 14px; }
+        .lib-field label { display: block; font-size: 12px; color: #7A7899; margin-bottom: 6px; }
+        .lib-field input {
+            width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+            font-size: 14px; font-family: inherit; box-sizing: border-box;
+        }
+
+        .lib-search-row { display: flex; gap: 8px; }
+        .lib-search-row input { flex: 1; }
+        .lib-search-btn {
+            padding: 0 18px; border: none; border-radius: 8px; background: #6071E3; color: #fff;
+            font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Jua', sans-serif; flex-shrink: 0;
+        }
+        .lib-search-btn:hover { background: #4f5fcb; }
+
+        .lib-search-results { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .lib-search-item {
+            padding: 12px 14px; border: 1px solid #eee; border-radius: 10px;
+            cursor: pointer; transition: border-color .15s, background .15s;
+        }
+        .lib-search-item:hover { border-color: #6071E3; background: #F6F7FF; }
+        .lib-search-name { font-size: 14px; font-weight: 700; color: #1A1A2E; }
+        .lib-search-address { font-size: 12px; color: #7A7899; margin-top: 2px; }
+        .lib-search-time { font-size: 11px; color: #AAAABC; margin-top: 2px; }
+        .lib-search-empty, .lib-search-loading { font-size: 13px; color: #AAAABC; padding: 8px 2px; }
+
+        .lib-result-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+        .lib-result-label { font-size: 13px; color: #7A7899; width: 90px; flex-shrink: 0; }
+        .lib-result-value { font-size: 15px; font-weight: 700; }
+        .lib-ok { color: #2e9e5b; }
+        .lib-no { color: #e15353; }
+
+        .lib-error {
+            background: #FFF3F3; border: 1px solid #f5c6c6; color: #c0392b;
+            border-radius: 10px; padding: 14px 16px; font-size: 13px; line-height: 1.6;
+        }
+
+        .lib-notice { margin-top: 16px; font-size: 12px; color: #AAAABC; line-height: 1.6; }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout/navbar :: navbar}"></div>
+
+<div class="lib-container">
+    <div class="lib-section-title">📚 도서관 소장 정보</div>
+
+    <div class="lib-card">
+        <div th:if="${bookTitle != null and !bookTitle.isEmpty()}">
+            <div class="lib-book-title" th:text="${bookTitle}">도서명</div>
+            <div class="lib-book-author" th:text="${bookAuthor}">저자</div>
+        </div>
+
+        <!-- 조회 폼: 도서관 선택 시 JS가 libCode/libName/libAddress를 채우고 자동 제출한다 -->
+        <form method="get" th:action="@{/library/book-availability}" id="availabilityForm">
+            <input type="hidden" name="submitted" value="1">
+            <input type="hidden" name="title" th:value="${bookTitle}">
+            <input type="hidden" name="author" th:value="${bookAuthor}">
+            <input type="hidden" name="libCode" id="selLibCode" value="">
+            <input type="hidden" name="libName" id="selLibName" th:value="${libName}">
+            <input type="hidden" name="libAddress" id="selLibAddress" th:value="${libAddress}">
+
+            <div class="lib-field">
+                <label for="isbn13">ISBN13</label>
+                <input type="text" id="isbn13" name="isbn13" th:value="${isbn13}" placeholder="예: 9788937460449" required>
+            </div>
+
+            <div class="lib-field">
+                <label for="libNameInput">도서관 검색</label>
+                <div class="lib-search-row">
+                    <input type="text" id="libNameInput" placeholder="도서관 이름을 입력하세요 (예: 강남)"
+                           onkeydown="if(event.key==='Enter'){event.preventDefault();searchLibraries();}">
+                    <button type="button" class="lib-search-btn" onclick="searchLibraries()">검색</button>
+                </div>
+                <div id="libSearchResults" class="lib-search-results"></div>
+            </div>
+        </form>
+    </div>
+
+    <!-- 오류 -->
+    <div th:if="${errorMessage != null}" class="lib-card">
+        <div class="lib-error" th:text="${errorMessage}">도서관 정보를 불러오지 못했습니다.</div>
+    </div>
+
+    <!-- 조회 결과 -->
+    <div th:if="${availability != null}" class="lib-card">
+        <div th:if="${libName != null and !libName.isEmpty()}" style="margin-bottom:10px;">
+            <div class="lib-book-title" th:text="${libName}">도서관명</div>
+            <div class="lib-book-author" th:text="${libAddress}">주소</div>
+        </div>
+
+        <div class="lib-result-row">
+            <div class="lib-result-label">소장 여부</div>
+            <div class="lib-result-value" th:classappend="${availability.hasBook()} ? 'lib-ok' : 'lib-no'">
+                <span th:if="${availability.hasBook()}">O 소장 중</span>
+                <span th:unless="${availability.hasBook()}">X 해당 도서관에서 소장하지 않는 책입니다.</span>
+            </div>
+        </div>
+
+        <div class="lib-result-row" th:if="${availability.hasBook()}">
+            <div class="lib-result-label">대출 상태</div>
+            <div class="lib-result-value" th:classappend="${availability.loanAvailable()} ? 'lib-ok' : 'lib-no'">
+                <span th:if="${availability.loanAvailable()}">O 대출 가능</span>
+                <span th:unless="${availability.loanAvailable()}">X 현재 대출 불가</span>
+            </div>
+        </div>
+
+        <div class="lib-notice" th:if="${availability.hasBook()}">
+            ※ 대출 가능 여부는 도서관 정보나루에서 제공하는 전일 기준 데이터입니다.
+        </div>
+    </div>
+</div>
+
+<script>
+    function searchLibraries() {
+        const libName = document.getElementById('libNameInput').value.trim();
+        const resultsEl = document.getElementById('libSearchResults');
+        if (!libName) { resultsEl.innerHTML = ''; return; }
+
+        resultsEl.innerHTML = '<div class="lib-search-loading">검색 중...</div>';
+
+        fetch('/library/search?libName=' + encodeURIComponent(libName))
+            .then(r => r.json().then(body => ({ ok: r.ok, body })))
+            .then(({ ok, body }) => {
+                if (!ok) {
+                    resultsEl.innerHTML = '<div class="lib-search-empty">' + (body.msg || '도서관 검색에 실패했습니다.') + '</div>';
+                    return;
+                }
+                const list = body;
+                resultsEl.innerHTML = '';
+                if (!list || !list.length) {
+                    resultsEl.innerHTML = '<div class="lib-search-empty">검색 결과가 없습니다.</div>';
+                    return;
+                }
+                list.forEach(lib => {
+                    const item = document.createElement('div');
+                    item.className = 'lib-search-item';
+
+                    const name = document.createElement('div');
+                    name.className = 'lib-search-name';
+                    name.textContent = lib.libName || '';
+
+                    const address = document.createElement('div');
+                    address.className = 'lib-search-address';
+                    address.textContent = lib.address || '';
+
+                    const time = document.createElement('div');
+                    time.className = 'lib-search-time';
+                    time.textContent = lib.operatingTime || '';
+
+                    item.appendChild(name);
+                    item.appendChild(address);
+                    item.appendChild(time);
+
+                    // libCode는 화면에 표시하지 않고 선택 시 내부적으로만 사용
+                    item.addEventListener('click', () => selectLibrary(lib.libCode, lib.libName, lib.address));
+
+                    resultsEl.appendChild(item);
+                });
+            })
+            .catch(() => {
+                resultsEl.innerHTML = '<div class="lib-search-empty">도서관 검색 중 오류가 발생했습니다.</div>';
+            });
+    }
+
+    function selectLibrary(libCode, libName, address) {
+        document.getElementById('selLibCode').value = libCode || '';
+        document.getElementById('selLibName').value = libName || '';
+        document.getElementById('selLibAddress').value = address || '';
+        document.getElementById('availabilityForm').submit();
+    }
+</script>
+</body>
+</html>

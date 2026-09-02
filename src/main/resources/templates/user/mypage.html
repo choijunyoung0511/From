@@ -680,11 +680,16 @@
                         </div>
                         <div style="font-size:17px;color:#f59e0b;margin-bottom:8px;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
                         <div id="rating-content-${r.id}" style="font-size:14px;color:#555;line-height:1.7;margin-bottom:12px;">${r.content || '<span style="color:#ccc;">후기 없음</span>'}</div>
-                        <div style="display:flex;gap:8px;">
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                             <button onclick="openEditRating(${r.id}, ${r.rating}, \`${(r.content||'').replace(/`/g,'\\`')}\`)"
                                 style="padding:6px 14px;border:1.5px solid #6071E3;border-radius:8px;background:none;color:#6071E3;font-size:12px;cursor:pointer;font-family:inherit;">수정</button>
                             <button onclick="deleteMyRating(${r.id})"
                                 style="padding:6px 14px;border:1.5px solid #e74c3c;border-radius:8px;background:none;color:#e74c3c;font-size:12px;cursor:pointer;font-family:inherit;">삭제</button>
+                            ${r.isbn13
+                                ? `<a href="/library/book-availability?isbn13=${encodeURIComponent(r.isbn13)}&title=${encodeURIComponent(r.bookTitle||'')}&author=${encodeURIComponent(r.bookAuthor||'')}"
+                                    target="_blank" rel="noopener"
+                                    style="font-size:12px;color:#6071E3;">📚 도서관 소장 확인</a>`
+                                : `<span style="font-size:12px;color:#bbb;">ISBN 정보가 없어 도서관 조회를 사용할 수 없습니다.</span>`}
                         </div>
                     </div>`).join('');
             });

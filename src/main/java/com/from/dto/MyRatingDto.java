@@ -11,5 +11,6 @@ public record MyRatingDto(
         String bookAuthor,
         int rating,
         String content,
-        String createdAt
+        String createdAt,
+        String isbn13 // 도서관 소장 조회 연결용. 기존 데이터는 null일 수 있음
 ) {}
