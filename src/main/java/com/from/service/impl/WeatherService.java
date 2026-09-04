@@ -16,6 +16,7 @@ import java.util.ArrayList; //List를 실제로 사용할  수있게 구현한 �
 import java.util.LinkedHashMap; //데이터를 key,value형태로 저장(Map을 실제로 구현한 클래스)
 import java.util.List;
 import java.util.Map;
+import java.util.Optional; //null이 들어올 수 있는 값을 감싸서 if문 없이 분기 처리하기 위해 사용
 import java.util.TreeMap;//key를 기준으로 정렬된 상태로 데이터를 관리하기 위해 사용하느 map구현체임
 
 // 기상청 API 허브 - 동네예보(초단기예보, getUltraSrtFcst) 조회
@@ -155,26 +156,29 @@ public class WeatherService implements IWeatherService {
     // SKY 코드: 1=맑음, 3=구름많음, 4=흐림(하늘상태)
     private String toSkyText(String code) {
         // 기상청의 sky코드를 문자열로 받아 사람이 이해할수 있는 하늘 상태 문자열로 변환해서 반환하는 메서드
-        if (code == null) return "";
-        return switch (code) {
-            case "1" -> "맑음";
-            case "3" -> "구름많음";
-            case "4" -> "흐림";
-            default -> code; //정해놓은 sky코드가 아니면 들어온 코드값 자체를 그대로 반환한다.
-        };
+        // code가 null일 수 있어 Optional로 감싸고, 값이 없으면 ""를 기본값으로 사용
+        return Optional.ofNullable(code)
+                .map(c -> switch (c) {
+                    case "1" -> "맑음";
+                    case "3" -> "구름많음";
+                    case "4" -> "흐림";
+                    default -> c; //정해놓은 sky코드가 아니면 들어온 코드값 자체를 그대로 반환한다.
+                })
+                .orElse("");
     }
 
     // PTY 코드: 0=없음, 1=비, 2=비/눈, 3=눈, 4=소나기
     //사람이 이해할수 있는 강수 형태 문자열로 반환하는 메서드
     private String toPtyText(String code) {
-        if (code == null) return "";
-        return switch (code) {
-            case "0" -> "없음";
-            case "1" -> "비";
-            case "2" -> "비/눈";
-            case "3" -> "눈";
-            case "4" -> "소나기";
-            default -> code;
-        };
+        return Optional.ofNullable(code)
+                .map(c -> switch (c) {
+                    case "0" -> "없음";
+                    case "1" -> "비";
+                    case "2" -> "비/눈";
+                    case "3" -> "눈";
+                    case "4" -> "소나기";
+                    default -> c;
+                })
+                .orElse("");
     }
 }

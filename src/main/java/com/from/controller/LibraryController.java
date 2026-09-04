@@ -55,6 +55,7 @@ public class LibraryController {
         model.addAttribute("bookPublisher", bookPublisher);
         model.addAttribute("region", region);
         model.addAttribute("regions", RegionCode.values());
+        model.addAttribute("libCode", libCode);
 
         // STEP 1: 책 검색 - 제목만 입력되고 아직 책을 선택하지 않은 경우에만 검색 실행
         if (!title.isBlank() && isbn13.isBlank()) {

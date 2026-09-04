@@ -188,7 +188,32 @@
                      th:text="'휴관일: ' + ${lib.closed()}">휴관일</div>
             </div>
 
-            <form method="get" th:action="@{/library}">
+            <!-- 이 도서관을 선택해 대출가능여부까지 조회한 경우: 버튼 대신 결과를 이 자리에 표시 -->
+            <div th:if="${availability != null and libCode == lib.libCode()}">
+                <div class="lib-result-row">
+                    <div class="lib-result-label">소장 여부</div>
+                    <div class="lib-result-value" th:classappend="${availability.hasBook()} ? 'lib-ok' : 'lib-no'">
+                        <span th:if="${availability.hasBook()}">O 소장 중</span>
+                        <span th:unless="${availability.hasBook()}">X 소장하지 않는 책입니다</span>
+                    </div>
+                </div>
+                <div class="lib-result-row" th:if="${availability.hasBook()}">
+                    <div class="lib-result-label">대출 상태</div>
+                    <div class="lib-result-value" th:classappend="${availability.loanAvailable()} ? 'lib-ok' : 'lib-no'">
+                        <span th:if="${availability.loanAvailable()}">O 대출 가능</span>
+                        <span th:unless="${availability.loanAvailable()}">X 현재 대출 불가</span>
+                    </div>
+                </div>
+                <div class="lib-notice" th:if="${availability.hasBook()}">
+                    ※ 대출 가능 여부는 도서관 정보나루의 전일 기준 데이터입니다.
+                </div>
+            </div>
+
+            <div th:if="${availabilityError != null and libCode == lib.libCode()}" class="lib-error" style="margin-top:6px;">
+                <span th:text="${availabilityError}">현재 대출 정보를 불러올 수 없습니다.</span>
+            </div>
+
+            <form method="get" th:action="@{/library}" th:unless="${(availability != null or availabilityError != null) and libCode == lib.libCode()}">
                 <input type="hidden" name="title" th:value="${title}">
                 <input type="hidden" name="isbn13" th:value="${isbn13}">
                 <input type="hidden" name="bookName" th:value="${bookName}">
@@ -200,40 +225,6 @@
                 <input type="hidden" name="libAddress" th:value="${lib.address()}">
                 <button type="submit" class="lib-btn">대출 가능 여부 확인</button>
             </form>
-        </div>
-    </div>
-
-    <!-- 대출 가능 여부 확인 오류 -->
-    <div th:if="${availabilityError != null}" class="lib-card">
-        <div class="lib-error" th:text="${availabilityError}">현재 대출 정보를 불러올 수 없습니다.</div>
-    </div>
-
-    <!-- ⑤ 최종 결과 -->
-    <div th:if="${availability != null}" class="lib-card">
-        <div class="lib-selected-title" th:text="${selectedLibName}">도서관명</div>
-        <div class="lib-selected-meta" style="margin-bottom:14px;" th:text="${selectedLibAddress}">주소</div>
-
-        <div class="lib-selected-title" th:text="${bookName}">도서명</div>
-        <div class="lib-selected-meta" th:text="${bookAuthor}">저자</div>
-
-        <div class="lib-result-row">
-            <div class="lib-result-label">소장 여부</div>
-            <div class="lib-result-value" th:classappend="${availability.hasBook()} ? 'lib-ok' : 'lib-no'">
-                <span th:if="${availability.hasBook()}">O 소장 중</span>
-                <span th:unless="${availability.hasBook()}">X 소장하지 않는 책입니다</span>
-            </div>
-        </div>
-
-        <div class="lib-result-row" th:if="${availability.hasBook()}">
-            <div class="lib-result-label">대출 상태</div>
-            <div class="lib-result-value" th:classappend="${availability.loanAvailable()} ? 'lib-ok' : 'lib-no'">
-                <span th:if="${availability.loanAvailable()}">O 대출 가능</span>
-                <span th:unless="${availability.loanAvailable()}">X 현재 대출 불가</span>
-            </div>
-        </div>
-
-        <div class="lib-notice" th:if="${availability.hasBook()}">
-            ※ 대출 가능 여부는 도서관 정보나루의 전일 기준 데이터입니다.
         </div>
     </div>
 </div>
