@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;//설정 파일에 있는 값을 java코드로 가져올떄 사용
 import org.springframework.stereotype.Service;//여기가 서비스 계층
 import org.springframework.web.reactive.function.client.WebClient; //외부api에 http요청을 보내고 응답을 받아올때 사용하는 도구
+import org.springframework.web.reactive.function.client.WebClientResponseException; //401 등 api 응답 상태코드별 예외를 구분해서 잡기 위해 사용
 //webclient에서 기상청api 호출하고 json 문자열 받음, ObjectMapper로 변환 후, JsonNode로 내부 데이터 검색
 
 import java.time.LocalDateTime; //기상청 api가 요청할 기준 날짜와 기준 시간을 계산해야하기 떄문에 필요
@@ -44,6 +45,7 @@ public class WeatherService implements IWeatherService {
 
 
     //Jackson라이브러리의 ObjectMapper 클래스에 정의되어 있는 생성자를 호출해서 새로운 ObjectMapper객체를 생성하고, 그 객체를 objectMapper 변수에 저장
+    //사용하는 이유는 JSON데이터를 DTO로 변환하기 떄문에 사용
     private final ObjectMapper objectMapper = new ObjectMapper();
 
 
@@ -82,6 +84,9 @@ public class WeatherService implements IWeatherService {
 
             result = parseForecast(json); //json문자열을 parseForecast()에 전달해 분석하고, 변환된 날씨 DTO목록을 result에 저장
 
+        } catch (WebClientResponseException.Unauthorized e) {
+            // 401은 "오늘 데이터가 없음"이 아니라 API 키 만료/오류일 가능성이 높음 → 별도 로그로 구분해서 놓치지 않게 함
+            log.error("기상청 API 인증 실패 - authKey(weather.api.key) 만료/오류 확인 필요", e);
         } catch (Exception e) {
             log.error("날씨 API 오류", e);
         }
