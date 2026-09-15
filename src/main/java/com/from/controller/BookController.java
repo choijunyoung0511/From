@@ -133,7 +133,7 @@ public class BookController {
 
         List<BookSearchDto> readBooks = bookService.findByUserId(userId); // 사용자가 등록한 도서 목록 조회
         if (readBooks.isEmpty()) {
-            return ResponseEntity.ok(List.of()); // 등록한 책이 없으면 빈 배열 반환
+            return ResponseEntity.ok(List.of()); // 등록한 책이 없으면 빈 배열 반환.
         }
 
         // 이미 읽은 책 제목 집합 생성 (소문자 + 공백 제거 → 중복 제거용)
