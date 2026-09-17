@@ -18,14 +18,15 @@
         .mypage-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
 
         .tab-menu {
-            display: flex; gap: 8px; margin-bottom: 24px;
-            background: white; border-radius: 12px; padding: 8px;
+            display: flex; gap: 4px; margin-bottom: 24px;
+            background: white; border-radius: 12px; padding: 6px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .tab-btn {
-            flex: 1; padding: 14px 20px; border: none; background: transparent;
-            color: #666; font-size: 16px; font-weight: 600; border-radius: 8px;
+            flex: 1; padding: 12px 6px; border: none; background: transparent;
+            color: #666; font-size: 14px; font-weight: 600; border-radius: 8px;
             cursor: pointer; transition: all 0.2s; font-family: 'Jua', sans-serif;
+            white-space: nowrap;
         }
         .tab-btn.active { background: #6071E3; color: white; }
         .tab-btn:hover:not(.active) { background: #f0f0f0; color: #333; }
@@ -38,12 +39,25 @@
             margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         .user-info h3 { font-size: 24px; font-weight: 700; color: #1E3A5F; margin-bottom: 12px; }
-        .info-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
-        .info-label { font-size: 14px; color: #999; min-width: 60px; }
-        .info-value { font-size: 16px; color: #333; font-weight: 500; }
 
-        /* ── 프로필 ── */
-        .profile-section { display: flex; align-items: center; gap: 24px; margin-bottom: 28px; }
+        /* 회원 정보(이메일/아이디) 2열 그리드 — .info-row는 grid item을 그대로 부모(.profile-meta)에 올려주는 래퍼 */
+        .profile-meta { display: grid; grid-template-columns: 84px 1fr; row-gap: 12px; column-gap: 16px; }
+        .info-row { display: contents; }
+        .info-label { font-size: 13px; color: #999; font-weight: 600; align-self: center; }
+        .info-value { font-size: 15px; color: #2b2b3d; font-weight: 600; align-self: center; word-break: break-all; }
+
+        /* ── 프로필 카드 ── */
+        .profile-card { max-width: 740px; margin-left: auto; margin-right: auto; padding: 32px; }
+        .profile-header {
+            display: flex; align-items: flex-start; gap: 24px;
+            padding-bottom: 24px; margin-bottom: 20px; border-bottom: 1px solid #eef0f6;
+        }
+        .profile-avatar-block { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+        .profile-photo-btn-wrap { margin-top: 8px; }
+        .profile-identity { flex: 1; min-width: 0; padding-top: 4px; }
+        .profile-name { font-size: 22px; font-weight: 800; color: #1E3A5F; margin-bottom: 4px; }
+        .profile-userid { font-size: 13px; color: #999; margin-bottom: 14px; }
+
         .profile-img-wrap {
             position: relative; cursor: pointer; flex-shrink: 0;
             padding: 3px; border-radius: 50%;
@@ -62,29 +76,31 @@
         }
         .profile-img-wrap:hover .profile-img-overlay { display: flex; }
         .profile-change-btn {
-            margin-top: 8px; font-size: 12px; color: #6071E3;
+            font-size: 12px; color: #6071E3;
             background: none; border: 1px solid #6071E3; border-radius: 99px;
             padding: 4px 12px; cursor: pointer; font-family: 'Jua', sans-serif;
             transition: all .2s;
         }
         .profile-change-btn:hover { background: #6071E3; color: white; }
 
-        /* ── 인스타그램 스타일 팔로워/팔로잉 통계 ── */
-        .ig-stats { display: flex; gap: 28px; margin-top: 12px; }
+        /* 팔로워/팔로잉 통계 — 숫자는 굵게, 문구는 회색 */
+        .ig-stats { display: flex; gap: 28px; }
         .ig-stat { text-align: center; cursor: default; }
-        .ig-stat .ig-num { display: block; font-size: 18px; font-weight: 800; color: #1A1A2E; }
+        .ig-stat .ig-num { display: block; font-size: 20px; font-weight: 800; color: #1A1A2E; }
         .ig-stat .ig-lbl { display: block; font-size: 12px; color: #999; margin-top: 2px; }
 
-        /* ── 팔로우 검색/토글 바 ── */
-        .follow-bar { display: flex; gap: 8px; margin-top: 14px; }
+        /* ── 사용자 팔로우 영역: 연한 배경 박스로 프로필 정보와 구분 ── */
+        .follow-panel { background: #F7F7FC; border-radius: 14px; padding: 18px 20px; margin-bottom: 24px; }
+        .follow-panel-title { font-size: 14px; font-weight: 700; color: #4b4b66; margin-bottom: 12px; }
+        .follow-bar { display: flex; gap: 8px; }
         .follow-input {
-            flex: 1; min-width: 0; padding: 9px 14px; border: 1px solid #dbdbdb;
+            flex: 1; min-width: 0; height: 40px; padding: 0 16px; border: 1px solid #dbdbdb;
             border-radius: 99px; font-size: 13px; font-family: inherit; outline: none;
             transition: border-color .2s;
         }
         .follow-input:focus { border-color: #6071E3; }
         .follow-btn {
-            padding: 9px 20px; border: none; border-radius: 99px; cursor: pointer;
+            height: 40px; padding: 0 24px; border: none; border-radius: 99px; cursor: pointer;
             font-size: 13px; font-weight: 700; font-family: inherit; white-space: nowrap;
             color: white; background: linear-gradient(45deg,#c724b1,#6071E3);
             transition: transform .15s, opacity .2s;
@@ -95,6 +111,16 @@
         /* 이미 팔로우 중일 때 인스타그램처럼 아웃라인 스타일로 전환 */
         .follow-btn.following {
             background: white; color: #262626; border: 1px solid #dbdbdb;
+        }
+
+        @media (max-width: 600px) {
+            .profile-card { padding: 24px 20px; }
+            .profile-header { flex-direction: column; align-items: center; text-align: center; }
+            .profile-identity { width: 100%; }
+            .ig-stats { justify-content: center; }
+            .follow-bar { flex-direction: column; }
+            .follow-input, .follow-btn { width: 100%; }
+            .profile-meta { grid-template-columns: 1fr; row-gap: 4px; }
         }
 
         .menu-list { list-style: none; }
@@ -184,7 +210,8 @@
         .btn-block { display: block; width: 100%; }
 
         @media (max-width: 768px) {
-            .tab-menu { flex-direction: column; gap: 4px; }
+            .tab-menu { flex-wrap: nowrap; overflow-x: auto; }
+            .tab-btn { flex: 0 0 auto; padding: 10px 12px; font-size: 13px; }
         }
 
         /* ── 독서 대시보드 탭 ── */
@@ -318,10 +345,10 @@
 
     <!-- ── 탭 1: 프로필 ── -->
     <div id="profile-tab" class="tab-content active">
-        <div class="user-card">
-            <!-- 프로필 사진 영역 -->
-            <div class="profile-section">
-                <div>
+        <div class="user-card profile-card">
+            <!-- 프로필 사진 + 닉네임/아이디/팔로우 통계 -->
+            <div class="profile-header">
+                <div class="profile-avatar-block">
                     <input type="file" id="profileFileInput" accept="image/*" style="display:none" onchange="uploadProfile(this)">
                     <div class="profile-img-wrap" onclick="document.getElementById('profileFileInput').click()">
                         <div class="profile-img" id="profileImgContainer">
@@ -332,30 +359,35 @@
                         </div>
                         <div class="profile-img-overlay">✏️</div>
                     </div>
-                    <div style="text-align:center;margin-top:8px;">
+                    <div class="profile-photo-btn-wrap">
                         <button class="profile-change-btn" onclick="document.getElementById('profileFileInput').click()">사진 변경</button>
                     </div>
                 </div>
-                <div>
-                    <h3 style="font-size:22px;font-weight:800;color:#1E3A5F;margin-bottom:4px;"
+                <div class="profile-identity">
+                    <h3 class="profile-name"
                         th:text="${user != null ? user.username : session.SS_USER_NAME}">닉네임</h3>
-                    <p style="font-size:14px;color:#888;" th:text="${user != null ? user.userId : session.SS_USER_ID}">아이디</p>
+                    <p class="profile-userid" th:text="${user != null ? user.userId : session.SS_USER_ID}">아이디</p>
                     <div class="ig-stats">
                         <div class="ig-stat"><span class="ig-num" id="followerCount">-</span><span class="ig-lbl">팔로워</span></div>
                         <div class="ig-stat"><span class="ig-num" id="followingCount">-</span><span class="ig-lbl">팔로잉</span></div>
                     </div>
-                    <div class="follow-bar">
-                        <input type="text" id="followTargetInput" class="follow-input" placeholder="팔로우할 아이디 입력"
-                               onkeydown="if(event.key==='Enter') toggleFollow();">
-                        <button id="followBtn" class="follow-btn" onclick="toggleFollow()">팔로우</button>
-                    </div>
+                </div>
+            </div>
+
+            <!-- 사용자 팔로우 영역: 프로필 정보와 구분되도록 연한 배경 박스 -->
+            <div class="follow-panel">
+                <div class="follow-panel-title">사용자 팔로우</div>
+                <div class="follow-bar">
+                    <input type="text" id="followTargetInput" class="follow-input" placeholder="팔로우할 아이디 입력"
+                           onkeydown="if(event.key==='Enter') toggleFollow();">
+                    <button id="followBtn" class="follow-btn" onclick="toggleFollow()">팔로우</button>
                 </div>
             </div>
 
             <div class="user-info" style="display:none;">
                 <h3 th:text="${user != null ? user.name : session.SS_USER_NAME}">이름</h3>
             </div>
-            <div style="margin-top: 4px;">
+            <div class="profile-meta">
                 <div class="info-row">
                     <span class="info-label">이메일</span>
                     <span class="info-value" th:text="${user != null ? user.email : '-'}">이메일</span>
