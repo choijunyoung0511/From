@@ -44,15 +44,19 @@
 
         /* ── 프로필 ── */
         .profile-section { display: flex; align-items: center; gap: 24px; margin-bottom: 28px; }
-        .profile-img-wrap { position: relative; cursor: pointer; flex-shrink: 0; }
+        .profile-img-wrap {
+            position: relative; cursor: pointer; flex-shrink: 0;
+            padding: 3px; border-radius: 50%;
+            background: linear-gradient(45deg,#f7b733,#fc4a1a,#c724b1,#6071E3);
+        }
         .profile-img {
-            width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
-            border: 3px solid #6071E3; background: #f0f0ff;
-            display: flex; align-items: center; justify-content: center; font-size: 36px;
+            width: 84px; height: 84px; border-radius: 50%; object-fit: cover;
+            border: 3px solid white; background: #f0f0ff;
+            display: flex; align-items: center; justify-content: center; font-size: 34px;
         }
         .profile-img-overlay {
-            position: absolute; inset: 0; border-radius: 50%;
-            background: rgba(96,113,227,.6); display: none;
+            position: absolute; inset: 3px; border-radius: 50%;
+            background: rgba(0,0,0,.45); display: none;
             align-items: center; justify-content: center;
             color: white; font-size: 18px; font-weight: 700;
         }
@@ -64,6 +68,34 @@
             transition: all .2s;
         }
         .profile-change-btn:hover { background: #6071E3; color: white; }
+
+        /* ── 인스타그램 스타일 팔로워/팔로잉 통계 ── */
+        .ig-stats { display: flex; gap: 28px; margin-top: 12px; }
+        .ig-stat { text-align: center; cursor: default; }
+        .ig-stat .ig-num { display: block; font-size: 18px; font-weight: 800; color: #1A1A2E; }
+        .ig-stat .ig-lbl { display: block; font-size: 12px; color: #999; margin-top: 2px; }
+
+        /* ── 팔로우 검색/토글 바 ── */
+        .follow-bar { display: flex; gap: 8px; margin-top: 14px; }
+        .follow-input {
+            flex: 1; min-width: 0; padding: 9px 14px; border: 1px solid #dbdbdb;
+            border-radius: 99px; font-size: 13px; font-family: inherit; outline: none;
+            transition: border-color .2s;
+        }
+        .follow-input:focus { border-color: #6071E3; }
+        .follow-btn {
+            padding: 9px 20px; border: none; border-radius: 99px; cursor: pointer;
+            font-size: 13px; font-weight: 700; font-family: inherit; white-space: nowrap;
+            color: white; background: linear-gradient(45deg,#c724b1,#6071E3);
+            transition: transform .15s, opacity .2s;
+        }
+        .follow-btn:hover { opacity: .9; }
+        .follow-btn:active { transform: scale(.96); }
+        .follow-btn:disabled { opacity: .6; cursor: not-allowed; }
+        /* 이미 팔로우 중일 때 인스타그램처럼 아웃라인 스타일로 전환 */
+        .follow-btn.following {
+            background: white; color: #262626; border: 1px solid #dbdbdb;
+        }
 
         .menu-list { list-style: none; }
         .menu-list li { border-bottom: 1px solid #f0ebe6; }
@@ -308,16 +340,14 @@
                     <h3 style="font-size:22px;font-weight:800;color:#1E3A5F;margin-bottom:4px;"
                         th:text="${user != null ? user.username : session.SS_USER_NAME}">닉네임</h3>
                     <p style="font-size:14px;color:#888;" th:text="${user != null ? user.userId : session.SS_USER_ID}">아이디</p>
-                    <div style="display:flex;gap:16px;margin-top:10px;">
-                        <span style="font-size:14px;color:#555;">팔로워 <b id="followerCount" style="color:#6071E3;">-</b></span>
-                        <span style="font-size:14px;color:#555;">팔로잉 <b id="followingCount" style="color:#6071E3;">-</b></span>
+                    <div class="ig-stats">
+                        <div class="ig-stat"><span class="ig-num" id="followerCount">-</span><span class="ig-lbl">팔로워</span></div>
+                        <div class="ig-stat"><span class="ig-num" id="followingCount">-</span><span class="ig-lbl">팔로잉</span></div>
                     </div>
-                    <div style="display:flex;gap:8px;margin-top:14px;">
-                        <input type="text" id="followTargetInput" placeholder="팔로우할 아이디 입력"
-                               style="flex:1;min-width:0;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;">
-                        <button id="followBtn" onclick="toggleFollow()"
-                                style="padding:8px 18px;border:none;border-radius:8px;background:#6071E3;color:white;
-                                       font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">팔로우</button>
+                    <div class="follow-bar">
+                        <input type="text" id="followTargetInput" class="follow-input" placeholder="팔로우할 아이디 입력"
+                               onkeydown="if(event.key==='Enter') toggleFollow();">
+                        <button id="followBtn" class="follow-btn" onclick="toggleFollow()">팔로우</button>
                     </div>
                 </div>
             </div>
@@ -622,6 +652,10 @@
                     return;
                 }
                 showMypageToast(data.following ? `✅ ${targetId}님을 팔로우했습니다.` : `✅ ${targetId}님 팔로우를 취소했습니다.`);
+                // 인스타그램처럼 팔로우 성공 시 버튼을 잠깐 '팔로잉' 아웃라인 스타일로 표시
+                btn.classList.toggle('following', data.following);
+                btn.textContent = data.following ? '팔로잉' : '팔로우';
+                setTimeout(() => { btn.classList.remove('following'); btn.textContent = '팔로우'; }, 1500);
                 input.value = '';
                 loadFollowCounts();
             })
