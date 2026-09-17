@@ -15,11 +15,15 @@ public class EncryptUtil {
     //비밀번호 해싱할떄 뒤에 붙이는 문자열, 비밀번호 + 비밀 문자열 합침
     private static final String ADD_MESSAGE = "FROM_SALT_2025";
 
-    //벡터 초기화
-    private static final String IV = "1234567890123456";
+    // AES 키/IV는 소스에 하드코딩하지 않고 EncryptUtilInitializer가 부팅 시점에
+    // encrypt.aes.key/encrypt.aes.iv(${ENCRYPT_AES_KEY}/${ENCRYPT_AES_IV}) 값으로 채워준다.
+    private static String iv;
+    private static String key;
 
-    // 비밀키 고정값
-    private static final String KEY = "FromProjectKey16";
+    public static void init(String aesKey, String aesIv) {
+        key = aesKey;
+        iv = aesIv;
+    }
 
 
 
@@ -45,8 +49,8 @@ public class EncryptUtil {
     public static String encryptAES(String str) {
         try {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            SecretKeySpec keySpec = new SecretKeySpec(KEY.getBytes(StandardCharsets.UTF_8), "AES");
-            IvParameterSpec ivSpec = new IvParameterSpec(IV.getBytes(StandardCharsets.UTF_8));
+            SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
+            IvParameterSpec ivSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
             byte[] encrypted = cipher.doFinal(str.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(encrypted);
@@ -60,8 +64,8 @@ public class EncryptUtil {
     public static String decryptAES(String str) {
         try {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            SecretKeySpec keySpec = new SecretKeySpec(KEY.getBytes(StandardCharsets.UTF_8), "AES");
-            IvParameterSpec ivSpec = new IvParameterSpec(IV.getBytes(StandardCharsets.UTF_8));
+            SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
+            IvParameterSpec ivSpec = new IvParameterSpec(iv.getBytes(StandardCharsets.UTF_8));
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
 
             // Base64 디코딩 후 AES 복호화
