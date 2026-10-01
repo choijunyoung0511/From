@@ -675,7 +675,7 @@
 
         const btn = document.getElementById('followBtn');
         btn.disabled = true;
-
+        //fetch방식 브라우저에서 서버로 HTTP요청 보냄
         fetch(`/user/${encodeURIComponent(targetId)}/follow`, { method: 'POST' })
             .then(r => r.json().then(data => ({ ok: r.ok, data })))
             .then(({ ok, data }) => {

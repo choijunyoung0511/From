@@ -31,6 +31,7 @@ public class FollowService implements IFollowService {
     @Override
 
     //toggleFollow로직임 타입결과는 DTO로,매개변수2개는 followerId: 팔로우를 하는사람,follwoingId:팔로우를 당하는 사람
+    //컨트롤러의 userId,targetUserId 가져옴 userId -> followrId, targetUserId -> followingId
     public FollowToggleDto toggleFollow(String followerId, String followingId) {
         log.info("{}.toggleFollow Start!", this.getClass().getName());
 
