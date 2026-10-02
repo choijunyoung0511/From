@@ -23,7 +23,27 @@ public class BoardService implements IBoardService {
     //작성자 닉네임 조회를 위해 UserInfoRepository를 주입 받음 (FollowService와 동일한 패턴)
     private final UserInfoRepository userInfoRepository;
 
-    //게시글 엔터티를 화면 표시용 DTO로 변환. 작성자 닉네임은 없으면 아이디로 대체(Optional 처리)
+
+
+
+    @Override
+    public List<BoardDto> findAll() {
+        log.info("{}.findAll Start!", this.getClass().getName());
+        //DBB에서 작성일 내림차순으로 조회
+        List<BoardDto> result = boardRepository.findAllByOrderByCreatedAtDesc()
+                //조회한 글들을 처리할 흐름 생성
+                .stream()
+                //각 Entity를 DTO로 반환
+                .map(this::toDto)
+                //dto를 리스트에 담음
+                .toList();
+        log.info("{}.findAll End!", this.getClass().getName());
+        return result;
+    }
+
+    //목록조회 여러 글을 담는 리스트
+    //게시글 엔터티 하나를 화면 표시용 DTO로 변환. 작성자 닉네임은 없으면 아이디로 대체(Optional 처리)
+    //엔터티를 DTO로 변환하는 코드임
     private BoardDto toDto(BoardEntity entity) {
         String writer = userInfoRepository.findByUserId(entity.getUserId())
                 .map(user -> Optional.ofNullable(user.getUsername()).orElse(entity.getUserId()))
@@ -40,15 +60,7 @@ public class BoardService implements IBoardService {
         );
     }
 
-    @Override
-    public List<BoardDto> findAll() {
-        log.info("{}.findAll Start!", this.getClass().getName());
-        List<BoardDto> result = boardRepository.findAllByOrderByCreatedAtDesc().stream()
-                .map(this::toDto)
-                .toList();
-        log.info("{}.findAll End!", this.getClass().getName());
-        return result;
-    }
+
 
     @Override
     public Optional<BoardDto> findById(Long id) {
@@ -73,7 +85,8 @@ public class BoardService implements IBoardService {
     }
 
     @Override
-    @Transactional
+    @Transactional //메서드 안의 DB작업을 하나의 작업 단위로 묶어 처리하도록 스프링에 알려주는 어노테이션
+                   //JPA가 조회한 Entity의 처음 상태를 기억하고 있다가 바뀐부분을 찾아 DB에 반영 (변경 감지)
     public boolean update(Long id, String userId, String title, String content) {
         log.info("{}.update Start!", this.getClass().getName());
 

@@ -43,10 +43,16 @@ public class BoardController {
         if (board.isEmpty()) {
             return "redirect:/board"; //존재하지 않는 게시글이면 목록으로 이동
         }
+        //글이 존재하면 isEmpty()는 false if 안으로 들어가지 않음 if 다음 코드 실행
 
+
+
+        // 세션에 로그인한 사용자 ID 확인,isOwner는 이글의 작성자 본인인지 확인
         String sessionUserId = (String) session.getAttribute("SS_USER_ID");
         boolean isOwner = sessionUserId != null && sessionUserId.equals(board.get().userId());
 
+
+        //model은 html 화면을 만들떄 사용할 데이터를담는 객체
         model.addAttribute("board", board.get());
         model.addAttribute("isOwner", isOwner);
 
@@ -70,15 +76,21 @@ public class BoardController {
                          HttpSession session) {
         log.info("{}.write Start!", this.getClass().getName());
 
+
+        //작성자 아이디는 입력칸에서 받지 않고 로그인 세션에서 가져옴
         String userId = (String) session.getAttribute("SS_USER_ID");
+
+        //아이디가 널이면 로그인 화면으로 리턴
         if (userId == null) return "redirect:/user/login";
 
+
+        //제목이나 내용 중 하나라도 비어있으면 저장하지않고 작성페이지로 이동
         String safeTitle = CmmUtil.nvl(title);
         String safeContent = CmmUtil.nvl(content);
         if (safeTitle.isEmpty() || safeContent.isEmpty()) {
-            return "redirect:/board/write"; //제목/내용 공백 방지
+            return "redirect:/board/write";
         }
-
+        //서비스에게 저장 코드 넘김
         Long id = boardService.save(userId, safeTitle, safeContent);
 
         log.info("{}.write End!", this.getClass().getName());

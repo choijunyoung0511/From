@@ -25,9 +25,11 @@
 <body>
 <div th:replace="~{layout/navbar :: navbar}"></div>
 
+<!--31줄부터 시작-->
 <div class="board-container">
     <div class="board-header">
         <div class="page-title">📋 독서 게시판</div>
+
         <a th:href="@{/board/write}" class="btn btn-primary btn-sm">✏️ 글쓰기</a>
     </div>
 

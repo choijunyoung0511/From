@@ -42,6 +42,8 @@ public class BoardEntity {
     @Column
     private LocalDateTime updatedAt;
 
+
+    //새 글을 처음 저장할때 JPA가 호출해서 작성일과 수정일을 현재 시각으로 설정
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
