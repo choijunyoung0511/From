@@ -32,7 +32,7 @@ public class WeatherService implements IWeatherService {
     @Value("${weather.api.key}")
     private String apiKey;
 
-    // 기상청 API 허브 기본 주소 (문서상 host/path가 다르면 application.properties에서 덮어쓰면 됨)
+    // 기상청 API 허브 기본 주소
     @Value("${weather.api.base-url:https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0}")
     private String baseUrl;
 
@@ -53,6 +53,7 @@ public class WeatherService implements IWeatherService {
     //인터페이스 에서 선언한 getUltraShortForecast를 현재 클래스에서 재정의해서 구현
     //매개변수없이 초단기예보를 조회하고 조회결과를 여러개의 WeatherForecastDto가 담긴 List 형태
     public List<WeatherForecastDto> getUltraShortForecast() {
+        //질문 보내기 + 답장 받기
         //다른클래스 에서도 사용할수 있게 public(WeatherController에서 사용)
         log.info("{}.getUltraShortForecast Start!", this.getClass().getName());
         //최종 날씨 결과들을 담아둘 빈 List객체를 만드는 코드임
@@ -107,6 +108,7 @@ public class WeatherService implements IWeatherService {
     }
 
     // 기상청 응답은 (시각, 카테고리) 조합이 각각 별도 item으로 오기 때문에
+    // 답장 정리
     // fcstTime을 기준으로 묶어서 하나의 시간대별 DTO로 재구성한다
     private List<WeatherForecastDto> parseForecast(String json) throws Exception {
         //매서드 이름이 paeseForecast임 받은 데이터를 분석해서 필요한 형태로 변환

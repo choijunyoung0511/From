@@ -439,7 +439,7 @@
     (function loadWeatherWidget() {
         const SKY_ICON = { "맑음": "☀️", "구름많음": "⛅", "흐림": "☁️" };
         const PTY_ICON = { "비": "🌧️", "비/눈": "🌨️", "눈": "❄️", "소나기": "🌦️" };
-
+//fetch()로 우리 서버에 요청 보내기
         fetch('/weather/forecast', { method: 'POST' })
             .then((res) => res.ok ? res.json() : Promise.reject())
             .then((forecasts) => {
