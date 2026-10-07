@@ -61,6 +61,7 @@ public class LibraryService implements ILibraryService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
+    //인기 대출 도서 기능
     public List<PopularBookDto> getPopularBooks() {
         log.info("{}.getPopularBooks Start!", this.getClass().getName());
 
@@ -75,7 +76,7 @@ public class LibraryService implements ILibraryService {
                     .uri(b -> b.path("/loanItemSrch")
                             .queryParam("authKey", apiKey)
                             .queryParam("pageNo", 1)
-                            .queryParam("pageSize", POPULAR_LIMIT)
+                            .queryParam("pageSize", POPULAR_LIMIT) //10권 제한
                             .queryParam("format", "json")
                             .build())
                     .retrieve()
@@ -83,6 +84,10 @@ public class LibraryService implements ILibraryService {
                     .block();
 
             JsonNode root = objectMapper.readTree(json);
+            //JsonNode 트리로 읽음
+            // unwrapArray() -> 목록이 배열 또는 단일 객체로 와도 반복해서 처리할 수있음
+            // unwrapSingle -> 각 항목이 doc으로 감싸져 있으면 안쪽 책 데이터를 꺼냄
+            //반복문으로 책 하나씩 dto생성
             for (JsonNode entry : unwrapArray(root.path("response").path("docs"))) {
                 JsonNode doc = unwrapSingle(entry, "doc");
                 result.add(PopularBookDto.builder()
@@ -92,7 +97,7 @@ public class LibraryService implements ILibraryService {
                         .publisher(doc.path("publisher").asText(""))
                         .isbn13(doc.path("isbn13").asText(""))
                         .bookImageUrl(doc.path("bookImageURL").asText(""))
-                        .loanCount(doc.path("loan_count").asInt(0))
+                        .loanCount(doc.path("loan_count").asInt(0)) //대출 횟수
                         .build());
                 if (result.size() >= POPULAR_LIMIT) break;
             }
@@ -105,7 +110,11 @@ public class LibraryService implements ILibraryService {
         return result;
     }
 
+
+
+
     @Override
+    //3번 대출 가능 여부 확인
     public LibraryBookAvailabilityDto checkBookAvailability(String libCode, String isbn13) {
         log.info("{}.checkBookAvailability Start! - libCode:{}, isbn13:{}", this.getClass().getName(), libCode, isbn13);
 
@@ -157,6 +166,7 @@ public class LibraryService implements ILibraryService {
 
     // null = API 실패, 빈 리스트 = 검색 결과 없음
     @Override
+    //책 찾는 단계
     public List<LibraryBookSearchDto> searchBooks(String title) {
         log.info("{}.searchBooks Start! - title:{}", this.getClass().getName(), title);
 
@@ -211,6 +221,7 @@ public class LibraryService implements ILibraryService {
     }
 
     // null = API 실패, 빈 리스트 = 해당 지역에 소장 도서관 없음
+    //2단계 책의 ISBN과 지역코드 이용
     @Override
     public List<LibraryDto> findLibrariesByBook(String isbn13, String regionCode) {
         log.info("{}.findLibrariesByBook Start! - isbn13:{}, regionCode:{}", this.getClass().getName(), isbn13, regionCode);

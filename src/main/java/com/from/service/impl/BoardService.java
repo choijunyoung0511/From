@@ -27,9 +27,11 @@ public class BoardService implements IBoardService {
 
 
     @Override
+    //작성된 글 목록 정렬
+    //레포지토리에서 작성일 내림차순으로 엔터티 목록 조회 -> 엔터티를 toDto()로 변환-> dto 목록을 컨트롤러에 반환 model에 담아 화면에 표시
     public List<BoardDto> findAll() {
         log.info("{}.findAll Start!", this.getClass().getName());
-        //DBB에서 작성일 내림차순으로 조회
+        //DB에서 작성일 내림차순으로 조회
         List<BoardDto> result = boardRepository.findAllByOrderByCreatedAtDesc()
                 //조회한 글들을 처리할 흐름 생성
                 .stream()
@@ -41,7 +43,7 @@ public class BoardService implements IBoardService {
         return result;
     }
 
-    //목록조회 여러 글을 담는 리스트
+
     //게시글 엔터티 하나를 화면 표시용 DTO로 변환. 작성자 닉네임은 없으면 아이디로 대체(Optional 처리)
     //엔터티를 DTO로 변환하는 코드임
     private BoardDto toDto(BoardEntity entity) {
@@ -70,9 +72,12 @@ public class BoardService implements IBoardService {
         return result;
     }
 
+
+    //글 쓴거 저장
     @Override
     public Long save(String userId, String title, String content) {
         log.info("{}.save Start!", this.getClass().getName());
+        //엔터티를 만듬
         BoardEntity saved = boardRepository.save(
                 BoardEntity.builder()
                         .userId(userId)

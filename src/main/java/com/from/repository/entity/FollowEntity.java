@@ -21,11 +21,11 @@ public class FollowEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //나를 팔로우 하는 사람 수
+    //나를 팔로우 하는 사람
     @Column(nullable = false, length = 20)
     private String followerId;
 
-    //내가 팔로우 하는 사람 수
+    //내가 팔로우 하는 사람
     @Column(nullable = false, length = 20)
     private String followingId;
 }

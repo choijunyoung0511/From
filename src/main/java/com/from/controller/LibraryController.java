@@ -87,6 +87,7 @@ public class LibraryController {
         }
 
         // STEP 3: 대출 가능 여부 확인 - 도서관(libCode)까지 선택된 경우
+        // ISBN과 도서관 코드를 서버에 보냄
         if (!isbn13.isBlank() && !libCode.isBlank()) {
             model.addAttribute("selectedLibName", libName);
             model.addAttribute("selectedLibAddress", libAddress);
@@ -103,6 +104,10 @@ public class LibraryController {
         return "library/main";
     }
 
+
+
+
+
     // [GET] /library/ranking - 인기대출도서 페이지
     @GetMapping("/ranking")
     public String ranking(Model model) {
@@ -117,6 +122,7 @@ public class LibraryController {
     // [GET] /library/search - 도서관명으로 도서관 검색 (JSON). libCode는 응답에 포함되지만
     // 화면에는 노출하지 않고, 사용자가 도서관을 선택했을 때 내부적으로만 사용한다
     // 정보나루 도서관 목록 API 자체가 불안정할 수 있어 실패(null)와 "일치하는 도서관 없음"(빈 리스트)을 구분해 응답한다
+
     @GetMapping("/search")
     @ResponseBody
     public ResponseEntity<?> searchLibraries(@RequestParam(required = false, defaultValue = "") String libName) {

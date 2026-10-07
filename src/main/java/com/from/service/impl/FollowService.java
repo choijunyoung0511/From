@@ -57,7 +57,11 @@ public class FollowService implements IFollowService {
             following = false;
         } else {
             //팔로우중이 아닐경우에는 저장해라
-            followRepository.save(FollowEntity.builder().followerId(followerId).followingId(followingId).build());
+            followRepository.save(FollowEntity
+                    .builder()
+                    .followerId(followerId)
+                    .followingId(followingId)
+                    .build());
             following = true;
         }
 

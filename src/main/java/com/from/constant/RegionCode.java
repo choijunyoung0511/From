@@ -2,6 +2,7 @@ package com.from.constant;
 
 // 도서관 정보나루 API의 지역코드(region). 화면에는 지역명만 노출하고,
 // libSrchByBook 등 API 호출 시 필요한 코드로 변환하는 용도로 한 곳에서만 관리한다
+// 지역처럼 사용할 값들이 정해져 있고 각 값에 이름과 코드를 함꼐 묶어두기 좋아서 enum사용
 public enum RegionCode {
 
     SEOUL("서울", "11"),
