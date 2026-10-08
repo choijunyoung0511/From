@@ -22,6 +22,7 @@ public class WeatherController {
     //Servie가 이 클래스 내부에서만 접근 가능하다고 제안
     //IWeatherService타입의 weatherService를 선언하고 외부접근 제한
     //위에서 RequiredArgsConstructor를 선언함 final로 선언된 필드의 생성자를 자동으로 만들어줌
+    //1008경으로 발표 끝
 
     private final IWeatherService weatherService;
 
